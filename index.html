@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Document</title>
+</head>
+<body>
+    <style>
+        tbody{
+            display: flex;
+        }
+        td{
+            padding: 2px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+         tr td {
+            display: block !important;
+            font-size: 16px;
+            font-weight: 400;
+        }
+    </style>
+</body>
+</html>
+<table border="1" cellpadding="0" cellspacing="0" width="98%">
+    <tbody><tr>
+        <td align="center" style="padding: 5px;"># Замовлення</td>
+        <td align="center" style="padding: 5px;">Менеджер</td>
+        <td align="center" style="padding: 5px;">Товар</td>
+        <td align="center" style="padding: 5px;">Адрес</td>
+        <td align="center" style="padding: 5px;">Уточнення</td>
+        <td align="center" style="padding: 5px;">Постачальник</td>
+        <td align="center" style="padding: 5px;">Відповідь</td>
+        <td align="center" style="padding: 5px;">Видал.</td>
+        <td align="center" style="padding: 5px;">Резерв</td>
+        <td align="center" style="padding: 5px;">Картинки</td>
+    </tr>
+    <tr>
+        <td align="center" style="padding: 5px; background-color: #dff1fe;"><span onclick="Orders(1100051);" style="cursor: pointer; font-weight: bold;"># 1100051 (348303)</span></td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe"><span title="2 хвилини тому">Майданевич Таїсія Анатоліївна</span></td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">Датчик температури Moulinex SS-994492 (56.28.0001)</td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">G-2.4.4</td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">Уточнення наявності</td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">
+        По базе: 1<br>В заказі: 1            </td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe" id="eleborationAnswer348303"><input type="text" id="elaborationInput348303" style="width: 100px; border: solid 1px #adadad; border-radius: 3px; padding: 2px; margin-left: 10px;"><button onclick="addElaborationAnswer(348303,0)">збер.</button></td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">
+
+        </td>
+    </tr>
+</tbody></table>
