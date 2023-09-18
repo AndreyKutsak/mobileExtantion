@@ -67,7 +67,6 @@ if (loginInp === null) {
 		return replacedString;
 	};
 	let loadElaboration = () => {
-		console.log("Завантаження розширення розпочалося");
 		let elaborationData;
 		let newTableWraper = document.createElement("div");
 		newTableWraper.className = "new-table-wraper";
@@ -87,6 +86,7 @@ if (loginInp === null) {
 					"orderManager",
 					"positionName",
 					"positionPlace",
+					"elaborationType",
 					"positionQuality",
 					"reserveQuality",
 					"searchQuery",
@@ -96,12 +96,18 @@ if (loginInp === null) {
 				let tableRows = Array.from(
 					elaborationData.querySelectorAll("table>tbody>tr")
 				);
-
+				tableRows.shift();
 				data = tableRows.map((row) => {
 					let rowData = {};
 					let rowCells = Array.from(row.querySelectorAll("td"));
 
 					rowCells.forEach((cell, index) => {
+						// if (cell.textContent == "Уточнення наявності") {
+						// 	delete rowCells[index];
+						// 	return;
+						// } else {
+						// 	console.log(cell.textContent);
+						// }
 						rowData[cellNames[index]] = cell.textContent.trim();
 						if (cellNames[index] == "searchQuery") {
 							let result = rowData["positionName"].replace(/\([^)]+\)/g, "");
@@ -113,9 +119,7 @@ if (loginInp === null) {
 				});
 
 				data.forEach((query, key) => {
-					if (key == 0) {
-						return false;
-					}
+					console.log(key);
 					var request = new URLSearchParams();
 					request.append("search", query.searchQuery);
 					request.append("search_sel", "0");
@@ -152,11 +156,13 @@ if (loginInp === null) {
 							let imgSrc = [];
 							let imgLink = [];
 							images.forEach((img) => {
-								imgSrc.push(img.rel);
+								imgSrc.push(img.getAttribute("rel"));
 								imgLink.push(`https://baza.m-p.in.ua${img.alt}`);
 							});
-							data.reserveQuality = reserve.textContent;
-							data.imagesSrc = imgSrc;
+							console.log(data);
+
+							data[key].reserveQuality = reserve.textContent;
+							data[key].imagesSrc = imgSrc;
 							generateTable(data);
 						});
 				});
@@ -182,7 +188,6 @@ if (loginInp === null) {
 			}
 		};
 		let generateTable = (data) => {
-			console.log(data);
 			data.forEach((rowData) => {
 				let images = "";
 				rowData.imagesSrc.forEach((imgSrc) => {
@@ -244,9 +249,11 @@ if (loginInp === null) {
 				// Обробляємо зміни
 				let children = Array.from(mutation.target.querySelectorAll("div"));
 				children.forEach((el) => {
-					if (el.textContent.includes == "Уточнення") {
+					if (el.textContent.includes("Є уточнення:")) {
 						el.id = "elaborationLink";
-						elaborationLink.addEventListener("click", loadElaboration);
+
+						el.removeEventListener("click", loadElaboration);
+						el.addEventListener("click", loadElaboration);
 					}
 				});
 			}
@@ -260,6 +267,4 @@ if (loginInp === null) {
 		characterData: true, // Відстежувати зміни текстового вмісту
 		subtree: true, // Відстежувати зміни в піддереві
 	});
-
-	loadElaboration();
 }
