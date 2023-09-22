@@ -345,7 +345,7 @@ window.addEventListener("load", () => {
 	meta.setAttribute("content", `width=device-width, initial-scale=1.0`);
 	head.appendChild(meta);
 	let loginInp = document.querySelector("#loginB1");
-	console.log(loginInp);
+
 	if (loginInp !== null) {
 		return false;
 	}
@@ -372,6 +372,9 @@ window.addEventListener("load", () => {
 	// URL
 	let bazaURL = "https://baza.m-p.in.ua/ajax/magaz.php";
 	let elaborationURL = "https://baza.m-p.in.ua/ajax/loadElaboration.php";
+	let addElaborationURL =
+		"https://baza.m-p.in.ua/ajax/addElaborationAnswer.php";
+
 	let searchURL = "https://baza.m-p.in.ua/ajax/search.php";
 	let elaborationInterval = 10;
 	let btnWraper = document.createElement("div");
@@ -388,31 +391,22 @@ window.addEventListener("load", () => {
 	elabortionCount.className = "elaboration-count counter";
 	elaborationBtn.appendChild(elabortionCount);
 	// patterns
-	let elaborationPattern = /Є Уточнення: (\d+)/;
+	let elaborationPattern = /Є уточнення: (\d+) шт\./;
 
 	let parser = (text) => {
 		let domParser = new DOMParser();
 		let doc = domParser.parseFromString(text, "text/html");
 		return doc;
 	};
-
-	let elabotarions = () => {
-		let elaborationData = [];
-		// contentWraper.appendChild(preloaderWraper);
-		let generateElaboration = (data) => {
-			if (data.length > 0) {
-			} else {
-				contentWraper.innerHTML = "";
-				let elaborationTitle = document.createElement("p");
-				elaborationTitle.className = "elaboration-title content-title";
-				elaborationTitle.textContent = "Зараз немає Уточнень";
-				contentWraper.appendChild(elaborationTitle);
-			}
-		};
-		generateElaboration([]);
+	let getOrderId = (number) => {
+		const regex = /\((\d+)\)/;
+		const match = number.match(regex);
+		if (match && match.length >= 2) {
+			return parseInt(match[1], 10);
+		}
+		return null;
 	};
-	// check Elabotarions count
-	setInterval(() => {
+	let checkElaborations = () => {
 		fetch(bazaURL, {
 			method: "POST",
 		})
@@ -424,14 +418,344 @@ window.addEventListener("load", () => {
 				let responceItems = Array.from(parserResponce.querySelectorAll("div"));
 
 				responceItems.forEach((item) => {
-					let elaborationResult = elaborationPattern.exec(item.textContent);
+					let elaborationResult = item.textContent.match(elaborationPattern);
 					if (elaborationResult !== null) {
 						elabortionCount.innerText = elaborationResult[1];
 						elabortionCount.style.display = "block";
 					}
 				});
 			});
-	}, elaborationInterval * 1000);
+	};
+	let addElaborationAnswer = (e) => {
+		let elaboration = new URLSearchParams();
+		let orderNumber = e.target.dataset.orderNumber;
+		let elaborationInp = document.getElementById(
+			`elaborationInput${orderNumber}`
+		);
+		let count = Number(elaborationInp.dataset.count);
+		if (elaborationInp.value == "") {
+			alert("Введи коректну відповідь");
+			return false;
+		}
+		if (count > Number(getNum(elaborationInp.value))) {
+			alert(" Сподіваюся ти був уважним");
+		}
+
+		elaboration.append("text", elaborationInp.value);
+		elaboration.append("id", e.target.dataset.orderNumber);
+
+		fetch(addElaborationURL, {
+			method: "POST",
+			body: elaboration,
+		})
+			.then((res) => {
+				return res.text();
+			})
+			.then((responce) => {
+				if (responce == "ok") {
+					elaborationInp.parentNode.parentNode.classList.add("success");
+					elaborationInp.remove();
+					e.target.remove();
+				} else alert("Помилка");
+				console.log(responce);
+			})
+			.catch((err) => {
+				console.log(err);
+			});
+	};
+	let checkAnswer = (e) => {
+		e.preventDefault();
+		let answer = e.target.value;
+		let count = Number(e.target.dataset.count);
+
+		if (getNum(answer) > count) {
+			e.target.parentNode.parentNode.classList.add("warn");
+			alert("Переввір ще раз,І не забудь вказати лишки в пересорт");
+		}
+		if (getNum(answer) < count) {
+			e.target.parentNode.parentNode.classList.add("danger");
+		}
+		if (getNum(answer) === count) {
+			e.target.parentNode.parentNode.classList.remove("warn");
+			e.target.parentNode.parentNode.classList.remove("danger");
+		}
+	};
+	function getNum(inputString) {
+		const regex = /\d+/;
+		const matches = inputString.match(regex);
+
+		if (matches && matches.length > 0) {
+			return parseInt(matches[0], 10);
+		}
+
+		return null; // Повертаємо null, якщо число не знайдено в рядку
+	}
+	let getGoodsCount = (data) => {
+		const regex = /По базе: (\d+)В заказі: (\d+)/;
+		const matches = data.match(regex);
+		if (matches && matches.length >= 3) {
+			const baseCount = parseInt(matches[1], 10);
+			const orderCount = parseInt(matches[2], 10);
+			console.log(`По базе: ${baseCount}`);
+			console.log(`В заказі: ${orderCount}`);
+			return { baseCount: baseCount, orderCount: orderCount };
+		}
+	};
+	let generateElaboration = (data) => {
+		contentWraper.innerHTML = "";
+		if (data.length > 0) {
+			data.forEach((row) => {
+				let tableWraper = document.createElement("div");
+				tableWraper.className = "table-wraper";
+				// order number
+				let orderNumberRow = document.createElement("div");
+				orderNumberRow.className = "table-row";
+				let orderNumberDesc = document.createElement("div");
+				orderNumberDesc.className = "table-row";
+				orderNumberDesc.textContent = "Номер Замовлення";
+				let orderNumberText = document.createElement("div");
+				orderNumberText.className = "table-text";
+				orderNumberText.textContent = row.orderNumber;
+				orderNumberRow.appendChild(orderNumberDesc);
+				orderNumberRow.appendChild(orderNumberText);
+				// order manager
+				let managerRow = document.createElement("div");
+				managerRow.className = "table-row";
+				let managerDesc = document.createElement("div");
+				managerDesc.className = "table-text";
+				managerDesc.textContent = "Менеджер";
+				let managerName = document.createElement("div");
+				managerName.className = "table-text";
+				managerName.textContent = row.orderManager;
+				managerRow.appendChild(managerDesc);
+				managerRow.appendChild(managerName);
+				// position name
+				let positionNameRow = document.createElement("div");
+				positionNameRow.className = "table-row";
+				let positionNameDesc = document.createElement("div");
+				positionNameDesc.className = "table-text";
+				positionNameDesc.textContent = "Імя товару";
+				let positionNameText = document.createElement("div");
+				positionNameText.className = "table-text";
+				positionNameText.textContent = row.positionName;
+				positionNameRow.appendChild(positionNameDesc);
+				positionNameRow.appendChild(positionNameText);
+				// position place
+				let placeRow = document.createElement("div");
+				placeRow.className = "table-row";
+				let placeDesc = document.createElement("div");
+				placeDesc.className = "table-text";
+				placeDesc.textContent = "Місце";
+				let placeText = document.createElement("div");
+				placeText.className = "table-text";
+				placeText.textContent = row.positionPlace;
+				placeRow.appendChild(placeDesc);
+				placeRow.appendChild(placeText);
+
+				// elaboration type
+				let elaborationTypeRow = document.createElement("div");
+				elaborationTypeRow.className = "table-row";
+				let elaborationTypeDesc = document.createElement("div");
+				elaborationTypeDesc.className = "table-text";
+				elaborationTypeDesc.textContent = "Тип Уточнення";
+				let elaborationTypeText = document.createElement("div");
+				elaborationTypeText.className = "table-text";
+				elaborationTypeText.textContent = row.elaborationType;
+				elaborationTypeRow.appendChild(elaborationTypeDesc);
+				elaborationTypeRow.appendChild(elaborationTypeText);
+				// position quality
+				let positionQualityRow = document.createElement("div");
+				positionQualityRow.className = "table-row";
+				let positionQualityDesc = document.createElement("div");
+				positionQualityDesc.className = "table-text";
+				positionQualityDesc.textContent = "Клас товару";
+				let positionQualityText = document.createElement("div");
+				positionQualityText.className = "table-text";
+				positionQualityText.textContent = row.positionQuality;
+				positionQualityRow.appendChild(positionQualityDesc);
+				positionQualityRow.appendChild(positionQualityText);
+				// reserve quality
+				let reserveQualityRow = document.createElement("div");
+				reserveQualityRow.className = "table-row";
+				let reserveQualityDesc = document.createElement("div");
+				reserveQualityDesc.className = "table-text";
+				reserveQualityDesc.textContent = "Резерв";
+				let reserveQualityText = document.createElement("div");
+				reserveQualityText.className = "table-text";
+				reserveQualityText.textContent = row.reserveQuality;
+				reserveQualityRow.appendChild(reserveQualityDesc);
+				reserveQualityRow.appendChild(reserveQualityText);
+				// input row
+				let inputRow = document.createElement("div");
+				inputRow.className = "table-row";
+				let inputDesc = document.createElement("div");
+				inputDesc.className = "table-text";
+				inputDesc.textContent = "Вкажи Кількість";
+				let inputText = document.createElement("div");
+				inputText.className = "table-input-wraper";
+				let input = document.createElement("input");
+				input.className = "table-input";
+				input.dataset.count = getGoodsCount(row.positionQuality).baseCount;
+				input.type = "text";
+				input.placeholder = "Кількість";
+				input.id = `elaborationInput${getOrderId(row.orderNumber)}`;
+				let sendBtn = document.createElement("input");
+				sendBtn.type = "button";
+				sendBtn.value = "Відправити";
+				sendBtn.className = "send-btn";
+				sendBtn.dataset.orderNumber = getOrderId(row.orderNumber);
+				inputText.appendChild(input);
+				inputText.appendChild(sendBtn);
+				inputRow.appendChild(inputDesc);
+				inputRow.appendChild(inputText);
+				// image row
+				let imageRow = document.createElement("div");
+				imageRow.className = "table-row";
+				let imageDesc = document.createElement("div");
+				imageDesc.className = "table-text";
+				imageDesc.textContent = "Фото товару";
+				let imageWraper = document.createElement("div");
+				imageWraper.className = "image-wraper";
+
+				let images = row.imagesSrc.map((src, index) => {
+					let a = document.createElement("a");
+					a.href = row.imageLink[index];
+					let img = document.createElement("img");
+					img.src = src;
+					a.appendChild(img);
+					console.log(a);
+					return a;
+				});
+
+				images.forEach((image) => {
+					imageWraper.appendChild(image);
+				});
+
+				// Add event listeners
+				sendBtn.addEventListener("click", addElaborationAnswer);
+				input.addEventListener("input", checkAnswer);
+				// appending elements
+				tableWraper.appendChild(orderNumberRow);
+				tableWraper.appendChild(managerRow);
+				tableWraper.appendChild(positionNameRow);
+				tableWraper.appendChild(placeRow);
+				tableWraper.appendChild(elaborationTypeRow);
+				tableWraper.appendChild(positionQualityRow);
+				tableWraper.appendChild(reserveQualityRow);
+				tableWraper.appendChild(inputRow);
+				tableWraper.appendChild(imageWraper);
+				contentWraper.appendChild(tableWraper);
+			});
+		} else {
+			let elaborationTitle = document.createElement("p");
+			elaborationTitle.className = "elaboration-title content-title";
+			elaborationTitle.textContent = "Зараз немає Уточнень";
+			contentWraper.appendChild(elaborationTitle);
+		}
+	};
+	let elabotarions = async () => {
+		let keysStore = [
+			"orderNumber",
+			"orderManager",
+			"positionName",
+			"positionPlace",
+			"elaborationType",
+			"positionQuality",
+			"reserveQuality",
+			"searchQuery",
+			"imagesSrc",
+			"imageLink",
+		];
+
+		contentWraper.appendChild(preloaderWraper);
+
+		try {
+			// Виконуємо запит на elaborationURL
+			const responce = await fetch(elaborationURL, {
+				method: "POST",
+			});
+
+			if (!responce.ok) {
+				throw new Error(`Network response was not ok: ${responce.status}`);
+			}
+
+			const elaborationText = await responce.text();
+			const elaborationTable = parser(elaborationText);
+			const tableRow = Array.from(
+				elaborationTable.querySelectorAll("table>tbody>tr")
+			);
+			tableRow.shift();
+			const elaborationRow = tableRow.map((data) => {
+				let elaborationData = {};
+				let dataCells = Array.from(data.querySelectorAll("td"));
+				dataCells.forEach((td, tdIndex) => {
+					elaborationData[keysStore[tdIndex]] = td.textContent.trim();
+					if (keysStore[tdIndex] == "searchQuery") {
+						let result = elaborationData["positionName"].replace(
+							/\([^)]+\)/g,
+							""
+						);
+						elaborationData[keysStore[tdIndex]] = result.trim();
+					}
+				});
+				return elaborationData;
+			});
+
+			// Масив для зберігання обіцянок
+			const promises = [];
+
+			elaborationRow.forEach((data, key) => {
+				let request = new URLSearchParams();
+				request.append("search", data.searchQuery);
+				request.append("search_sel", "0");
+
+				// Додаємо обіцянку в масив
+				promises.push(
+					fetch(searchURL, {
+						method: "POST",
+						body: request,
+					})
+						.then((response) => {
+							if (!response.ok) {
+								throw new Error(
+									`Network response was not ok: ${response.status}`
+								);
+							}
+							return response.text();
+						})
+						.then((responseText) => {
+							let parseSearch = parser(responseText);
+							let reserve = parseSearch.querySelectorAll(".detPr >span")[1];
+
+							let images = Array.from(
+								parseSearch.querySelectorAll(".detImg>img")
+							);
+							let imgSrc = [];
+							let imgLink = [];
+							images.forEach((img) => {
+								imgSrc.push(img.getAttribute("rel"));
+								imgLink.push(`https://baza.m-p.in.ua${img.alt}`);
+							});
+							elaborationRow[key].reserveQuality = reserve.textContent;
+
+							elaborationRow[key].imagesSrc = imgSrc;
+							elaborationRow[key].imageLink = imgLink;
+						})
+				);
+			});
+
+			// Очікуємо завершення всіх обіцянок
+			await Promise.all(promises);
+
+			// Зараз можна викликати generateElaboration
+			generateElaboration(elaborationRow);
+		} catch (error) {
+			console.error(error);
+			// Обробка помилок
+		}
+	};
+	// check Elabotarions count
+	setInterval(checkElaborations, elaborationInterval * 1000);
 
 	// add event listeners forbuttons
 	elaborationBtn.addEventListener("click", elabotarions);
