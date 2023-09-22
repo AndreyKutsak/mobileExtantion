@@ -340,10 +340,10 @@
 // }
 window.addEventListener("load", () => {
 	let head = document.querySelector("head");
-	let meta = document.createElement("meta");
-	meta.name = "viewport";
-	meta.setAttribute("content", `width=device-width, initial-scale=1.0`);
-	head.appendChild(meta);
+	head.innerHTML = ` <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Мобільна База Замовлень</title>`;
 	let loginInp = document.querySelector("#loginB1");
 
 	if (loginInp !== null) {
@@ -511,7 +511,7 @@ window.addEventListener("load", () => {
 				let orderNumberRow = document.createElement("div");
 				orderNumberRow.className = "table-row";
 				let orderNumberDesc = document.createElement("div");
-				orderNumberDesc.className = "table-row";
+				orderNumberDesc.className = "table-desc";
 				orderNumberDesc.textContent = "Номер Замовлення";
 				let orderNumberText = document.createElement("div");
 				orderNumberText.className = "table-text";
@@ -522,7 +522,7 @@ window.addEventListener("load", () => {
 				let managerRow = document.createElement("div");
 				managerRow.className = "table-row";
 				let managerDesc = document.createElement("div");
-				managerDesc.className = "table-text";
+				managerDesc.className = "table-desc";
 				managerDesc.textContent = "Менеджер";
 				let managerName = document.createElement("div");
 				managerName.className = "table-text";
@@ -533,7 +533,7 @@ window.addEventListener("load", () => {
 				let positionNameRow = document.createElement("div");
 				positionNameRow.className = "table-row";
 				let positionNameDesc = document.createElement("div");
-				positionNameDesc.className = "table-text";
+				positionNameDesc.className = "table-desc";
 				positionNameDesc.textContent = "Імя товару";
 				let positionNameText = document.createElement("div");
 				positionNameText.className = "table-text";
@@ -544,7 +544,7 @@ window.addEventListener("load", () => {
 				let placeRow = document.createElement("div");
 				placeRow.className = "table-row";
 				let placeDesc = document.createElement("div");
-				placeDesc.className = "table-text";
+				placeDesc.className = "table-desc";
 				placeDesc.textContent = "Місце";
 				let placeText = document.createElement("div");
 				placeText.className = "table-text";
@@ -556,7 +556,7 @@ window.addEventListener("load", () => {
 				let elaborationTypeRow = document.createElement("div");
 				elaborationTypeRow.className = "table-row";
 				let elaborationTypeDesc = document.createElement("div");
-				elaborationTypeDesc.className = "table-text";
+				elaborationTypeDesc.className = "table-desc";
 				elaborationTypeDesc.textContent = "Тип Уточнення";
 				let elaborationTypeText = document.createElement("div");
 				elaborationTypeText.className = "table-text";
@@ -567,7 +567,7 @@ window.addEventListener("load", () => {
 				let positionQualityRow = document.createElement("div");
 				positionQualityRow.className = "table-row";
 				let positionQualityDesc = document.createElement("div");
-				positionQualityDesc.className = "table-text";
+				positionQualityDesc.className = "table-desc";
 				positionQualityDesc.textContent = "Клас товару";
 				let positionQualityText = document.createElement("div");
 				positionQualityText.className = "table-text";
@@ -578,7 +578,7 @@ window.addEventListener("load", () => {
 				let reserveQualityRow = document.createElement("div");
 				reserveQualityRow.className = "table-row";
 				let reserveQualityDesc = document.createElement("div");
-				reserveQualityDesc.className = "table-text";
+				reserveQualityDesc.className = "table-desc";
 				reserveQualityDesc.textContent = "Резерв";
 				let reserveQualityText = document.createElement("div");
 				reserveQualityText.className = "table-text";
@@ -589,7 +589,7 @@ window.addEventListener("load", () => {
 				let inputRow = document.createElement("div");
 				inputRow.className = "table-row";
 				let inputDesc = document.createElement("div");
-				inputDesc.className = "table-text";
+				inputDesc.className = "table-desc";
 				inputDesc.textContent = "Вкажи Кількість";
 				let inputText = document.createElement("div");
 				inputText.className = "table-input-wraper";
@@ -612,7 +612,7 @@ window.addEventListener("load", () => {
 				let imageRow = document.createElement("div");
 				imageRow.className = "table-row";
 				let imageDesc = document.createElement("div");
-				imageDesc.className = "table-text";
+				imageDesc.className = "table-desc";
 				imageDesc.textContent = "Фото товару";
 				let imageWraper = document.createElement("div");
 				imageWraper.className = "image-wraper";
