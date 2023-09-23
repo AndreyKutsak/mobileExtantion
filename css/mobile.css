@@ -11,6 +11,7 @@ body {
   padding: 0;
   margin: 0;
   overflow-x: hidden;
+  background-color: #e7eef7;
 }
 
 .preloader-wraper {
@@ -82,10 +83,12 @@ body {
 }
 
 .table-wraper {
-  border: 3px solid #202327;
   width: 98%;
-  margin: 15px auto;
-  background-color: #d2d9f0;
+  margin: 25px auto 0;
+  border-radius: 5px;
+  background-color: #ffffff;
+  box-shadow: 2px 2px 2px #dee6f2;
+  overflow: hidden;
 }
 .table-wraper .table-row {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
@@ -93,7 +96,8 @@ body {
   font-weight: 800;
   display: flex;
   justify-content: flex-start;
-  border: 2px solid #202327;
+  border-bottom: 2px solid #ebeef3;
+  color: #323b4f;
 }
 .table-wraper .table-row .table-desc {
   position: relative;
@@ -101,31 +105,12 @@ body {
   width: 35%;
   min-height: 100%;
 }
-.table-wraper .table-row .table-desc::after {
-  position: absolute;
-  right: 0;
-  top: 0;
-  content: "";
-  height: 100%;
-  width: 2px;
-  background-color: #202327;
-}
 .table-wraper .table-row .table-text,
 .table-wraper .table-row .table-input-wraper {
   position: relative;
   padding: 10px 15px;
   width: 75%;
   min-height: 100%;
-}
-.table-wraper .table-row .table-text::after,
-.table-wraper .table-row .table-input-wraper::after {
-  position: absolute;
-  left: 0;
-  top: 0;
-  content: "";
-  height: 100%;
-  width: 2px;
-  background-color: #202327;
 }
 .table-wraper .table-row .table-input-wraper {
   display: flex;
@@ -138,6 +123,7 @@ body {
   border: none;
   border-radius: 5px;
   width: 85%;
+  border: 2px solid #4c5769;
 }
 .table-wraper .table-row .table-input::-moz-placeholder {
   padding-left: 15px;
@@ -149,6 +135,10 @@ body {
   width: 15%;
   background-color: transparent;
   border: none;
+  padding: 5px;
+  border-radius: 2px;
+  background-color: #1cc879;
+  cursor: pointer;
 }
 .table-wraper .image-wraper {
   display: flex;

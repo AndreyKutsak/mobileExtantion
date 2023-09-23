@@ -389,6 +389,60 @@ window.addEventListener("load", () => {
 `;
 	let elabortionCount = document.createElement("span");
 	elabortionCount.className = "elaboration-count counter";
+	// question btn
+	let questionBtn = document.createElement("button");
+
+	questionBtn.className = "question-btn btn";
+	questionBtn.innerHTML = `<?xml version="1.0" encoding="iso-8859-1"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="40" height="40" x="0px" y="0px"
+	 viewBox="0 0 92 92" style="enable-background:new 0 0 92 92;" xml:space="preserve">
+<g>
+	<path style="fill:#fff;" d="M45.386,0.004C19.983,0.344-0.333,21.215,0.005,46.619c0.34,25.393,21.209,45.715,46.611,45.377
+		c25.398-0.342,45.718-21.213,45.38-46.615C91.656,19.986,70.786-0.335,45.386,0.004z M45.25,74l-0.254-0.004
+		c-3.912-0.116-6.67-2.998-6.559-6.852c0.109-3.788,2.934-6.538,6.717-6.538l0.227,0.004c4.021,0.119,6.748,2.972,6.635,6.937
+		C51.904,71.346,49.123,74,45.25,74z M61.705,41.341c-0.92,1.307-2.943,2.93-5.492,4.916l-2.807,1.938
+		c-1.541,1.198-2.471,2.325-2.82,3.434c-0.275,0.873-0.41,1.104-0.434,2.88l-0.004,0.451H39.43l0.031-0.907
+		c0.131-3.728,0.223-5.921,1.768-7.733c2.424-2.846,7.771-6.289,7.998-6.435c0.766-0.577,1.412-1.234,1.893-1.936
+		c1.125-1.551,1.623-2.772,1.623-3.972c0-1.665-0.494-3.205-1.471-4.576c-0.939-1.323-2.723-1.993-5.303-1.993
+		c-2.559,0-4.311,0.812-5.359,2.478c-1.078,1.713-1.623,3.512-1.623,5.35v0.457H27.936l0.02-0.477
+		c0.285-6.769,2.701-11.643,7.178-14.487C37.947,18.918,41.447,18,45.531,18c5.346,0,9.859,1.299,13.412,3.861
+		c3.6,2.596,5.426,6.484,5.426,11.556C64.369,36.254,63.473,38.919,61.705,41.341z"/>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+</svg>
+`;
+	let questionCountText = document.createElement("span");
+	questionCountText.className = "question-count-text";
+	questionBtn.appendChild(questionCountText);
 	elaborationBtn.appendChild(elabortionCount);
 	// patterns
 	let elaborationPattern = /Є уточнення: (\d+) шт\./;
@@ -428,11 +482,14 @@ window.addEventListener("load", () => {
 	};
 	let addElaborationAnswer = (e) => {
 		let elaboration = new URLSearchParams();
-		let orderNumber = e.target.dataset.orderNumber;
+		let orderNumber = e.currentTarget.dataset.orderNumber;
 		let elaborationInp = document.getElementById(
 			`elaborationInput${orderNumber}`
 		);
+		let btn = e.currentTarget;
+		console.log(elaborationInp, e.currentTarget, e.currentTarget.parentNode);
 		let count = Number(elaborationInp.dataset.count);
+
 		if (elaborationInp.value == "") {
 			alert("Введи коректну відповідь");
 			return false;
@@ -440,9 +497,9 @@ window.addEventListener("load", () => {
 		if (count > Number(getNum(elaborationInp.value))) {
 			alert(" Сподіваюся ти був уважним");
 		}
-
+		console.log(orderNumber, elaborationInp.value);
 		elaboration.append("text", elaborationInp.value);
-		elaboration.append("id", e.target.dataset.orderNumber);
+		elaboration.append("id", orderNumber);
 
 		fetch(addElaborationURL, {
 			method: "POST",
@@ -455,7 +512,7 @@ window.addEventListener("load", () => {
 				if (responce == "ok") {
 					elaborationInp.parentNode.parentNode.classList.add("success");
 					elaborationInp.remove();
-					e.target.remove();
+					btn.remove();
 				} else alert("Помилка");
 				console.log(responce);
 			})
@@ -609,7 +666,7 @@ window.addEventListener("load", () => {
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
-<svg fill="#ffffff" height="40px" width="40px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.001 512.001" xml:space="preserve" stroke="#ffffff">
+<svg fill="#ffffff" height="30px" width="30px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.001 512.001" xml:space="preserve" stroke="#ffffff">
 
 <g id="SVGRepo_bgCarrier" stroke-width="0"/>
 
@@ -777,8 +834,10 @@ window.addEventListener("load", () => {
 	elaborationBtn.addEventListener("click", elabotarions);
 	// appendings buttons
 	btnWraper.appendChild(elaborationBtn);
+	btnWraper.appendChild(questionBtn);
 	// add btn wraper
 	document.body.appendChild(btnWraper);
 	// add content-wrapper
 	document.body.appendChild(contentWraper);
+	checkElaborations();
 });
