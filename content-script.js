@@ -1,343 +1,3 @@
-// let head = document.querySelector("head");
-// let meta = document.createElement("meta");
-// meta.name = "viewport";
-// meta.setAttribute("content", `width=device-width, initial-scale=1.0`);
-// head.appendChild(meta);
-// let loginInp = document.querySelector("#loginB1");
-
-// if (loginInp === null) {
-
-// 	let select = document.querySelector(".search .select2-selection");
-// 	let searchInp = document.querySelector("#search");
-// 	let searchInpBtn = document.querySelector(".search input[type='button']");
-// 	let div = Array.from(document.querySelectorAll("div")) || [0];
-// 	let btnsWraper = document.querySelector(".buttons");
-// 	let selectButtons = Array.from(
-// 		document.querySelectorAll('.buttons input[type="button"]')
-// 	) || [0];
-// 	let buttonsToggler = document.createElement("button");
-// 	let tableWraper = document.querySelector("#mainDiv");
-// 	let elaborationURL = "https://baza.m-p.in.ua/ajax/loadElaboration.php";
-// 	let searchURL = "https://baza.m-p.in.ua/ajax/search.php";
-// 	let orderURL = "";
-
-// 	let elaborationLink = null;
-// 	let testData = [
-// 		{
-// 			orderNumber: "# 1100051 (3483121203)",
-// 			orderManager: "Andrey Kutsat",
-// 			positionName: "Бункер для солі для посудомийних машин (9.306.0002)",
-// 			positionPlace: "1-2-3",
-// 			elaborationType: "Уточняк",
-// 			positionQuality: "3",
-// 			reserveQuality: "3",
-// 			searchQuery:
-// 				"Бункер (контейнер) для солі посудомийних машин Ariston C00256548",
-// 		},
-
-// 		{
-// 			orderNumber: "# 1100051 (34833333)",
-// 			orderManager: "Andrey Kutsat",
-// 			positionName: "Бункер для солі для посудомийних машин (9.306.0019)",
-// 			positionPlace: "1-2-3",
-// 			elaborationType: "Уточняк",
-// 			positionQuality: "3",
-// 			reserveQuality: "3",
-// 			searchQuery: "Пробка для солі Indesit C00056435",
-// 		},
-// 		{
-// 			orderNumber: "# 1100051 (3421203)",
-// 			orderManager: "Andrey Kutsat",
-// 			positionName: "Бункер для солі для посудомийних машин (9.306.0005)",
-// 			positionPlace: "1-2-3",
-// 			elaborationType: "Уточняк",
-// 			positionQuality: "3",
-// 			reserveQuality: "3",
-// 			searchQuery: "Ємність для солі (іонізатор) Beko 1768300100",
-// 		},
-// 	];
-// 	buttonsToggler.textContent = "Опції";
-// 	buttonsToggler.className = "buttons-toggler";
-// 	btnsWraper.prepend(buttonsToggler);
-
-// 	tableWraper.style.display = "none";
-// 	// set select width
-// 	select.style.width = "100%";
-// 	// set styles for search input
-// 	searchInp.style.padding = "10px";
-// 	searchInp.style.fontsize = "18px";
-// 	searchInp.style.fontWeight = "600";
-// 	// set styles search input button
-// 	searchInpBtn.style.width = "20%";
-// 	searchInpBtn.style.padding = "10px";
-// 	// remove padding and set width 100%
-// 	btnsWraper.parentNode.style.paddingLeft = "0px";
-// 	btnsWraper.parentNode.style.width = "100%";
-// 	// set top margin for buttons wraper
-// 	btnsWraper.style.marginTop = "70px";
-// 	btnsWraper.classList.add("hide-buttons");
-
-// 	// remove blue div
-// 	div.forEach((el) => {
-// 		if (
-// 			el.textContent.includes("Склад (Василенка)") &&
-// 			el.style.borderRadius == "5px"
-// 		) {
-// 			el.style.display = "none";
-// 		}
-// 	});
-// 	buttonsToggler.addEventListener("click", () => {
-// 		btnsWraper.classList.toggle("hide-buttons");
-// 	});
-
-//
-// 	// elaboration
-// 	let getLink = (link) => {
-// 		var regex = /\/\d+_\d+\//;
-// 		var replacedString = link.replace(regex, "/");
-// 		return replacedString;
-// 	};
-// 	let loadElaboration = () => {
-// 		let elaborationData;
-// 		let newTableWraper = document.createElement("div");
-// 		newTableWraper.className = "new-table-wraper";
-// 		let data = {};
-// 		fetch(elaborationURL, {
-// 			method: "POST",
-// 		})
-// 			.then((response) => {
-// 				return response.text();
-// 			})
-// 			.then((response) => {
-// 				elaborationData = response;
-// 				elaborationData = parseGetedHTML(elaborationData);
-
-// 				let cellNames = [
-// 					"orderNumber",
-// 					"orderManager",
-// 					"positionName",
-// 					"positionPlace",
-// 					"elaborationType",
-// 					"positionQuality",
-// 					"reserveQuality",
-// 					"searchQuery",
-// 					"imagesSrc",
-// 					"imageLink",
-// 				];
-// 				let tableRows = Array.from(
-// 					elaborationData.querySelectorAll("table>tbody>tr")
-// 				);
-// 				tableRows.shift();
-// 				data = tableRows.map((row) => {
-// 					let rowData = {};
-// 					let rowCells = Array.from(row.querySelectorAll("td"));
-
-// 					rowCells.forEach((cell, index) => {
-// 						rowData[cellNames[index]] = cell.textContent.trim();
-// 						if (cellNames[index] == "searchQuery") {
-// 							let result = rowData["positionName"].replace(/\([^)]+\)/g, "");
-// 							rowData[cellNames[index]] = result.trim();
-// 						}
-// 					});
-
-// 					return rowData;
-// 				});
-
-// 				testData.forEach((query, key) => {
-// 					var request = new URLSearchParams();
-// 					request.append("search", query.searchQuery);
-// 					request.append("search_sel", "0");
-// 					fetch(searchURL, {
-// 						method: "POST",
-// 						headers: {
-// 							Accept: "*/*",
-// 							"Accept-Encoding": "gzip, deflate, br",
-// 							"Accept-Language": "uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7",
-// 							"Sec-Ch-Ua":
-// 								'"Google Chrome";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
-// 							"Sec-Ch-Ua-Mobile": "?1",
-// 							"Sec-Ch-Ua-Platform": '"Android"',
-// 							"Sec-Fetch-Dest": "empty",
-// 							"Sec-Fetch-Mode": "cors",
-// 							"Sec-Fetch-Site": "same-origin",
-// 							"User-Agent":
-// 								"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Mobile Safari/537.36",
-// 							"X-Requested-With": "XMLHttpRequest",
-// 							"Content-Type":
-// 								"application/x-www-form-urlencoded; charset=UTF-8",
-// 						},
-// 						body: request,
-// 					})
-// 						.then((responce) => {
-// 							return responce.text();
-// 						})
-// 						.then((responce) => {
-// 							let searchresult = parseGetedHTML(responce);
-// 							let reserve = searchresult.querySelectorAll(".detPr >span")[1];
-// 							let images = Array.from(
-// 								searchresult.querySelectorAll(".detImg>img")
-// 							);
-// 							let imgSrc = [];
-// 							let imgLink = [];
-// 							images.forEach((img) => {
-// 								imgSrc.push(img.getAttribute("rel"));
-// 								imgLink.push(`https://baza.m-p.in.ua${img.alt}`);
-// 							});
-// 							testData[key].reserveQuality = reserve.textContent;
-// 							testData[key].imagesSrc = imgSrc;
-// 							generateTable(testData);
-// 						});
-// 				});
-// 			})
-// 			.catch((err) => {
-// 				alert("Не вдалося отримати уточнення!!");
-// 				console.log(err);
-// 			});
-// 		let getOrderId = (data) => {
-// 			// Визначаємо регулярний вираз для пошуку числа в дужках
-// 			var regex = /\((\d+)\)/;
-
-// 			// Знаходимо відповідність регулярному виразу в рядку
-// 			var match = data.match(regex);
-
-// 			// Перевіряємо, чи знайдено числову відповідність
-// 			if (match && match[1]) {
-// 				// Повертаємо число в дужках як ціле число
-// 				return parseInt(match[1], 10);
-// 			} else {
-// 				// Якщо число в дужках не знайдено, повертаємо null або можна вказати інше значення за замовчуванням
-// 				return null;
-// 			}
-// 		};
-// 		let generateTable = (data) => {
-// 			data.forEach((rowData) => {
-// 				let images = "";
-// 				console.log(rowData);
-// 				try {
-// 					rowData.imagesSrc.forEach((imgSrc) => {
-// 						images += `
-// 					<a href="${getLink(imgSrc)}"><img src="${imgSrc}"></a>`;
-// 					});
-// 				} catch {
-// 					console.error();
-// 				}
-// 				let table;
-// 				let tableHTML = `<div class='table'>
-// 						<div class='order-num fx'>
-// 							<p class='table-desc'>Номер Замовлення</p>
-// 							<p class='table-desc'>${rowData.orderNumber}</p>
-// 						</div>
-// 						<div class='order-manager fx'>
-// 							<p class='table-desc'>Менеджер</p>
-// 							<p class='table-desc'>${rowData.orderManager}</p>
-// 						</div>
-// 						<div class='good-desc fx'>
-// 							<p class='table-desc'>Товар</p>
-// 							<p class='table-desc'>${rowData.positionName}</p>
-// 						</div>
-// 						<div class='goods-adres fx'>
-// 							<p class='table-desc'>Адрес товару</p>
-// 							<p class='table-desc'>${rowData.positionPlace}</p>
-// 						</div>
-// 						<div class='goods-quality fx'>
-// 							<p class='table-desc'>Кількість</p>
-// 							<p class='table-desc'>${rowData.positionQuality}</p>
-// 						</div>
-// 						<div class='goods-reserve fx'>
-// 							<p class='table-desc'>Резерв</p>
-// 							<p class='table-desc'>${rowData.reserveQuality}</p>
-// 						</div>
-// 						<div class='order-anwser fx'>
-// 							<p class='table-desc'>Відповідь</p>
-// 							<div class='inp-wraper'><input
-//                        type="text" class="elaboration-inp" id="elaborationInput${getOrderId(
-// 													rowData.orderNumber
-// 												)}">
-// 					   <button
-//                         data-orderID="${getOrderId(
-// 													rowData.orderNumber
-// 												)},0" class="elaboration-btn">збер.</button></div>
-// 						</div>
-// 						<div class='goods-photo fx'>
-// 							<p class='table-desc'>Фото товару</p>
-// 							<div class='goods-photo-wraper table-desc'>${images}</div>
-// 						</div>
-// 					</div>`;
-// 				table = parseGetedHTML(tableHTML).querySelector(".table");
-// 				newTableWraper.appendChild(table);
-// 				console.log(table);
-// 				let elaborationInp = newTableWraper.querySelector(".elaboration-inp");
-// 				let elaborationBtn = newTableWraper.querySelector(".elaboration-btn");
-// 				elaborationBtn.addEventListener("click", addElaborationAnswer);
-// 			});
-// 			document.body.appendChild(newTableWraper);
-// 		};
-// 		let addElaborationAnswer = (e) => {
-// 			let orderId = e.target.dataset.orderId || false;
-// 			if (orderId === false) {
-// 				console.log("order id is not defined");
-// 				return false;
-// 			}
-// 			var text = document
-// 				.querySelector(`#elaborationInput${orderId}`)
-// 				.value()
-// 				.trim();
-// 			console.log(text, orderId);
-// 			// 	if (text.length > 0) {
-// 			// 		$("#loader").show();
-// 			// 		$.post(
-// 			// 			"https://baza.m-p.in.ua/ajax/addElaborationAnswer.php",
-// 			// 			{ id: id, text: text },
-// 			// 			function (data) {
-// 			// 				if (data == "ok") {
-// 			// 					if (order == 1) {
-// 			// 						$("#elaborationInput" + id).hide();
-// 			// 						$("#elaborationButton" + id).hide();
-// 			// 						$("#loader").hide();
-// 			// 					} else {
-// 			// 						//loadElaboration();
-// 			// 						$("#eleborationAnswer" + id).html(
-// 			// 							'<span style="color: blue;">' + text + "</span>"
-// 			// 						);
-// 			// 						$("#loader").hide();
-// 			// 					}
-// 			// 				} else alert("ups");
-// 			// 			}
-// 			// 		);
-// 			// 	} else alert("Занадто коротке питання");
-// 			// }
-// 		};
-// 		// Вибираємо елемент, який ми хочемо відстежувати
-// 		const targetElement = document.getElementById("magaz");
-
-// 		// Створюємо спостерігача за змінами
-// 		const observer = new MutationObserver(function (mutationsList, observer) {
-// 			for (const mutation of mutationsList) {
-// 				if (mutation.type === "childList" || mutation.type === "attributes") {
-// 					// Обробляємо зміни
-// 					let children = Array.from(mutation.target.querySelectorAll("div"));
-// 					children.forEach((el) => {
-// 						if (el.textContent.includes("Є уточнення:")) {
-// 							el.id = "elaborationLink";
-
-// 							el.removeEventListener("click", loadElaboration);
-// 							el.addEventListener("click", loadElaboration);
-// 						}
-// 					});
-// 				}
-// 			}
-// 		});
-
-// 		// Починаємо відстежування змін
-// 		observer.observe(targetElement, {
-// 			attributes: true, // Відстежувати зміни атрибутів
-// 			childList: true, // Відстежувати зміни в дочірніх елементах
-// 			characterData: true, // Відстежувати зміни текстового вмісту
-// 			subtree: true, // Відстежувати зміни в піддереві
-// 		});
-// 	};
-// 	loadElaboration();
-// }
 window.addEventListener("load", () => {
 	let head = document.querySelector("head");
 	head.innerHTML = ` <meta charset="UTF-8">
@@ -350,7 +10,11 @@ window.addEventListener("load", () => {
 		return false;
 	}
 	// remove all elements from body
-	document.body.innerHTML = "";
+	let children = Array.from(document.body.children);
+	children.forEach((child) => {
+		child.remove();
+	});
+
 	// creating and adding new elements to DOM
 	let contentWraper = document.createElement("div");
 	contentWraper.className = "wraper";
@@ -374,6 +38,7 @@ window.addEventListener("load", () => {
 	let elaborationURL = "https://baza.m-p.in.ua/ajax/loadElaboration.php";
 	let addElaborationURL =
 		"https://baza.m-p.in.ua/ajax/addElaborationAnswer.php";
+	let questionURL = "https://baza.m-p.in.ua/ajax/loadQuestions.php";
 
 	let searchURL = "https://baza.m-p.in.ua/ajax/search.php";
 	let elaborationInterval = 10;
@@ -395,7 +60,7 @@ window.addEventListener("load", () => {
 	questionBtn.className = "question-btn btn";
 	questionBtn.innerHTML = `<?xml version="1.0" encoding="iso-8859-1"?>
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="40" height="40" x="0px" y="0px"
-	 viewBox="0 0 92 92" style="enable-background:new 0 0 92 92;" xml:space="preserve">
+	 viewBox="0 0 100 100" style="enable-background:new 0 0 92 92;" xml:space="preserve">
 <g>
 	<path style="fill:#fff;" d="M45.386,0.004C19.983,0.344-0.333,21.215,0.005,46.619c0.34,25.393,21.209,45.715,46.611,45.377
 		c25.398-0.342,45.718-21.213,45.38-46.615C91.656,19.986,70.786-0.335,45.386,0.004z M45.25,74l-0.254-0.004
@@ -407,46 +72,16 @@ window.addEventListener("load", () => {
 		c-2.559,0-4.311,0.812-5.359,2.478c-1.078,1.713-1.623,3.512-1.623,5.35v0.457H27.936l0.02-0.477
 		c0.285-6.769,2.701-11.643,7.178-14.487C37.947,18.918,41.447,18,45.531,18c5.346,0,9.859,1.299,13.412,3.861
 		c3.6,2.596,5.426,6.484,5.426,11.556C64.369,36.254,63.473,38.919,61.705,41.341z"/>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
+
 </svg>
 `;
 	let questionCountText = document.createElement("span");
-	questionCountText.className = "question-count-text";
+	questionCountText.className = "question-count-text counter";
 	questionBtn.appendChild(questionCountText);
 	elaborationBtn.appendChild(elabortionCount);
 	// patterns
 	let elaborationPattern = /Є уточнення: (\d+) шт\./;
-
+	let questionPattern = /Є питання: (\d+) шт\./;
 	let parser = (text) => {
 		let domParser = new DOMParser();
 		let doc = domParser.parseFromString(text, "text/html");
@@ -473,9 +108,15 @@ window.addEventListener("load", () => {
 
 				responceItems.forEach((item) => {
 					let elaborationResult = item.textContent.match(elaborationPattern);
+					let questionResult = item.textContent.match(questionPattern);
+					console.log(item.textContent, questionResult);
 					if (elaborationResult !== null) {
 						elabortionCount.innerText = elaborationResult[1];
 						elabortionCount.style.display = "block";
+					}
+					if (questionResult !== null) {
+						questionCountText.innerText = questionResult[1];
+						questionCountText.style.display = "block";
 					}
 				});
 			});
@@ -527,7 +168,7 @@ window.addEventListener("load", () => {
 
 		if (getNum(answer) > count) {
 			e.target.parentNode.parentNode.classList.add("warn");
-			alert("Переввір ще раз,І не забудь вказати лишки в пересорт");
+			alert("Перевір ще раз,І не забудь вказати лишки в пересорт");
 		}
 		if (getNum(answer) < count) {
 			e.target.parentNode.parentNode.classList.add("danger");
@@ -561,6 +202,22 @@ window.addEventListener("load", () => {
 			console.log(`В заказі: ${orderCount}`);
 			return { baseCount: baseCount, orderCount: orderCount };
 		}
+	};
+	let getQuestions = () => {
+		fetch(questionURL, { method: "POST" })
+			.then((res) => {
+				return res.text();
+			})
+			.then((responce) => {
+				let questionResponce = parser(responce);
+				let responceTr = Array.from(questionResponce.querySelectorAll("tr"));
+				responceTr.shift();
+				responceTr.forEach((row) => {
+					let td = Array.from(row.querySelectorAll("td"));
+					console.log(td, row);
+				});
+			})
+			.catch();
 	};
 	let generateElaboration = (data) => {
 		contentWraper.innerHTML = "";
@@ -702,6 +359,23 @@ window.addEventListener("load", () => {
 
 				images.forEach((image) => {
 					imageWraper.appendChild(image);
+					image.addEventListener("click", (e) => {
+						e.preventDefault();
+						let imgWraper = document.createElement("div");
+						imgWraper.className = "img-wraper";
+						let closeBtn = document.createElement("button");
+						closeBtn.className = "close-btn";
+
+						let img = document.createElement("img");
+						img.src = image.href;
+						imgWraper.appendChild(img);
+						imgWraper.appendChild(closeBtn);
+						contentWraper.appendChild(imgWraper);
+						// add event to close image
+						closeBtn.addEventListener("click", () => {
+							imgWraper.remove();
+						});
+					});
 				});
 
 				// Add event listeners
@@ -830,8 +504,9 @@ window.addEventListener("load", () => {
 	// check Elabotarions count
 	setInterval(checkElaborations, elaborationInterval * 1000);
 
-	// add event listeners forbuttons
+	// add event listeners for buttons
 	elaborationBtn.addEventListener("click", elabotarions);
+	questionBtn.addEventListener("click", getQuestions);
 	// appendings buttons
 	btnWraper.appendChild(elaborationBtn);
 	btnWraper.appendChild(questionBtn);

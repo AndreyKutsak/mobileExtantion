@@ -152,4 +152,44 @@ body {
 }
 .table-wraper .success {
   background-color: #aeffb2;
+}
+
+.img-wraper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(2, 2, 2, 0.631372549);
+}
+.img-wraper img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: auto;
+  aspect-ratio: 16/9;
+}
+.img-wraper .close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  height: 40px;
+  width: 40px;
+  border: none;
+  border-radius: 50%;
+  background-color: rgba(252, 114, 114, 0.7607843137);
+  cursor: pointer;
+}
+.img-wraper .close-btn:after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-family: sans-serif;
+  font-size: 12px;
+  font-weight: bolder;
+  content: "X";
 }/*# sourceMappingURL=mobile.css.map */

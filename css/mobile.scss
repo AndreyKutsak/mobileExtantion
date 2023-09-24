@@ -150,3 +150,44 @@ body {
 		background-color: #aeffb2;
 	}
 }
+.img-wraper {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	background-color: #020202a1;
+	img {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 90%;
+		height: auto;
+		aspect-ratio: 16/9;
+	}
+	.close-btn {
+		position: absolute;
+		top: 15px;
+		right: 15px;
+		height: 40px;
+		width: 40px;
+		border: none;
+		border-radius: 50%;
+		background-color: #fc7272c2;
+
+		cursor: pointer;
+		&:after {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			color: #fff;
+			font-family: sans-serif;
+			font-size: 12px;
+			font-weight: bolder;
+
+			content: "X";
+		}
+	}
+}
