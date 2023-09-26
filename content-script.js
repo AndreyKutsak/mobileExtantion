@@ -436,7 +436,7 @@ window.addEventListener("load", () => {
 				let elaborationData = {};
 				let dataCells = Array.from(data.querySelectorAll("td"));
 				dataCells.forEach((td, tdIndex) => {
-					elaborationData[keysStore[tdIndex]] = td.textContent.trim();
+					elaborationData[keysStore[tdIndex]] = String(td.textContent.trim());
 					if (keysStore[tdIndex] == "searchQuery") {
 						let result = elaborationData["positionName"].replace(
 							/\([^)]+\)/g,
@@ -483,7 +483,7 @@ window.addEventListener("load", () => {
 								imgSrc.push(img.getAttribute("rel"));
 								imgLink.push(`https://baza.m-p.in.ua${img.alt}`);
 							});
-							elaborationRow[key].reserveQuality = reserve.textContent;
+							elaborationRow[key].reserveQuality = String(reserve.textContent);
 
 							elaborationRow[key].imagesSrc = imgSrc;
 							elaborationRow[key].imageLink = imgLink;
