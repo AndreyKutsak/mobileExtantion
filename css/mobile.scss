@@ -6,7 +6,7 @@ img {
 	max-width: 100%;
 }
 body {
-	padding: 0;
+	padding: 40px 0 0;
 	margin: 0;
 	overflow-x: hidden;
 	background-color: #e7eef7;
@@ -81,6 +81,7 @@ body {
 }
 // table
 .table-wraper {
+	padding-top: 50px;
 	width: 98%;
 	margin: 25px auto 0;
 	border-radius: 5px;
@@ -175,7 +176,6 @@ body {
 		border: none;
 		border-radius: 50%;
 		background-color: #fc7272c2;
-
 		cursor: pointer;
 		&:after {
 			position: absolute;
@@ -189,5 +189,33 @@ body {
 
 			content: "X";
 		}
+	}
+}
+.search-wraper {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	.search-inp {
+		font-family: sans-serif;
+		font-size: 18px;
+		font-weight: bold;
+		width: 80%;
+		height: 40px;
+		padding: 5px 10px;
+		outline: none;
+	}
+	.search-send-btn {
+		width: 20%;
+		border: none;
+		border-radius: 0 5px 5px 0;
+		background-color: #1cc879;
+		font-family: sans-serif;
+		font-size: 16px;
+		font-weight: 600;
+		color: #fff;
+		cursor: pointer;
 	}
 }
