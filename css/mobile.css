@@ -222,4 +222,15 @@ body {
   font-weight: 600;
   color: #fff;
   cursor: pointer;
+}
+
+.search-result-wraper {
+  padding: 30px 10px;
+}
+.search-result-wraper .item-wraper {
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #fff;
+  box-shadow: 2px 2px 2px #dee6f2;
+  margin-bottom: 30px;
 }/*# sourceMappingURL=mobile.css.map */

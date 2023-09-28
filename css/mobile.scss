@@ -219,3 +219,14 @@ body {
 		cursor: pointer;
 	}
 }
+// serarch wraper{
+.search-result-wraper {
+	padding: 30px 10px;
+	.item-wraper {
+		padding: 10px;
+		border-radius: 5px;
+		background-color: #fff;
+		box-shadow: 2px 2px 2px #dee6f2;
+		margin-bottom: 30px;
+	}
+}

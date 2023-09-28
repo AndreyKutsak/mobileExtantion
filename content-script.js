@@ -92,10 +92,25 @@ window.addEventListener("load", () => {
 	// patterns
 	let elaborationPattern = /Є уточнення: (\d+) шт\./;
 	let questionPattern = /Є питання: (\d+) шт\./;
+	let regexArticle = /\s(\d+\.\d+\.\d+)/;
+	let regexNumber = /№(\d+)/;
 	let parser = (text) => {
 		let domParser = new DOMParser();
 		let doc = domParser.parseFromString(text, "text/html");
 		return doc;
+	};
+	let getGoodIdArticle = (string) => {
+		let data = { id: null, article: null };
+		let matchNumber = string.match(regexNumber);
+		let matchArticle = string.match(regexArticle);
+		if (matchNumber && matchArticle) {
+			let numberPart = matchNumber[1];
+			let articlePart = matchArticle[1];
+			data.id = numberPart;
+			data.article = articlePart;
+			return data;
+		}
+		return false;
 	};
 	let getOrderId = (number) => {
 		const regex = /\((\d+)\)/;
@@ -124,16 +139,81 @@ window.addEventListener("load", () => {
 				return res.text();
 			})
 			.then((res) => {
+				let searchData = [];
 				let searchResponce = parser(res);
-				let data = Array.from(
-					searchResponce.querySelectorAll(".mainDiv>.detDiv")
+				let goodsId = Array.from(
+					searchResponce.querySelectorAll(".detDivTitle")
 				);
-				generateSearch(data);
+				let searchGoodWraper = Array.from(
+					searchResponce.querySelectorAll(".detDiv")
+				);
+				searchGoodWraper.forEach((item, index) => {
+					let data = {};
+					let goodsPhoto = Array.from(
+						searchResponce.querySelectorAll(".detImg>img")
+					);
+					let goodsCount = Array.from(
+						searchResponce.querySelectorAll(".detPr")
+					);
+					let goodsDesc = Array.from(
+						searchResponce.querySelectorAll(".titleDet")
+					);
+
+					data.id = getGoodIdArticle(goodsId[index].textContent).id;
+					data.article = getGoodIdArticle(goodsId[index].textContent).article;
+					data.photo = goodsPhoto[index].getAttribute("src");
+					data.photoLG = goodsPhoto[index]
+						.querySelector("a")
+						.getAttribute("href");
+					data.desc = goodsDesc[index].textContent.trim();
+					data.count = goodsCount[index].textContent.trim();
+					searchData.push(data);
+					console.log(goodsPhoto[index].parentNode);
+				});
+				console.log(searchData);
+
+				generateSearch(searchData);
 			});
+		let searchGoods;
 	};
 	let generateSearch = (data) => {
 		contentWraper.innerHTML = "";
 		if (data.length > 0) {
+			let searchWraper = document.createElement("div");
+			searchWraper.className = "search-result-wraper";
+			data.forEach((item) => {
+				let wraper = document.createElement("div");
+				wraper.className = "item-wraper";
+				let itemHeader = document.createElement("div");
+				itemHeader.className = "item-header";
+				itemHeader.innerHTML = `ID: ${item.id} | Артикул: ${item.article}`;
+				let itemContentWraper = document.createElement("div");
+				itemContentWraper.className = "item-content-wraper";
+				let itemImageLink = document.createElement("a");
+				itemImageLink.href = item.photoLG;
+				let image = document.createElement("img");
+				image.src = item.photo;
+				image.className = "item-image";
+				let textWraper = document.createElement("div");
+				textWraper.className = "item-text-wraper";
+				let itemDesc = document.createElement("p");
+				itemDesc.className = "item-desc";
+				itemDesc.textContent = item.desc;
+				let itemCount = document.createElement("p");
+				itemCount.className = "item-count";
+				itemDesc.textContent = item.count;
+				// appending image
+				itemImageLink.appendChild(image);
+				// wrapper appending
+				wraper.appendChild(itemHeader);
+				wraper.appendChild(itemContentWraper);
+				itemContentWraper.appendChild(itemImageLink);
+				itemContentWraper.appendChild(textWraper);
+				textWraper.appendChild(itemDesc);
+				textWraper.appendChild(itemCount);
+				searchWraper.appendChild(wraper);
+			});
+			contentWraper.appendChild(searchWraper);
 		} else {
 			let searchTitle = document.createElement("p");
 			searchTitle.className = "question-title content-title";
