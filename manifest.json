@@ -1,14 +1,19 @@
 {
 	"name": "baza Mobile",
 	"short_name": "baza",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "mobile version baza",
-
 	"content_scripts": [
 		{
-			"matches": ["https://baza.m-p.in.ua/*"],
-			"js": ["content-script.js"],
-			"css": ["css/mobile.css"]
+			"matches": [
+				"https://baza.m-p.in.ua/*"
+			],
+			"js": [
+				"content-script.js"
+			],
+			"css": [
+				"css/mobile.css"
+			]
 		}
 	],
 	"manifest_version": 3

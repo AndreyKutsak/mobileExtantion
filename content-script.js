@@ -163,12 +163,12 @@ window.addEventListener("load", () => {
 					data.article = getGoodIdArticle(goodsId[index].textContent).article;
 					data.photo = goodsPhoto[index].getAttribute("src");
 					data.photoLG = goodsPhoto[index]
-						.querySelector("a")
+						.parentNode.querySelector("a")
 						.getAttribute("href");
 					data.desc = goodsDesc[index].textContent.trim();
 					data.count = goodsCount[index].textContent.trim();
 					searchData.push(data);
-					console.log(goodsPhoto[index].parentNode);
+					console.log(goodsPhoto[index].parentNode.querySelector("a"));
 				});
 				console.log(searchData);
 
@@ -190,28 +190,54 @@ window.addEventListener("load", () => {
 				let itemContentWraper = document.createElement("div");
 				itemContentWraper.className = "item-content-wraper";
 				let itemImageLink = document.createElement("a");
+				itemImageLink.className = "image-link";
 				itemImageLink.href = item.photoLG;
 				let image = document.createElement("img");
 				image.src = item.photo;
 				image.className = "item-image";
 				let textWraper = document.createElement("div");
 				textWraper.className = "item-text-wraper";
+				let itemCountWraper = document.createElement("div");
+				itemCountWraper.className = "item-count-wraper";
 				let itemDesc = document.createElement("p");
 				itemDesc.className = "item-desc";
 				itemDesc.textContent = item.desc;
 				let itemCount = document.createElement("p");
 				itemCount.className = "item-count";
-				itemDesc.textContent = item.count;
+				itemCount.textContent = item.count;
+				// buttons
+				let btnWraper = document.createElement("div");
+				btnWraper.className = "item-btn-wraper";
+				let listBtn = document.createElement("button");
+				listBtn.className = "list-btn btn";
+				listBtn.textContent = 'Додати в список';
+
+				let difBtn = document.createElement("button");
+				difBtn.className = "dif-btn btn";
+				difBtn.textContent = "Відзначити кількість";
 				// appending image
 				itemImageLink.appendChild(image);
 				// wrapper appending
 				wraper.appendChild(itemHeader);
 				wraper.appendChild(itemContentWraper);
+				itemCountWraper.appendChild(itemCount)
 				itemContentWraper.appendChild(itemImageLink);
+				itemContentWraper.appendChild(itemCountWraper);
 				itemContentWraper.appendChild(textWraper);
-				textWraper.appendChild(itemDesc);
-				textWraper.appendChild(itemCount);
+				itemContentWraper.appendChild(textWraper);
+				btnWraper.appendChild(listBtn);
+				btnWraper.appendChild(difBtn);
+				wraper.appendChild(itemDesc);
+				wraper.appendChild(btnWraper);
+
 				searchWraper.appendChild(wraper);
+				// add event listeners
+				itemDesc.addEventListener("click", (e) => {
+					e.preventDefault();
+					itemDesc.classList.toggle("visible");
+				})
+				listBtn.addEventListener("click", addItemToList);
+				difBtn.addEventListener("click", addCountDefference);
 			});
 			contentWraper.appendChild(searchWraper);
 		} else {
@@ -221,6 +247,8 @@ window.addEventListener("load", () => {
 			contentWraper.appendChild(searchTitle);
 		}
 	};
+	let addItemToList = (e) => { };
+	let addCountDefference = (e) => { };
 	let checkElaborations = () => {
 		fetch(bazaURL, {
 			method: "POST",
@@ -253,9 +281,7 @@ window.addEventListener("load", () => {
 			`elaborationInput${orderNumber}`
 		);
 		let btn = e.currentTarget;
-
 		let count = Number(elaborationInp.dataset.count);
-
 		if (elaborationInp.value == "") {
 			alert("Введи коректну відповідь");
 			return false;
@@ -279,6 +305,7 @@ window.addEventListener("load", () => {
 					elaborationInp.parentNode.parentNode.classList.add("success");
 					elaborationInp.remove();
 					btn.remove();
+					checkElaborations();
 				} else alert("Помилка");
 			})
 			.catch((err) => {
@@ -461,7 +488,7 @@ window.addEventListener("load", () => {
 				positionQualityRow.className = "table-row";
 				let positionQualityDesc = document.createElement("div");
 				positionQualityDesc.className = "table-desc";
-				positionQualityDesc.textContent = "Клас товару";
+				positionQualityDesc.textContent = "Кількість товару";
 				let positionQualityText = document.createElement("div");
 				positionQualityText.className = "table-text";
 				positionQualityText.textContent = row.positionQuality;
@@ -615,7 +642,7 @@ window.addEventListener("load", () => {
 				dataCells.forEach((td, tdIndex) => {
 					elaborationData[keysStore[tdIndex]] = String(td.textContent.trim());
 					if (keysStore[tdIndex] == "searchQuery") {
-						let result = elaborationData["positionName"].replace(
+						let result = `${elaborationData["positionName"]}`.replace(
 							/\([^)]+\)/g,
 							""
 						);
@@ -628,6 +655,7 @@ window.addEventListener("load", () => {
 			// Масив для зберігання обіцянок
 			const promises = [];
 			elaborationRow.forEach((data, key) => {
+				console.error(data);
 				let request = new URLSearchParams();
 				request.append("search", data.searchQuery);
 				request.append("search_sel", "0");
