@@ -125,6 +125,7 @@ body {
 		}
 
 		.table-input-wraper {
+
 			display: flex;
 			justify-content: center;
 		}
@@ -142,6 +143,8 @@ body {
 				padding-left: 15px;
 			}
 		}
+
+
 
 		.send-btn {
 			width: 15%;
@@ -232,6 +235,15 @@ body {
 		height: 40px;
 		padding: 5px 10px;
 		outline: none;
+	}
+
+	.bar-code-search-btn {
+		position: absolute;
+		top: 53%;
+		right: 20%;
+		transform: translateY(-50%);
+		background: none;
+		border: none;
 	}
 
 	.search-send-btn {

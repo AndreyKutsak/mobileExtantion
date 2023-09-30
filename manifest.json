@@ -5,9 +5,16 @@
 	"description": "mobile version baza",
 	"content_scripts": [
 		{
-			"matches": ["https://baza.m-p.in.ua/*"],
-			"js": ["content-script.js", "quagga.min.js"],
-			"css": ["css/mobile.css"]
+			"matches": [
+				"https://baza.m-p.in.ua/*"
+			],
+			"js": [
+				"content-script.js",
+				"html5-qrcode.min.js"
+			],
+			"css": [
+				"css/mobile.css"
+			]
 		}
 	],
 	"manifest_version": 3
