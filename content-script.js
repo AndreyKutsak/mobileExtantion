@@ -335,6 +335,7 @@ window.addEventListener("load", () => {
 			if (decodedText !== lastResult) {
 				++countResults;
 				lastResult = decodedText;
+				alert(decodedText);
 				// Handle on success condition with the decoded message.
 				console.log(`Scan result ${decodedText}`, decodedResult);
 			}
