@@ -338,7 +338,7 @@ window.addEventListener("load", () => {
 				let searchInp = document.querySelector(".search-inp");
 				searchInp.value = decodedText;
 				let serarchBtn = document.querySelector(".search-send-btn");
-
+				serarchBtn.click();
 				// Handle on success condition with the decoded message.
 				console.log(`Scan result ${decodedText}`, decodedResult);
 			}
