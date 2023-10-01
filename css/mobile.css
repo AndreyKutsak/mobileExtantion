@@ -232,6 +232,10 @@ body {
   cursor: pointer;
 }
 
+.barcode-display-wraper {
+  transition: 0.4s;
+}
+
 .search-result-wraper {
   padding: 30px 10px;
 }

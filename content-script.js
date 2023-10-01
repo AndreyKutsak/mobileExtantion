@@ -1,4 +1,5 @@
 window.addEventListener("load", () => {
+	let scanning = false;
 	let head = document.querySelector("head");
 	head.innerHTML = ` <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,6 +31,8 @@ window.addEventListener("load", () => {
 </circle>
 `;
 	preloaderWraper.appendChild(preloaderSpiner);
+	let mainSearchWraper = document.createElement("div");
+	mainSearchWraper.className = "main-search-wraper";
 	let searchWraper = document.createElement("div");
 	searchWraper.className = "search-wraper";
 	let searchInp = document.createElement("input");
@@ -80,7 +83,7 @@ window.addEventListener("load", () => {
 	searchSendBtn.type = "submit";
 	searchSendBtn.value = "Пошук";
 	let barcodeDisplayWraper = document.createElement("div");
-	barcodeDisplayWraper.className = "barcode-display-wraper";
+	barcodeDisplayWraper.className = "barcode-display-wraper hide-barcode";
 	let barcodeDisplay = document.createElement("div");
 	barcodeDisplay.className = "barcode";
 	barcodeDisplay.id = "reader";
@@ -89,8 +92,8 @@ window.addEventListener("load", () => {
 	searchWraper.appendChild(searchInp);
 	searchWraper.appendChild(barCodeSearch);
 	searchWraper.appendChild(searchSendBtn);
-	searchWraper.appendChild(barcodeDisplayWraper);
-
+	mainSearchWraper.appendChild(searchWraper);
+	mainSearchWraper.appendChild(barcodeDisplayWraper);
 
 	// URL
 	let bazaURL = "https://baza.m-p.in.ua/ajax/magaz.php";
@@ -297,8 +300,8 @@ window.addEventListener("load", () => {
 			contentWraper.appendChild(searchTitle);
 		}
 	};
-	let addItemToList = (e) => { };
-	let addCountDefference = (e) => { };
+	let addItemToList = (e) => {};
+	let addCountDefference = (e) => {};
 	let checkElaborations = () => {
 		fetch(bazaURL, {
 			method: "POST",
@@ -328,9 +331,20 @@ window.addEventListener("load", () => {
 			});
 	};
 	let barcodeRecognition = () => {
-
-		var lastResult, countResults = 0;
-
+		var html5QrcodeScanner = new Html5QrcodeScanner("reader", {
+			fps: 10,
+			qrbox: 250,
+		});
+		var lastResult,
+			countResults = 0;
+		if (scanning) {
+			html5QrcodeScanner.pause(onPause);
+			alert();
+			return;
+		}
+		scanning = true;
+		console.log(scanning);
+		barcodeDisplayWraper.classList.toggle("hide-barcode");
 		function onScanSuccess(decodedText, decodedResult) {
 			if (decodedText !== lastResult) {
 				++countResults;
@@ -339,15 +353,20 @@ window.addEventListener("load", () => {
 				searchInp.value = decodedText;
 				let serarchBtn = document.querySelector(".search-send-btn");
 				serarchBtn.click();
+
+				barcodeDisplayWraper.classList.toggle("hide-barcode");
 				// Handle on success condition with the decoded message.
 				console.log(`Scan result ${decodedText}`, decodedResult);
+				html5QrcodeScanner.clear();
 			}
 		}
-
-		var html5QrcodeScanner = new Html5QrcodeScanner(
-			"reader", { fps: 10, qrbox: 250 });
+		function onPause(result) {
+			console.log(result);
+			scanning = false;
+		}
+		console.log(html5QrcodeScanner);
 		html5QrcodeScanner.render(onScanSuccess);
-	}
+	};
 	let addElaborationAnswer = (e) => {
 		let elaboration = new URLSearchParams();
 		let orderNumber = e.currentTarget.dataset.orderNumber;
@@ -796,7 +815,7 @@ window.addEventListener("load", () => {
 	// add btn wraper
 	document.body.appendChild(btnWraper);
 	// add content-wrapper
-	document.body.appendChild(searchWraper);
+	document.body.appendChild(mainSearchWraper);
 	document.body.appendChild(contentWraper);
 	checkElaborations();
 });
