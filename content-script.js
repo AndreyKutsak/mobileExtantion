@@ -389,9 +389,9 @@ window.addEventListener("load", () => {
 			}
 		}
 		function onPause(result) {
-			console.log(result);
+			console.error(result);
 			scanning = false;
-			alert()
+
 		}
 
 		html5QrcodeScanner.render(onScanSuccess);
