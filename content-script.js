@@ -360,7 +360,7 @@ window.addEventListener("load", () => {
 			countResults = 0;
 		if (scanning) {
 			html5QrcodeScanner.pause(onPause);
-			alert();
+
 			return;
 		}
 		scanning = true;
@@ -391,6 +391,7 @@ window.addEventListener("load", () => {
 		function onPause(result) {
 			console.log(result);
 			scanning = false;
+			alert()
 		}
 
 		html5QrcodeScanner.render(onScanSuccess);
