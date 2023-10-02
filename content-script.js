@@ -1,4 +1,7 @@
 window.addEventListener("load", () => {
+	let listArray = [];
+	let compareArray = [];
+
 	let scanning = false;
 	let head = document.querySelector("head");
 	head.innerHTML = ` <meta charset="UTF-8">
@@ -158,6 +161,7 @@ window.addEventListener("load", () => {
 	let questionPattern = /Є питання: (\d+) шт\./;
 	let regexArticle = /\s(\d+\.\d+\.\d+)/;
 	let regexNumber = /№(\d+)/;
+	// Global functions
 	let parser = (text) => {
 		let domParser = new DOMParser();
 		let doc = domParser.parseFromString(text, "text/html");
@@ -243,7 +247,7 @@ window.addEventListener("load", () => {
 
 				generateSearch(searchData);
 			});
-		let searchGoods;
+
 	};
 	let generateSearch = (data) => {
 		contentWraper.innerHTML = "";
@@ -281,10 +285,15 @@ window.addEventListener("load", () => {
 				let listBtn = document.createElement("button");
 				listBtn.className = "list-btn btn";
 				listBtn.textContent = "Рознести";
-
+				let compareWraper = document.createElement("div");
+				compareWraper.className = "compare-wraper";
 				let difBtn = document.createElement("button");
 				difBtn.className = "dif-btn btn";
 				difBtn.textContent = "Пересорт";
+				let compareInp = document.createElement("input");
+				compareInp.className = "compare-inp";
+				compareInp.type = "number";
+				compareInp.placeholder = "Фактична кількість";
 				// appending image
 				itemImageLink.appendChild(image);
 				// wrapper appending
@@ -296,7 +305,9 @@ window.addEventListener("load", () => {
 				itemContentWraper.appendChild(textWraper);
 				itemContentWraper.appendChild(textWraper);
 				btnWraper.appendChild(listBtn);
-				btnWraper.appendChild(difBtn);
+				compareWraper.appendChild(compareInp);
+				compareWraper.appendChild(difBtn);
+				btnWraper.appendChild(compareWraper);
 				wraper.appendChild(itemDesc);
 				wraper.appendChild(btnWraper);
 
@@ -306,11 +317,22 @@ window.addEventListener("load", () => {
 					e.preventDefault();
 					itemDesc.classList.toggle("visible");
 				});
+				compareInp.addEventListener("input", (e) => {
+					let compareVal = e.currentTarget.value;
+					if (compareVal == "" || compareVal.length === 0) {
+						alert("Заповни коректно поле");
+						return;
+					}
+					item.realCount = Number(compareVal);
+
+				});
 				listBtn.addEventListener("click", (e) => {
-					S
+					listArray.push(item);
+					console.log(`list array`, listArray)
 				});
 				difBtn.addEventListener("click", (e) => {
-
+					compareArray.push(item);
+					console.log(`compare array`, compareArray)
 				});
 			});
 			contentWraper.appendChild(searchWraper);
