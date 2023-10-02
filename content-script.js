@@ -371,7 +371,6 @@ window.addEventListener("load", () => {
 			let stopScaningButton = document.querySelector("#html5-qrcode-button-camera-stop");
 
 			stopScaningButton.addEventListener("click", (e) => {
-				alert()
 				barcodeDisplayWraper.classList.toggle("hide-barcode");
 			})
 			if (decodedText !== lastResult) {
