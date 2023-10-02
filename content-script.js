@@ -1,7 +1,5 @@
 window.addEventListener("load", () => {
-	let listArray = [];
-	let compareArray = [];
-
+	let storage = localStorage.getItem("storage");
 	let scanning = false;
 	let head = document.querySelector("head");
 	head.innerHTML = ` <meta charset="UTF-8">
@@ -148,30 +146,52 @@ window.addEventListener("load", () => {
 	// comapre btn
 	let compareBtn = document.createElement("button");
 	compareBtn.className = "compare-btn btn";
-	compareBtn.innerHTML = `<svg fill="#ffffff" width="40px" height="40px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.048"></g><g id="SVGRepo_iconCarrier"><path d="M12.5 6.75a.75.75 0 00-1.5 0V9H8.75a.75.75 0 000 1.5H11v2.25a.75.75 0 001.5 0V10.5h2.25a.75.75 0 000-1.5H12.5V6.75zM8.75 16a.75.75 0 000 1.5h6a.75.75 0 000-1.5h-6z"></path><path fill-rule="evenodd" d="M5 1a2 2 0 00-2 2v18a2 2 0 002 2h14a2 2 0 002-2V7.018a2 2 0 00-.586-1.414l-4.018-4.018A2 2 0 0014.982 1H5zm-.5 2a.5.5 0 01.5-.5h9.982a.5.5 0 01.354.146l4.018 4.018a.5.5 0 01.146.354V21a.5.5 0 01-.5.5H5a.5.5 0 01-.5-.5V3z"></path></g></svg>`
+	compareBtn.innerHTML = `<svg fill="#ffffff" width="40px" height="40px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.048"></g><g id="SVGRepo_iconCarrier"><path d="M12.5 6.75a.75.75 0 00-1.5 0V9H8.75a.75.75 0 000 1.5H11v2.25a.75.75 0 001.5 0V10.5h2.25a.75.75 0 000-1.5H12.5V6.75zM8.75 16a.75.75 0 000 1.5h6a.75.75 0 000-1.5h-6z"></path><path fill-rule="evenodd" d="M5 1a2 2 0 00-2 2v18a2 2 0 002 2h14a2 2 0 002-2V7.018a2 2 0 00-.586-1.414l-4.018-4.018A2 2 0 0014.982 1H5zm-.5 2a.5.5 0 01.5-.5h9.982a.5.5 0 01.354.146l4.018 4.018a.5.5 0 01.146.354V21a.5.5 0 01-.5.5H5a.5.5 0 01-.5-.5V3z"></path></g></svg>`;
+	let compareBtnCount = document.createElement("span");
+	compareBtnCount.className = "compare-count counter";
+	compareBtn.appendChild(compareBtnCount);
 	// list btn
 	let listBtn = document.createElement("button");
 	listBtn.className = "list-btn btn";
-	listBtn.innerHTML = `<svg fill="#ffffff" height="40px" width="40px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 60 60" xml:space="preserve" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M12.5,24h25c0.552,0,1-0.448,1-1s-0.448-1-1-1h-25c-0.552,0-1,0.448-1,1S11.948,24,12.5,24z"></path> <path d="M12.5,16h10c0.552,0,1-0.448,1-1s-0.448-1-1-1h-10c-0.552,0-1,0.448-1,1S11.948,16,12.5,16z"></path> <path d="M12.5,32h25c0.552,0,1-0.448,1-1s-0.448-1-1-1h-25c-0.552,0-1,0.448-1,1S11.948,32,12.5,32z"></path> <path d="M29.5,38h-17c-0.552,0-1,0.448-1,1s0.448,1,1,1h17c0.552,0,1-0.448,1-1S30.052,38,29.5,38z"></path> <path d="M26.5,46h-14c-0.552,0-1,0.448-1,1s0.448,1,1,1h14c0.552,0,1-0.448,1-1S27.052,46,26.5,46z"></path> <path d="M48.5,34.363V14.586L33.914,0H1.5v60h44c7.168,0,13-5.832,13-13C58.5,40.866,54.224,35.723,48.5,34.363z M34.5,3.414 L45.086,14H34.5V3.414z M38.578,58H3.5V2h29v14h14v18.044C46.158,34.015,45.826,34,45.5,34c-7.168,0-13,5.832-13,13 c0,0.399,0.025,0.792,0.06,1.183c0.008,0.091,0.017,0.181,0.027,0.272c0.043,0.382,0.098,0.76,0.173,1.131 c0.009,0.044,0.021,0.087,0.03,0.131c0.072,0.338,0.159,0.67,0.257,0.998c0.025,0.082,0.048,0.165,0.074,0.246 c0.113,0.352,0.239,0.698,0.38,1.037c0.027,0.064,0.057,0.126,0.084,0.189c0.129,0.296,0.269,0.585,0.419,0.869 c0.036,0.068,0.07,0.137,0.107,0.205c0.175,0.317,0.363,0.626,0.564,0.927c0.046,0.069,0.094,0.135,0.141,0.203 c0.183,0.264,0.375,0.521,0.576,0.77c0.038,0.047,0.074,0.096,0.113,0.143c0.231,0.278,0.475,0.544,0.728,0.801 c0.062,0.063,0.125,0.124,0.189,0.186c0.245,0.239,0.496,0.471,0.759,0.69c0.023,0.02,0.045,0.041,0.069,0.06 c0.282,0.232,0.577,0.449,0.879,0.658c0.073,0.051,0.147,0.1,0.221,0.149C38.427,57.897,38.501,57.951,38.578,58z M45.5,58 c-6.065,0-11-4.935-11-11s4.935-11,11-11c0.312,0,0.62,0.021,0.926,0.047c0.291,0.028,0.592,0.066,0.909,0.119l0.443,0.074 C52.753,37.293,56.5,41.716,56.5,47C56.5,53.065,51.565,58,45.5,58z"></path> <path d="M51.5,46h-5v-5c0-0.552-0.448-1-1-1s-1,0.448-1,1v5h-5c-0.552,0-1,0.448-1,1s0.448,1,1,1h5v5c0,0.552,0.448,1,1,1 s1-0.448,1-1v-5h5c0.552,0,1-0.448,1-1S52.052,46,51.5,46z"></path> </g> </g></svg>`
+	listBtn.innerHTML = `<svg fill="#ffffff" height="40px" width="40px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 60 60" xml:space="preserve" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M12.5,24h25c0.552,0,1-0.448,1-1s-0.448-1-1-1h-25c-0.552,0-1,0.448-1,1S11.948,24,12.5,24z"></path> <path d="M12.5,16h10c0.552,0,1-0.448,1-1s-0.448-1-1-1h-10c-0.552,0-1,0.448-1,1S11.948,16,12.5,16z"></path> <path d="M12.5,32h25c0.552,0,1-0.448,1-1s-0.448-1-1-1h-25c-0.552,0-1,0.448-1,1S11.948,32,12.5,32z"></path> <path d="M29.5,38h-17c-0.552,0-1,0.448-1,1s0.448,1,1,1h17c0.552,0,1-0.448,1-1S30.052,38,29.5,38z"></path> <path d="M26.5,46h-14c-0.552,0-1,0.448-1,1s0.448,1,1,1h14c0.552,0,1-0.448,1-1S27.052,46,26.5,46z"></path> <path d="M48.5,34.363V14.586L33.914,0H1.5v60h44c7.168,0,13-5.832,13-13C58.5,40.866,54.224,35.723,48.5,34.363z M34.5,3.414 L45.086,14H34.5V3.414z M38.578,58H3.5V2h29v14h14v18.044C46.158,34.015,45.826,34,45.5,34c-7.168,0-13,5.832-13,13 c0,0.399,0.025,0.792,0.06,1.183c0.008,0.091,0.017,0.181,0.027,0.272c0.043,0.382,0.098,0.76,0.173,1.131 c0.009,0.044,0.021,0.087,0.03,0.131c0.072,0.338,0.159,0.67,0.257,0.998c0.025,0.082,0.048,0.165,0.074,0.246 c0.113,0.352,0.239,0.698,0.38,1.037c0.027,0.064,0.057,0.126,0.084,0.189c0.129,0.296,0.269,0.585,0.419,0.869 c0.036,0.068,0.07,0.137,0.107,0.205c0.175,0.317,0.363,0.626,0.564,0.927c0.046,0.069,0.094,0.135,0.141,0.203 c0.183,0.264,0.375,0.521,0.576,0.77c0.038,0.047,0.074,0.096,0.113,0.143c0.231,0.278,0.475,0.544,0.728,0.801 c0.062,0.063,0.125,0.124,0.189,0.186c0.245,0.239,0.496,0.471,0.759,0.69c0.023,0.02,0.045,0.041,0.069,0.06 c0.282,0.232,0.577,0.449,0.879,0.658c0.073,0.051,0.147,0.1,0.221,0.149C38.427,57.897,38.501,57.951,38.578,58z M45.5,58 c-6.065,0-11-4.935-11-11s4.935-11,11-11c0.312,0,0.62,0.021,0.926,0.047c0.291,0.028,0.592,0.066,0.909,0.119l0.443,0.074 C52.753,37.293,56.5,41.716,56.5,47C56.5,53.065,51.565,58,45.5,58z"></path> <path d="M51.5,46h-5v-5c0-0.552-0.448-1-1-1s-1,0.448-1,1v5h-5c-0.552,0-1,0.448-1,1s0.448,1,1,1h5v5c0,0.552,0.448,1,1,1 s1-0.448,1-1v-5h5c0.552,0,1-0.448,1-1S52.052,46,51.5,46z"></path> </g> </g></svg>`;
+	let listBtnCount = document.createElement("span");
+	listBtnCount.className = "list-count counter";
+	listBtn.appendChild(listBtnCount);
 	let logOutBtn = document.createElement("button");
 	logOutBtn.className = "log-out-btn btn";
-	logOutBtn.innerHTML = `<svg fill="#ffffff" height="40px" width="40px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 384.971 384.971" xml:space="preserve" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g id="Sign_Out"> <path d="M180.455,360.91H24.061V24.061h156.394c6.641,0,12.03-5.39,12.03-12.03s-5.39-12.03-12.03-12.03H12.03 C5.39,0.001,0,5.39,0,12.031V372.94c0,6.641,5.39,12.03,12.03,12.03h168.424c6.641,0,12.03-5.39,12.03-12.03 C192.485,366.299,187.095,360.91,180.455,360.91z"></path> <path d="M381.481,184.088l-83.009-84.2c-4.704-4.752-12.319-4.74-17.011,0c-4.704,4.74-4.704,12.439,0,17.179l62.558,63.46H96.279 c-6.641,0-12.03,5.438-12.03,12.151c0,6.713,5.39,12.151,12.03,12.151h247.74l-62.558,63.46c-4.704,4.752-4.704,12.439,0,17.179 c4.704,4.752,12.319,4.752,17.011,0l82.997-84.2C386.113,196.588,386.161,188.756,381.481,184.088z"></path> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> </g> </g></svg>`
+	logOutBtn.innerHTML = `<svg fill="#ffffff" height="40px" width="40px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 384.971 384.971" xml:space="preserve" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g id="Sign_Out"> <path d="M180.455,360.91H24.061V24.061h156.394c6.641,0,12.03-5.39,12.03-12.03s-5.39-12.03-12.03-12.03H12.03 C5.39,0.001,0,5.39,0,12.031V372.94c0,6.641,5.39,12.03,12.03,12.03h168.424c6.641,0,12.03-5.39,12.03-12.03 C192.485,366.299,187.095,360.91,180.455,360.91z"></path> <path d="M381.481,184.088l-83.009-84.2c-4.704-4.752-12.319-4.74-17.011,0c-4.704,4.74-4.704,12.439,0,17.179l62.558,63.46H96.279 c-6.641,0-12.03,5.438-12.03,12.151c0,6.713,5.39,12.151,12.03,12.151h247.74l-62.558,63.46c-4.704,4.752-4.704,12.439,0,17.179 c4.704,4.752,12.319,4.752,17.011,0l82.997-84.2C386.113,196.588,386.161,188.756,381.481,184.088z"></path> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> </g> </g></svg>`;
 	// patterns
 	let elaborationPattern = /Є уточнення: (\d+) шт\./;
 	let questionPattern = /Є питання: (\d+) шт\./;
 	let regexArticle = /\s(\d+\.\d+\.\d+)/;
 	let regexNumber = /№(\d+)/;
+	let regexGoodsCount =
+		/всього:\s*(\d+)\(\d+\)\s*шт\.\s*резерв:\s*(\d+)\(\d+\)\s*шт\.\s*Роздріб:\s*(\d+)\s*грн\.\s*Майстри:\s*(\d+)\s*грн/;
+	if (storage == undefined) {
+		localStorage.setItem(
+			"storage",
+			JSON.stringify({
+				listArray: [],
+				compareArray: [],
+			})
+		);
+	} else {
+		storage = JSON.parse(localStorage.getItem("storage"));
+	}
 	// Global functions
 	let parser = (text) => {
 		let domParser = new DOMParser();
 		let doc = domParser.parseFromString(text, "text/html");
 		return doc;
 	};
+	let updateStorage = () => {
+		localStorage.setItem("storage", JSON.stringify(storage));
+	};
 	let logOut = () => {
-		document.cookie = 'login=null';
-		document.cookie = 'hash=null';
+		document.cookie = "login=null";
+		document.cookie = "hash=null";
 		window.location.reload();
-	}
+	};
 	let getGoodIdArticle = (string) => {
 		let data = { id: null, article: null };
 		let matchNumber = string.match(regexNumber);
@@ -193,6 +213,20 @@ window.addEventListener("load", () => {
 		}
 		return null;
 	};
+	function getGoodsCount(data) {
+		const matches = data.match(regexGoodsCount);
+		if (matches) {
+			const numbers = {
+				baseCount: parseInt(matches[1]),
+				orderCount: parseInt(matches[2]),
+				роздріб: parseInt(matches[3]),
+				Майстри: parseInt(matches[4]),
+			};
+			return numbers;
+		} else {
+			return false;
+		}
+	}
 	let search = () => {
 		let search_query = searchInp.value;
 		if (search_query.length < 2) {
@@ -243,11 +277,9 @@ window.addEventListener("load", () => {
 					searchData.push(data);
 					console.log(goodsPhoto[index].parentNode.querySelector("a"));
 				});
-				console.log(searchData);
 
 				generateSearch(searchData);
 			});
-
 	};
 	let generateSearch = (data) => {
 		contentWraper.innerHTML = "";
@@ -285,11 +317,13 @@ window.addEventListener("load", () => {
 				let listBtn = document.createElement("button");
 				listBtn.className = "list-btn btn";
 				listBtn.textContent = "Рознести";
+
 				let compareWraper = document.createElement("div");
 				compareWraper.className = "compare-wraper";
-				let difBtn = document.createElement("button");
-				difBtn.className = "dif-btn btn";
-				difBtn.textContent = "Пересорт";
+				let compareBtn = document.createElement("button");
+				compareBtn.className = "dif-btn btn";
+				compareBtn.textContent = "Пересорт";
+
 				let compareInp = document.createElement("input");
 				compareInp.className = "compare-inp";
 				compareInp.type = "number";
@@ -306,7 +340,7 @@ window.addEventListener("load", () => {
 				itemContentWraper.appendChild(textWraper);
 				btnWraper.appendChild(listBtn);
 				compareWraper.appendChild(compareInp);
-				compareWraper.appendChild(difBtn);
+				compareWraper.appendChild(compareBtn);
 				btnWraper.appendChild(compareWraper);
 				wraper.appendChild(itemDesc);
 				wraper.appendChild(btnWraper);
@@ -318,21 +352,32 @@ window.addEventListener("load", () => {
 					itemDesc.classList.toggle("visible");
 				});
 				compareInp.addEventListener("input", (e) => {
+					console.log(getGoodsCount(item.count));
 					let compareVal = e.currentTarget.value;
-					if (compareVal == "" || compareVal.length === 0) {
-						alert("Заповни коректно поле");
-						return;
+					if (
+						Number(compareVal) !== Number(getGoodsCount(item.count).baseCount)
+					) {
+						e.currentTarget.style.border = `1px solid red`;
 					}
-					item.realCount = Number(compareVal);
-
 				});
 				listBtn.addEventListener("click", (e) => {
-					listArray.push(item);
-					console.log(`list array`, listArray)
+					item.isProcesed = false;
+					storage.listArray.push(item);
+					updateStorage();
+					drawButtonsCount();
 				});
-				difBtn.addEventListener("click", (e) => {
-					compareArray.push(item);
-					console.log(`compare array`, compareArray)
+				compareBtn.addEventListener("click", (e) => {
+					if (compareInp.value.length == 0) {
+						alert("Введи коректну відповідь");
+						return;
+					}
+
+					item.isProcesed = false;
+					item.realCount = Number(compareInp.value);
+					storage.goodsBaseCount = getGoodsCount(item.count).baseCount;
+					storage.compareArray.push(item);
+					updateStorage();
+					drawButtonsCount();
 				});
 			});
 			contentWraper.appendChild(searchWraper);
@@ -390,11 +435,13 @@ window.addEventListener("load", () => {
 		barcodeDisplayWraper.classList.toggle("hide-barcode");
 
 		function onScanSuccess(decodedText, decodedResult) {
-			let stopScaningButton = document.querySelector("#html5-qrcode-button-camera-stop");
+			let stopScaningButton = document.querySelector(
+				"#html5-qrcode-button-camera-stop"
+			);
 
 			stopScaningButton.addEventListener("click", (e) => {
 				barcodeDisplayWraper.classList.toggle("hide-barcode");
-			})
+			});
 			if (decodedText !== lastResult) {
 				++countResults;
 				lastResult = decodedText;
@@ -406,17 +453,14 @@ window.addEventListener("load", () => {
 				// Handle on success condition with the decoded message.
 				console.log(`Scan result ${decodedText}`, decodedResult);
 				html5QrcodeScanner.clear();
-
 			}
 		}
 		function onPause(result) {
 			console.error(result);
 			scanning = false;
-
 		}
 
 		html5QrcodeScanner.render(onScanSuccess);
-
 	};
 	let addElaborationAnswer = (e) => {
 		let elaboration = new URLSearchParams();
@@ -487,16 +531,7 @@ window.addEventListener("load", () => {
 
 		return null; // Повертаємо null, якщо число не знайдено в рядку
 	}
-	let getGoodsCount = (data) => {
-		const regex = /По базе: (\d+)В заказі: (\d+)/;
-		const matches = data.match(regex);
-		if (matches && matches.length >= 3) {
-			const baseCount = parseInt(matches[1], 10);
-			const orderCount = parseInt(matches[2], 10);
 
-			return { baseCount: baseCount, orderCount: orderCount };
-		}
-	};
 	let generateQuestionTanble = (data) => {
 		contentWraper.innerHTML = "";
 		if (data.length > 0) {
@@ -852,12 +887,94 @@ window.addEventListener("load", () => {
 			// Обробка помилок
 		}
 	};
+	let drawButtonsCount = () => {
+		let listCount = 0;
+		let compareCount = 0;
+		storage.listArray.forEach((item) => {
+			if (!item.isProcesed) {
+				listCount++;
+			}
+		});
+		storage.compareArray.forEach((item) => {
+			if (!item.isProcesed) {
+				compareCount++;
+			}
+		});
+		if (listCount > 0) {
+			listBtnCount.textContent = listCount;
+			listBtnCount.style.display = "block";
+		} else {
+			listBtnCount.style.display = "none";
+		}
+		if (compareCount > 0) {
+			compareBtnCount.textContent = compareCount;
+			compareBtnCount.style.display = "block";
+		} else {
+			compareBtnCount.style.display = "none";
+		}
+	};
+	let generateList = () => {
+		contentWraper.innerHTML = "";
+		if (storage.listArray.length == 0) {
+			let listTitle = document.createElement("p");
+			listTitle.className = "list-title content-title";
+			listTitle.textContent = "Список на розноску товару Пустий!!!";
+			contentWraper.appendChild(listTitle);
+			return;
+		}
+		storage.listArray.forEach((item) => {
+			let listItemWraper = document.createElement("div");
+			listItemWraper.className = "list-item";
+			let itemImageLink = document.createElement("a");
+			itemImageLink.className = "item-image-link";
+			itemImageLink.setAttribute("href", item.photoLG);
+			let itemImage = document.createElement("img");
+			itemImage.className = "item-image";
+			itemImage.src = item.photo;
+			itemImageLink.appendChild(itemImage);
+			let itemTextWraper = document.createElement("div");
+			itemTextWraper.className = "item-text-wraper";
+			let itemCount = document.createElement("p");
+			itemCount.className = "item-count";
+			itemCount.textContent = `Кількість: ${
+				getGoodsCount(item.count).baseCount
+			} Резерв: ${getGoodsCount(item.count).orderCount}`;
+			let itemDesc = document.createElement("p");
+			itemDesc.className = "item-desc";
+			itemDesc.textContent = item.desc;
+			let procesedBtn = document.createElement("button");
+			procesedBtn.className = "procesed-btn";
+			procesedBtn.dataset.id = item.id;
+			procesedBtn.textContent = "Обробити";
+			if (item.isProcesed) {
+				listItemWraper.style.backgroundColor = "#c2edc2";
+			}
+			itemTextWraper.appendChild(itemCount);
+			itemTextWraper.appendChild(itemDesc);
+			itemTextWraper.appendChild(procesedBtn);
+			listItemWraper.appendChild(itemImageLink);
+			listItemWraper.appendChild(itemTextWraper);
+			contentWraper.appendChild(listItemWraper);
+			procesedBtn.addEventListener("click", (e) => {
+				storage.listArray.forEach((item) => {
+					if (item.id == Number(e.currentTarget.dataset.id)) {
+						item.isProcesed = true;
+						procesedBtn.textContent = "Оброблено";
+						procesedBtn.parentNode.style.backgroundColor = "#c2edc2";
+						updateStorage();
+						drawButtonsCount();
+					}
+				});
+			});
+		});
+	};
 	// check Elabotarions count
 	setInterval(checkElaborations, elaborationInterval * 1000);
 
 	// add event listeners for buttons
 	elaborationBtn.addEventListener("click", elabotarions);
 	questionBtn.addEventListener("click", getQuestions);
+	listBtn.addEventListener("click", generateList);
 	searchSendBtn.addEventListener("click", search);
 	barCodeSearch.addEventListener("click", barcodeRecognition);
 	logOutBtn.addEventListener("click", logOut);
@@ -873,4 +990,5 @@ window.addEventListener("load", () => {
 	document.body.appendChild(mainSearchWraper);
 	document.body.appendChild(contentWraper);
 	checkElaborations();
+	drawButtonsCount();
 });
