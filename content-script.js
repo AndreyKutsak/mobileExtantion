@@ -167,6 +167,7 @@ window.addEventListener("load", () => {
 	let regexArticle = /\s(\d+\.\d+\.\d+)/;
 	let regexNumber = /№(\d+)/;
 	let regexSentens = /[^\\n]+(?=\\n|$)/g;
+	let regexCell = new RegExp("cell", "gi");
 	let regexGoodsCount =
 		/всього:\s*(\d+)\(\d+\)\s*шт\.\s*резерв:\s*(\d+)\(\d+\)\s*шт\.\s*Роздріб:\s*(\d+)\s*грн\.\s*Майстри:\s*(\d+)\s*грн/;
 	if (storage == null) {
@@ -454,7 +455,7 @@ window.addEventListener("load", () => {
 				let searchInp = document.querySelector(".search-inp");
 				searchInp.value = decodedText;
 				let serarchBtn = document.querySelector(".search-send-btn");
-				if (decodedText.includes("cell")) {
+				if (decodedText.match(regexCell) !== null) {
 					serarchBtn.click();
 				}
 
