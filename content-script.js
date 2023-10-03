@@ -1,6 +1,6 @@
 window.addEventListener("load", () => {
 	let storage = localStorage.getItem("storage");
-	let scanning = false;
+
 	let head = document.querySelector("head");
 	head.innerHTML = ` <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,6 +41,7 @@ window.addEventListener("load", () => {
 	searchInp.placeholder = "Пошук";
 	let barCodeSearch = document.createElement("button");
 	barCodeSearch.className = "bar-code-search-btn";
+	barCodeSearch.dataset.scaning = "false";
 	barCodeSearch.innerHTML = `<?xml version="1.0" encoding="iso-8859-1"?>
 
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
@@ -165,9 +166,10 @@ window.addEventListener("load", () => {
 	let questionPattern = /Є питання: (\d+) шт\./;
 	let regexArticle = /\s(\d+\.\d+\.\d+)/;
 	let regexNumber = /№(\d+)/;
+	let regexSentens = /[^\\n]+(?=\\n|$)/g;
 	let regexGoodsCount =
 		/всього:\s*(\d+)\(\d+\)\s*шт\.\s*резерв:\s*(\d+)\(\d+\)\s*шт\.\s*Роздріб:\s*(\d+)\s*грн\.\s*Майстри:\s*(\d+)\s*грн/;
-	if (storage == undefined) {
+	if (storage == null) {
 		localStorage.setItem(
 			"storage",
 			JSON.stringify({
@@ -175,6 +177,7 @@ window.addEventListener("load", () => {
 				compareArray: [],
 			})
 		);
+		storage = JSON.parse(localStorage.getItem("storage"));
 	} else {
 		storage = JSON.parse(localStorage.getItem("storage"));
 	}
@@ -191,6 +194,13 @@ window.addEventListener("load", () => {
 		document.cookie = "login=null";
 		document.cookie = "hash=null";
 		window.location.reload();
+	};
+	let getSentenses = (string) => {
+		let matches = string.match(regexSentens);
+		if (matches) {
+			return matches;
+		}
+		return false;
 	};
 	let getGoodIdArticle = (string) => {
 		let data = { id: null, article: null };
@@ -272,6 +282,7 @@ window.addEventListener("load", () => {
 					data.photoLG = goodsPhoto[index].parentNode
 						.querySelector("a")
 						.getAttribute("href");
+					data.head = goodsDesc[index].innerHTML.split("<br>")[0].trim();
 					data.desc = goodsDesc[index].textContent.trim();
 					data.count = goodsCount[index].textContent.trim();
 					searchData.push(data);
@@ -321,7 +332,7 @@ window.addEventListener("load", () => {
 				let compareWraper = document.createElement("div");
 				compareWraper.className = "compare-wraper";
 				let compareBtn = document.createElement("button");
-				compareBtn.className = "dif-btn btn";
+				compareBtn.className = "compare-btn btn";
 				compareBtn.textContent = "Пересорт";
 
 				let compareInp = document.createElement("input");
@@ -362,22 +373,34 @@ window.addEventListener("load", () => {
 				});
 				listBtn.addEventListener("click", (e) => {
 					item.isProcesed = false;
+					if (storage.listArray.includes(item)) {
+						alert("Такий товар вже в списку");
+						return;
+					}
 					storage.listArray.push(item);
 					updateStorage();
 					drawButtonsCount();
 				});
 				compareBtn.addEventListener("click", (e) => {
-					if (compareInp.value.length == 0) {
-						alert("Введи коректну відповідь");
-						return;
+					if (compareInp.classList.contains("visible-inp")) {
+						if (compareInp.value.length == 0) {
+							alert("Введи коректну відповідь");
+							return;
+						}
+						if (storage.compareArray.includes(item)) {
+							alert("Такий товар вже в списку");
+							return;
+						}
+						item.isProcesed = false;
+						item.realCount = Number(compareInp.value);
+						item.goodsBaseCount = getGoodsCount(item.count).baseCount;
+						item.goodsReserve = getGoodsCount(item.count).orderCount;
+						storage.compareArray.push(item);
+						wraper.style.backgroundColor = "#fbc8c8";
+						updateStorage();
+						drawButtonsCount();
 					}
-
-					item.isProcesed = false;
-					item.realCount = Number(compareInp.value);
-					storage.goodsBaseCount = getGoodsCount(item.count).baseCount;
-					storage.compareArray.push(item);
-					updateStorage();
-					drawButtonsCount();
+					compareInp.classList.toggle("visible-inp");
 				});
 			});
 			contentWraper.appendChild(searchWraper);
@@ -422,45 +445,34 @@ window.addEventListener("load", () => {
 			fps: 10,
 			qrbox: 250,
 		});
-
-		var lastResult,
+		let lastResult,
 			countResults = 0;
-		if (scanning) {
-			html5QrcodeScanner.pause(onPause);
-
-			return;
-		}
-		scanning = true;
-		console.log(scanning);
-		barcodeDisplayWraper.classList.toggle("hide-barcode");
-
 		function onScanSuccess(decodedText, decodedResult) {
-			let stopScaningButton = document.querySelector(
-				"#html5-qrcode-button-camera-stop"
-			);
-
-			stopScaningButton.addEventListener("click", (e) => {
-				barcodeDisplayWraper.classList.toggle("hide-barcode");
-			});
 			if (decodedText !== lastResult) {
 				++countResults;
 				lastResult = decodedText;
 				let searchInp = document.querySelector(".search-inp");
 				searchInp.value = decodedText;
 				let serarchBtn = document.querySelector(".search-send-btn");
-				serarchBtn.click();
-				stopScaningButton.click();
+				if (decodedText.includes("cell")) {
+					serarchBtn.click();
+				}
+
 				// Handle on success condition with the decoded message.
 				console.log(`Scan result ${decodedText}`, decodedResult);
-				html5QrcodeScanner.clear();
 			}
 		}
-		function onPause(result) {
-			console.error(result);
-			scanning = false;
-		}
-
 		html5QrcodeScanner.render(onScanSuccess);
+		if (barCodeSearch.dataset.scaning == "true") {
+			barCodeSearch.dataset.scaning = "false";
+
+			html5QrcodeScanner.clear();
+			console.log("stop scanning");
+			barcodeDisplayWraper.classList.add("hide-barcode");
+			return;
+		}
+		barcodeDisplayWraper.classList.remove("hide-barcode");
+		barCodeSearch.dataset.scaning = "true";
 	};
 	let addElaborationAnswer = (e) => {
 		let elaboration = new URLSearchParams();
@@ -890,6 +902,7 @@ window.addEventListener("load", () => {
 	let drawButtonsCount = () => {
 		let listCount = 0;
 		let compareCount = 0;
+		if (storage == null) return;
 		storage.listArray.forEach((item) => {
 			if (!item.isProcesed) {
 				listCount++;
@@ -940,12 +953,17 @@ window.addEventListener("load", () => {
 				getGoodsCount(item.count).baseCount
 			} Резерв: ${getGoodsCount(item.count).orderCount}`;
 			let itemDesc = document.createElement("p");
-			itemDesc.className = "item-desc";
-			itemDesc.textContent = item.desc;
+			itemDesc.className = "item-head";
+			itemDesc.textContent = item.head;
 			let procesedBtn = document.createElement("button");
 			procesedBtn.className = "procesed-btn";
 			procesedBtn.dataset.id = item.id;
-			procesedBtn.textContent = "Обробити";
+			if (item.isProcesed) {
+				procesedBtn.textContent = "Оброблено";
+			} else {
+				procesedBtn.textContent = "Обробити";
+			}
+
 			if (item.isProcesed) {
 				listItemWraper.style.backgroundColor = "#c2edc2";
 			}
@@ -960,7 +978,67 @@ window.addEventListener("load", () => {
 					if (item.id == Number(e.currentTarget.dataset.id)) {
 						item.isProcesed = true;
 						procesedBtn.textContent = "Оброблено";
-						procesedBtn.parentNode.style.backgroundColor = "#c2edc2";
+						procesedBtn.parentNode.parentNode.style.backgroundColor = "#c2edc2";
+						updateStorage();
+						drawButtonsCount();
+					}
+				});
+			});
+		});
+	};
+	let generateCompare = () => {
+		contentWraper.innerHTML = "";
+		if (storage.compareArray.length == 0) {
+			let compareTitle = document.createElement("p");
+			compareTitle.className = "compare-title content-title";
+			compareTitle.textContent = "Список Розбжностей пустий!!!";
+			contentWraper.appendChild(compareTitle);
+			return;
+		}
+		storage.compareArray.forEach((item) => {
+			let compareItemWraper = document.createElement("div");
+			compareItemWraper.className = "compare-item";
+			let itemImageLink = document.createElement("a");
+			itemImageLink.className = "item-image-link";
+			itemImageLink.setAttribute("href", item.photoLG);
+			let itemImage = document.createElement("img");
+			itemImage.className = "item-image";
+			itemImage.src = item.photo;
+			itemImageLink.appendChild(itemImage);
+			let itemTextWraper = document.createElement("div");
+			itemTextWraper.className = "item-text-wraper";
+			let itemCount = document.createElement("p");
+			itemCount.className = "compare-count";
+			itemCount.textContent = `Кількість по базі: ${
+				getGoodsCount(item.count).baseCount
+			} Резерв: ${getGoodsCount(item.count).orderCount}
+			Реальна кількість: ${item.realCount}`;
+			let itemDesc = document.createElement("p");
+			itemDesc.className = "item-head";
+			itemDesc.textContent = item.head;
+			let procesedBtn = document.createElement("button");
+			procesedBtn.className = "procesed-btn";
+			procesedBtn.dataset.id = item.id;
+			if (item.isProcesed) {
+				procesedBtn.textContent = "Оброблено";
+			} else {
+				procesedBtn.textContent = "Обробити";
+			}
+			if (item.isProcesed) {
+				compareItemWraper.style.backgroundColor = "#c2edc2";
+			}
+			itemTextWraper.appendChild(itemCount);
+			itemTextWraper.appendChild(itemDesc);
+			itemTextWraper.appendChild(procesedBtn);
+			compareItemWraper.appendChild(itemImageLink);
+			compareItemWraper.appendChild(itemTextWraper);
+			contentWraper.appendChild(compareItemWraper);
+			procesedBtn.addEventListener("click", (e) => {
+				storage.compareArray.forEach((item) => {
+					if (item.id == Number(e.currentTarget.dataset.id)) {
+						item.isProcesed = true;
+						procesedBtn.textContent = "Оброблено";
+						procesedBtn.parentNode.parentNode.style.backgroundColor = "#c2edc2";
 						updateStorage();
 						drawButtonsCount();
 					}
@@ -975,6 +1053,7 @@ window.addEventListener("load", () => {
 	elaborationBtn.addEventListener("click", elabotarions);
 	questionBtn.addEventListener("click", getQuestions);
 	listBtn.addEventListener("click", generateList);
+	compareBtn.addEventListener("click", generateCompare);
 	searchSendBtn.addEventListener("click", search);
 	barCodeSearch.addEventListener("click", barcodeRecognition);
 	logOutBtn.addEventListener("click", logOut);

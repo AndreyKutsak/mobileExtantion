@@ -370,18 +370,34 @@ body {
 			.list-btn {
 				background-color: #1cc879;
 			}
-
-			.dif-btn {
+			.compare-inp {
+				font-family: sans-serif;
+				font-size: 14px;
+				font-weight: 600;
+				color: #323b4f;
+				border-right: none;
+				height: 35px;
+				transition: 0.4s;
+				transform-origin: right;
+				transform: scaleX(0);
+			}
+			.visible-inp {
+				transform: scaleX(1);
+			}
+			.compare-btn {
+				border-top-left-radius: 0px;
+				border-bottom-left-radius: 0px;
 				background-color: #ff8e8e;
 			}
 		}
 	}
 }
+// lists tyling
 .wraper {
 	padding: 50px 10px;
 	.list-item {
 		display: flex;
-		justify-content: space-between;
+		justify-content: flex-start;
 		align-items: flex-start;
 		padding: 10px;
 		margin-bottom: 20px;
@@ -390,7 +406,7 @@ body {
 		.item-image-link {
 			height: 60px;
 			min-width: 60px;
-			margin-right: 10px;
+			margin-right: 20px;
 			img {
 				min-width: 100%;
 			}
@@ -402,9 +418,26 @@ body {
 				font-weight: bold;
 				margin-bottom: 20px;
 			}
-			.item-desc {
+			.item-head {
 				font-family: sans-serif;
-				font-size: 12px;
+				font-size: 14px;
+				text-transform: uppercase;
+				font-weight: bold;
+			}
+			.procesed-btn {
+				font-family: sans-serif;
+				font-size: 14px;
+				font-weight: bold;
+				color: #fff;
+				border: none;
+				background-color: #1cc879;
+				border-radius: 5px;
+				padding: 10px 15px;
+				cursor: pointer;
+				transition: 0.2s;
+				&:active {
+					transform: scale(0.9);
+				}
 			}
 		}
 	}
