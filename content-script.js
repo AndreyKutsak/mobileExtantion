@@ -953,6 +953,9 @@ window.addEventListener("load", () => {
 			itemCount.textContent = `Кількість: ${
 				getGoodsCount(item.count).baseCount
 			} Резерв: ${getGoodsCount(item.count).orderCount}`;
+			let itemArticle = document.createElement("p");
+			itemArticle.className = "item-article";
+			itemArticle.textContent = item.article;
 			let itemDesc = document.createElement("p");
 			itemDesc.className = "item-head";
 			itemDesc.textContent = item.head;
@@ -968,6 +971,7 @@ window.addEventListener("load", () => {
 			if (item.isProcesed) {
 				listItemWraper.style.backgroundColor = "#c2edc2";
 			}
+			itemTextWraper.appendChild(itemArticle);
 			itemTextWraper.appendChild(itemCount);
 			itemTextWraper.appendChild(itemDesc);
 			itemTextWraper.appendChild(procesedBtn);

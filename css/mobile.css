@@ -330,21 +330,27 @@ body {
 .search-result-wraper .item-wraper .item-btn-wraper .list-btn {
   background-color: #1cc879;
 }
-.search-result-wraper .item-wraper .item-btn-wraper .compare-inp {
+.search-result-wraper .item-wraper .item-btn-wraper .compare-wraper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.search-result-wraper .item-wraper .item-btn-wraper .compare-wraper .compare-inp {
   font-family: sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: #323b4f;
   border-right: none;
   height: 35px;
+  width: 60px;
   transition: 0.4s;
   transform-origin: right;
   transform: scaleX(0);
 }
-.search-result-wraper .item-wraper .item-btn-wraper .visible-inp {
+.search-result-wraper .item-wraper .item-btn-wraper .compare-wraper .visible-inp {
   transform: scaleX(1);
 }
-.search-result-wraper .item-wraper .item-btn-wraper .compare-btn {
+.search-result-wraper .item-wraper .item-btn-wraper .compare-wraper .compare-btn {
   border-top-left-radius: 0px;
   border-bottom-left-radius: 0px;
   background-color: #ff8e8e;
@@ -369,6 +375,16 @@ body {
 }
 .wraper .list-item .item-image-link img {
   min-width: 100%;
+}
+.wraper .list-item .item-text-wraper .item-article {
+  font-family: sans-serif;
+  font-size: 16px;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: #323b4f;
+  background-color: #fdb8b8;
+  padding: 5px 10px;
+  border-radius: 5px;
 }
 .wraper .list-item .item-text-wraper .item-count {
   font-family: sans-serif;
