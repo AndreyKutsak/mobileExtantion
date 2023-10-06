@@ -166,6 +166,7 @@ window.addEventListener("load", () => {
 	let questionPattern = /Є питання: (\d+) шт\./;
 	let regexArticle = /\s(\d+\.\d+\.\d+)/;
 	let regexNumber = /№(\d+)/;
+	let regexElaborationArticle = /\((\d+(\.\d+)*)\)/;
 	let regexSentens = /[^\\n]+(?=\\n|$)/g;
 	let regexCell = new RegExp("cell", "gi");
 	let regexGoodsCount =
@@ -202,6 +203,17 @@ window.addEventListener("load", () => {
 			return matches;
 		}
 		return false;
+	};
+	let getDate = () => {
+		const date = new Date();
+		return {
+			year: date.getFullYear(),
+			month: date.getMonth() + 1,
+			day: date.getDate(),
+			hours: date.getHours(),
+			minutes: date.getMinutes(),
+			seconds: date.getSeconds(),
+		};
 	};
 	let getGoodIdArticle = (string) => {
 		let data = { id: null, article: null };
@@ -374,6 +386,7 @@ window.addEventListener("load", () => {
 				});
 				listBtn.addEventListener("click", (e) => {
 					item.isProcesed = false;
+					item.addingDate = getDate();
 					if (storage.listArray.includes(item)) {
 						alert("Такий товар вже в списку");
 						return;
@@ -392,6 +405,7 @@ window.addEventListener("load", () => {
 							alert("Такий товар вже в списку");
 							return;
 						}
+						item.addingDate = getDate();
 						item.isProcesed = false;
 						item.realCount = Number(compareInp.value);
 						item.goodsBaseCount = getGoodsCount(item.count).baseCount;
@@ -438,6 +452,7 @@ window.addEventListener("load", () => {
 						questionCountText.innerText = questionResult[1];
 						questionCountText.style.display = "block";
 					}
+					console.log(elaborationResult);
 				});
 			});
 	};
@@ -510,6 +525,7 @@ window.addEventListener("load", () => {
 				} else alert("Помилка");
 			})
 			.catch((err) => {
+				alert("Помилка під час відправлення відповіді");
 				console.log(err);
 			});
 	};
@@ -617,6 +633,7 @@ window.addEventListener("load", () => {
 		contentWraper.innerHTML = "";
 		if (data.length > 0) {
 			data.forEach((row) => {
+				console.log(row);
 				let tableWraper = document.createElement("div");
 				tableWraper.className = "table-wraper";
 				// order number
@@ -707,7 +724,7 @@ window.addEventListener("load", () => {
 				inputText.className = "table-input-wraper";
 				let input = document.createElement("input");
 				input.className = "table-input";
-				input.dataset.count = getGoodsCount(row.positionQuality).baseCount;
+				input.dataset.count = row.numberData.baseCount;
 				input.type = "text";
 				input.placeholder = "Кількість";
 				input.id = `elaborationInput${getOrderId(row.orderNumber)}`;
@@ -823,6 +840,7 @@ window.addEventListener("load", () => {
 			const elaborationText = await responce.text();
 			const elaborationTable = parser(elaborationText);
 			const positionID = elaborationTable.querySelector(".detDivTitle");
+			let article;
 			const tableRow = Array.from(
 				elaborationTable.querySelectorAll("table>tbody>tr")
 			);
@@ -834,11 +852,11 @@ window.addEventListener("load", () => {
 				dataCells.forEach((td, tdIndex) => {
 					elaborationData[keysStore[tdIndex]] = String(td.textContent.trim());
 					if (keysStore[tdIndex] == "searchQuery") {
-						let result = `${elaborationData["positionName"]}`.replace(
-							/\([^)]+\)/g,
-							""
-						);
-						elaborationData[keysStore[tdIndex]] = result.trim();
+						article = `${elaborationData["positionName"]}`.match(
+							regexElaborationArticle
+						)[1];
+
+						elaborationData[keysStore[tdIndex]] = article.trim();
 					}
 				});
 				return elaborationData;
@@ -868,20 +886,35 @@ window.addEventListener("load", () => {
 						})
 						.then((responseText) => {
 							let parseSearch = parser(responseText);
-							let reserve = parseSearch.querySelectorAll(".detPr >span")[1];
-							let images = Array.from(
-								parseSearch.querySelectorAll(".detImg>img")
+							let articleRow = Array.from(
+								parseSearch.querySelectorAll(".detDivTitle")
 							);
-							let imgSrc = [];
-							let imgLink = [];
-							images.forEach((img) => {
-								imgSrc.push(img.getAttribute("rel"));
-								imgLink.push(`https://baza.m-p.in.ua${img.alt}`);
+							articleRow.forEach((a) => {
+								console.log(a.textContent, article);
+								if (a.textContent.includes(article)) {
+									let reserve = parseSearch.querySelectorAll(".detPr >span")[1];
+									let countData = parseSearch.querySelector(".detPr");
+									let images = Array.from(
+										parseSearch.querySelectorAll(".detImg>img")
+									);
+									let imgSrc = [];
+									let imgLink = [];
+									images.forEach((img) => {
+										imgSrc.push(img.getAttribute("rel"));
+										imgLink.push(`https://baza.m-p.in.ua${img.alt}`);
+									});
+									elaborationRow[key].reserveQuality = elaborationRow[
+										key
+									].reserveQuality = reserve.textContent;
+									elaborationRow[key].imagesSrc = imgSrc;
+									elaborationRow[key].imageLink = imgLink;
+									elaborationRow[key].numberData = getGoodsCount(
+										countData.textContent
+									);
+								} else {
+									alert("Відбулася помилка під час оброки Уточнення");
+								}
 							});
-							elaborationRow[key].reserveQuality = reserve.textContent;
-
-							elaborationRow[key].imagesSrc = imgSrc;
-							elaborationRow[key].imageLink = imgLink;
 						})
 				);
 			});
@@ -1018,6 +1051,10 @@ window.addEventListener("load", () => {
 				getGoodsCount(item.count).baseCount
 			} Резерв: ${getGoodsCount(item.count).orderCount}
 			Реальна кількість: ${item.realCount}`;
+			let itemArticle = document.createElement("p");
+			itemArticle.className = "item-article";
+			itemArticle.textContent = item.article;
+
 			let itemDesc = document.createElement("p");
 			itemDesc.className = "item-head";
 			itemDesc.textContent = item.head;
@@ -1032,6 +1069,7 @@ window.addEventListener("load", () => {
 			if (item.isProcesed) {
 				compareItemWraper.style.backgroundColor = "#c2edc2";
 			}
+			itemTextWraper.appendChild(itemArticle);
 			itemTextWraper.appendChild(itemCount);
 			itemTextWraper.appendChild(itemDesc);
 			itemTextWraper.appendChild(procesedBtn);
