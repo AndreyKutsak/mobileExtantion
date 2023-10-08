@@ -441,10 +441,14 @@ window.addEventListener("load", () => {
 					let elaborationResult = item.textContent.match(elaborationPattern);
 					let questionResult = item.textContent.match(questionPattern);
 
+					console.log(elaborationResult);
 					if (elaborationResult !== null) {
 						elabortionCount.innerText = elaborationResult[1];
 						elabortionCount.style.display = "block";
-					} else if (elaborationResult === null) {
+					} else if (
+						elaborationResult === null ||
+						elaborationResult == undefined
+					) {
 						elabortionCount.style.display = "none";
 					}
 
@@ -452,7 +456,6 @@ window.addEventListener("load", () => {
 						questionCountText.innerText = questionResult[1];
 						questionCountText.style.display = "block";
 					}
-					console.log(elaborationResult);
 				});
 			});
 	};
@@ -473,9 +476,6 @@ window.addEventListener("load", () => {
 				if (decodedText.match(regexCell) !== null) {
 					serarchBtn.click();
 				}
-
-				// Handle on success condition with the decoded message.
-				console.log(`Scan result ${decodedText}`, decodedResult);
 			}
 		}
 		html5QrcodeScanner.render(onScanSuccess);
@@ -483,7 +483,7 @@ window.addEventListener("load", () => {
 			barCodeSearch.dataset.scaning = "false";
 
 			html5QrcodeScanner.clear();
-			console.log("stop scanning");
+
 			barcodeDisplayWraper.classList.add("hide-barcode");
 			return;
 		}
@@ -505,7 +505,7 @@ window.addEventListener("load", () => {
 		if (count > Number(getNum(elaborationInp.value))) {
 			alert(" Сподіваюся ти був уважним");
 		}
-		console.log(orderNumber, elaborationInp.value);
+
 		elaboration.append("text", elaborationInp.value);
 		elaboration.append("id", orderNumber);
 
@@ -844,7 +844,7 @@ window.addEventListener("load", () => {
 			const tableRow = Array.from(
 				elaborationTable.querySelectorAll("table>tbody>tr")
 			);
-			console.log(positionID);
+
 			tableRow.shift();
 			const elaborationRow = tableRow.map((data) => {
 				let elaborationData = {};
@@ -865,7 +865,6 @@ window.addEventListener("load", () => {
 			// Масив для зберігання обіцянок
 			const promises = [];
 			elaborationRow.forEach((data, key) => {
-				console.error(data);
 				let request = new URLSearchParams();
 				request.append("search", data.searchQuery);
 				request.append("search_sel", "0");
@@ -890,7 +889,6 @@ window.addEventListener("load", () => {
 								parseSearch.querySelectorAll(".detDivTitle")
 							);
 							articleRow.forEach((a) => {
-								console.log(a.textContent, article);
 								if (a.textContent.includes(article)) {
 									let reserve = parseSearch.querySelectorAll(".detPr >span")[1];
 									let countData = parseSearch.querySelector(".detPr");
@@ -903,6 +901,12 @@ window.addEventListener("load", () => {
 										imgSrc.push(img.getAttribute("rel"));
 										imgLink.push(`https://baza.m-p.in.ua${img.alt}`);
 									});
+									console.log(
+										a.textContent,
+										a.textContent.includes(article),
+										getGoodsCount(countData.textContent)
+									);
+									console.log(elaborationRow[key]);
 									elaborationRow[key].reserveQuality = elaborationRow[
 										key
 									].reserveQuality = reserve.textContent;
@@ -911,15 +915,10 @@ window.addEventListener("load", () => {
 									elaborationRow[key].numberData = getGoodsCount(
 										countData.textContent
 									);
-								} else {
-									alert("Відбулася помилка під час оброки Уточнення");
 								}
 							});
 						})
 				);
-			});
-			elaborationRow.forEach(async (dataRow) => {
-				console.log(dataRow);
 			});
 
 			// Очікуємо завершення всіх обіцянок
@@ -1034,6 +1033,10 @@ window.addEventListener("load", () => {
 			return;
 		}
 		storage.compareArray.forEach((item) => {
+			let difference =
+				item.realCount -
+				(getGoodsCount(item.count).baseCount +
+					getGoodsCount(item.count).orderCount);
 			let compareItemWraper = document.createElement("div");
 			compareItemWraper.className = "compare-item";
 			let itemImageLink = document.createElement("a");
@@ -1050,7 +1053,10 @@ window.addEventListener("load", () => {
 			itemCount.textContent = `Кількість по базі: ${
 				getGoodsCount(item.count).baseCount
 			} Резерв: ${getGoodsCount(item.count).orderCount}
-			Реальна кількість: ${item.realCount}`;
+			Реальна кількість: ${item.realCount} Різниця: ${difference}`;
+			if (difference < 0) {
+				itemCount.style.backgroundColor = "rgb(253, 184, 184)";
+			}
 			let itemArticle = document.createElement("p");
 			itemArticle.className = "item-article";
 			itemArticle.textContent = item.article;
