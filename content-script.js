@@ -1162,6 +1162,7 @@ window.addEventListener("load", () => {
 			itemDesc.className = "item-head";
 			itemDesc.textContent = item.head;
 			let procesedBtn = document.createElement("button");
+			procesedBtn.dataset.id = item.id;
 			procesedBtn.className = "procesed-btn";
 			if (item.isProcesed) {
 				procesedBtn.textContent = "Оброблено";
