@@ -328,7 +328,6 @@ window.addEventListener("load", () => {
 	};
 	let showImage = (e) => {
 		e.preventDefault();
-
 		let imgURL = e.currentTarget.getAttribute("href");
 		let mainImageWraper = document.createElement("div");
 		mainImageWraper.className = "img-wraper";
@@ -788,8 +787,14 @@ window.addEventListener("load", () => {
 				let positionQualityDesc = document.createElement("div");
 				positionQualityDesc.className = "table-desc";
 				positionQualityDesc.textContent = "Кількість товару";
+
 				let positionQualityText = document.createElement("div");
 				positionQualityText.className = "table-text";
+				if (row.numberData.baseCount == 0) {
+					positionQualityText.style.backgroundColor = "#fbc8c8";
+				} else {
+					positionQualityText.style.backgroundColor = "#c2edc2";
+				}
 				positionQualityText.textContent = row.positionQuality;
 				positionQualityRow.appendChild(positionQualityDesc);
 				positionQualityRow.appendChild(positionQualityText);
@@ -801,9 +806,15 @@ window.addEventListener("load", () => {
 				reserveQualityDesc.textContent = "Резерв";
 				let reserveQualityText = document.createElement("div");
 				reserveQualityText.className = "table-text";
-				reserveQualityText.textContent = row.reserveQuality;
+				if (row.numberData.orderCount == 0) {
+					reserveQualityText.style.backgroundColor = "#c2edc2";
+				} else {
+					reserveQualityText.style.backgroundColor = "#fbc8c8";
+				}
+				reserveQualityText.textContent = row.numberData.orderCount;
 				reserveQualityRow.appendChild(reserveQualityDesc);
 				reserveQualityRow.appendChild(reserveQualityText);
+				console.log(row, row.reserveQuality);
 				// input row
 				let inputRow = document.createElement("div");
 				inputRow.className = "table-row";
@@ -814,6 +825,7 @@ window.addEventListener("load", () => {
 				inputText.className = "table-input-wraper";
 				let input = document.createElement("input");
 				input.className = "table-input";
+				console.log(row.numberData);
 				input.dataset.count = row.numberData.baseCount;
 				input.type = "text";
 				input.placeholder = "Кількість";
@@ -860,23 +872,7 @@ window.addEventListener("load", () => {
 
 				images.forEach((image) => {
 					imageWraper.appendChild(image);
-					image.addEventListener("click", (e) => {
-						e.preventDefault();
-						let imgWraper = document.createElement("div");
-						imgWraper.className = "img-wraper";
-						let closeBtn = document.createElement("button");
-						closeBtn.className = "close-btn";
-
-						let img = document.createElement("img");
-						img.src = image.href;
-						imgWraper.appendChild(img);
-						imgWraper.appendChild(closeBtn);
-						contentWraper.appendChild(imgWraper);
-						// add event to close image
-						closeBtn.addEventListener("click", () => {
-							imgWraper.remove();
-						});
-					});
+					image.addEventListener("click", showImage);
 				});
 
 				// Add event listeners
@@ -978,9 +974,9 @@ window.addEventListener("load", () => {
 							let articleRow = Array.from(
 								parseSearch.querySelectorAll(".detDivTitle")
 							);
+
 							articleRow.forEach((a) => {
-								if (a.textContent.includes(article)) {
-									let reserve = parseSearch.querySelectorAll(".detPr >span")[1];
+								if (a.textContent.trim().includes(data.searchQuery)) {
 									let countData = parseSearch.querySelector(".detPr");
 									let images = Array.from(
 										parseSearch.querySelectorAll(".detImg>img")
@@ -989,13 +985,12 @@ window.addEventListener("load", () => {
 									let imgLink = [];
 									images.forEach((img) => {
 										imgSrc.push(img.getAttribute("rel"));
-										imgLink.push(`https://baza.m-p.in.ua${img.alt}`);
+										imgLink.push(img.alt);
 									});
-
 									elaborationRow[key].imagesSrc = imgSrc;
 									elaborationRow[key].imageLink = imgLink;
 									elaborationRow[key].numberData = getGoodsCount(
-										countData.textContent
+										countData.textContent.trim()
 									);
 								}
 							});
@@ -1108,7 +1103,12 @@ window.addEventListener("load", () => {
 				});
 			});
 			delItemBtn.addEventListener("click", (e) => {
-				storage.listArray.splice(index, 1);
+				storage.listArray.forEach((a, index) => {
+					if (a.id == Number(item.id)) {
+						storage.listArray.splice(index, 1);
+					}
+				});
+
 				updateStorage();
 				drawButtonsCount();
 				listItemWraper.remove();
@@ -1163,7 +1163,6 @@ window.addEventListener("load", () => {
 			itemDesc.textContent = item.head;
 			let procesedBtn = document.createElement("button");
 			procesedBtn.className = "procesed-btn";
-			procesedBtn.dataset.id = item.id;
 			if (item.isProcesed) {
 				procesedBtn.textContent = "Оброблено";
 			} else {
@@ -1192,7 +1191,11 @@ window.addEventListener("load", () => {
 				});
 			});
 			delCompareItemBtn.addEventListener("click", (e) => {
-				storage.compareArray.splice(index, 1);
+				storage.compareArray.forEach((a, index) => {
+					if (a.id == Number(item.id)) {
+						storage.compareArray.splice(index, 1);
+					}
+				});
 				updateStorage();
 				drawButtonsCount();
 				compareItemWraper.remove();
