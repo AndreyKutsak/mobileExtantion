@@ -3,6 +3,12 @@
   "short_name": "baza",
   "version": "0.0.2",
   "description": "mobile version baza",
+  "permissions": [
+    "notifications"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": [
