@@ -373,7 +373,7 @@ window.addEventListener("load", () => {
 				);
 				searchGoodWraper.forEach((item, index) => {
 					let data = {};
-					let goodsPhoto = searchResponce.querySelector(".detImg>a>img");
+					let goodsPhoto = item.querySelector(".detImg>a>img");
 					console.log(goodsPhoto.parentNode);
 					let goodsCount = Array.from(
 						searchResponce.querySelectorAll(".detPr")
