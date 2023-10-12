@@ -37,7 +37,7 @@ function scheduleFunction() {
 	if (
 		currentTime.getHours() >= startHour &&
 		currentTime.getHours() < endHour &&
-		!activeTabUrl.contains("baza.m-p.in.ua")
+		!activeTabUrl.includes("baza.m-p.in.ua")
 	) {
 		fetchDataAndNotify();
 	}
