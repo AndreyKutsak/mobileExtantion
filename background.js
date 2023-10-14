@@ -35,14 +35,14 @@ function scheduleFunction() {
 			return;
 		}
 		console.log(tabs)
-		var activeTabUrl = tabs[0].url;
+		var activeTabUrl = !tabs[0].includes("baza.m-p.in.ua");
 		console.log("activeTabUrl", activeTabUrl);
 	});
 
 	if (
 		(currentTime.getHours() >= startHour &&
 			currentTime.getHours() < endHour) &&
-		(activeTabUrl == undefined || !activeTabUrl.includes("baza.m-p.in.ua"))
+		(activeTabUrl == undefined || activeTabUrl)
 	) {
 		fetchDataAndNotify();
 	}
