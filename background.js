@@ -2,6 +2,7 @@ const interval = 1000 * 60;
 const startHour = 9;
 const endHour = 18;
 let activeTabUrl;
+let alrmCount = 0;
 function fetchDataAndNotify() {
 	fetch("https://baza.m-p.in.ua/ajax/magaz.php")
 		.then((response) => response.text())
@@ -53,58 +54,31 @@ function scheduleFunction() {
 	}
 }
 
-setInterval(function () {
-	chrome.notifications.create({
-		type: "basic",
-		iconUrl: "icon.png",
-		title: "перевірка роботи ",
-		message: "",
+chrome.runtime.onInstalled.addListener(function () {
+	chrome.alarms.create("test-alarm", {
+		delayInMinutes: 1,
+		periodInMinutes: 1,
 	});
-}, 1000 * 60);
-chrome.notifications.create({
-	type: "basic",
-	iconUrl: "icon.png",
-	title: "перевірка роботи ",
-	message: "",
 });
-setInterval(scheduleFunction, interval);
-
-chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-	console.log(tabs);
-	if (tabs.lenght == 0) {
-		activeTabUrl = undefined;
-		return;
-	}
-
-	activeTabUrl = !tabs[0].url.includes("baza.m-p.in.ua");
-	console.log("activeTabUrl", activeTabUrl);
-	if (activeTabUrl == undefined || activeTabUrl) {
-		setInterval(function () {
+chrome.alarms.onAlarm.addListener((alarm) => {
+	console.log(alarm);
+	if (alarm.name == "test-alarm") {
+		console.log(alrmCount++);
+		chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+			console.log(tabs);
+			if (tabs.length == 0) {
+				activeTabUrl = undefined;
+				return;
+			}
+			console.log(tabs);
+			activeTabUrl = !tabs[0].url.includes("baza.m-p.in.ua");
+			console.log("activeTabUrl", activeTabUrl);
 			chrome.notifications.create({
 				type: "basic",
 				iconUrl: "icon.png",
-				title: "перевірка роботи  пройшла хвилина",
-				message: "",
+				title: "Тест Будильника",
+				message: `Пройшло ${alrmCount} хвилини`,
 			});
-		}, 1000 * 60);
-		setInterval(function () {
-			chrome.notifications.create({
-				type: "basic",
-				iconUrl: "icon.png",
-				title: "перевірка роботи  пройшло 10 хвилин",
-				message: "",
-			});
-		}, 1000 * 60 * 10);
-		setInterval(function () {
-			chrome.notifications.create({
-				type: "basic",
-				iconUrl: "icon.png",
-				title: "перевірка роботи  пройшла година",
-				message: "",
-			});
-		}, 1000 * 60 * 60);
-		console.log("Розпочати Інтервали");
-	} else {
-		console.log("Не розпочати Інтервали", tabs, activeTabUrl);
+		});
 	}
 });
