@@ -3,6 +3,7 @@ const startHour = 9;
 const endHour = 18;
 let activeTabUrl;
 let alrmCount = 0;
+let intervalCount = 0;
 function fetchDataAndNotify() {
 	fetch("https://baza.m-p.in.ua/ajax/magaz.php")
 		.then((response) => response.text())
@@ -81,4 +82,37 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 			});
 		});
 	}
+	chrome.notifications.create({
+		type: "basic",
+		iconUrl: "icon.png",
+		title: "Тест будильника без пеервірки  вкладки ",
+		message: `Пройшло ${alrmCount} хвилини`,
+	});
+	alrmCount++;
+	console.log(alrmCount);
 });
+setInterval(() => {
+	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+		console.log(tabs);
+		if (tabs.length == 0) {
+			activeTabUrl = undefined;
+			return;
+		}
+		console.log(tabs);
+		activeTabUrl = !tabs[0].url.includes("baza.m-p.in.ua");
+		console.log("activeTabUrl", activeTabUrl);
+		chrome.notifications.create({
+			type: "basic",
+			iconUrl: "icon.png",
+			title: "Тест Інтервала",
+			message: `Пройшло ${intervalCount} хвилини`,
+		});
+	});
+	chrome.notifications.create({
+		type: "basic",
+		iconUrl: "icon.png",
+		title: "Тест Інтервала без перевірки вкладки",
+		message: `Пройшло ${intervalCount} хвилини`,
+	});
+	console.log(intervalCount++);
+}, interval);
