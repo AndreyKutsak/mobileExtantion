@@ -661,61 +661,10 @@ window.addEventListener("load", () => {
 		}
 	};
 	let getQuestions = () => {
-		// let questionKeys = [
-		// 	"positionName",
-		// 	"orderQuestion",
-		// 	"orderNumber",
-		// 	"questionManager",
-		// 	"positionAddres",
-		// ];
-		// contentWraper.appendChild(preloaderWraper);
-		// fetch(questionURL, { method: "POST" })
-		// 	.then((res) => {
-		// 		return res.text();
-		// 	})
-		// 	.then((responce) => {
-		// 		let questionData = [];
-		// 		let questionResponce = parser(responce);
-		// 		let responceTr = Array.from(questionResponce.querySelectorAll("tr"));
-		// 		responceTr.shift();
-		// 		responceTr.forEach((row, index) => {
-		// 			let order = new URLSearchParams();
-		// 			let questionRow = {};
-		// 			let td = Array.from(row.querySelectorAll("td"));
-		// 			td.forEach((data, index) => {
-		// 				if (index === 1) {
-		// 					questionRow.questionManager = data.getAttribute("title");
-		// 					return;
-		// 				}
-		// 				if (index === 3) {
-		// 					questionRow.orderNumber = data.textContent;
-		// 					return;
-		// 				}
-		// 				questionRow[questionKeys[index]] = data.textContent;
-		// 				return questionRow;
-		// 			});
-		// 			questionData.push(questionRow);
-		// 			if (
-		// 				questionData[index].orderNumber !== null ||
-		// 				questionData[index].orderNumber !== undefined
-		// 			) {
-		// 				console.log(questionData[index].orderNumber);
-		// 				order.append("status", questionData[index].orderNumber);
-		// 				fetch(openOrderURL, {
-		// 					method: "POST",
-		// 					body: order,
-		// 				})
-		// 					.then((res) => {
-		// 						return res.text();
-		// 					})
-		// 					.then((res) => {
-		// 						console.log(res);
-		// 					});
-		// 			}
-		// 		});
-		// 		generateQuestionTanble([]);
-		// 	})
-		// 	.catch();
+		contentWraper.innerHTML = "";
+		contentWraper.appendChild(preloaderWraper);
+		fetch().then().then().catch();
+
 	};
 
 	let generateElaboration = (data) => {
@@ -1062,9 +1011,8 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість: ${
-				getGoodsCount(item.count).baseCount
-			} Резерв: ${getGoodsCount(item.count).orderCount}`;
+			itemCount.textContent = `Кількість: ${getGoodsCount(item.count).baseCount
+				} Резерв: ${getGoodsCount(item.count).orderCount}`;
 			let itemArticle = document.createElement("p");
 			itemArticle.className = "item-article";
 			itemArticle.textContent = item.article;
@@ -1146,9 +1094,8 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість по базі: ${
-				getGoodsCount(item.count).baseCount
-			} Резерв: ${getGoodsCount(item.count).orderCount}
+			itemCount.textContent = `Кількість по базі: ${getGoodsCount(item.count).baseCount
+				} Резерв: ${getGoodsCount(item.count).orderCount}
 			Реальна кількість: ${item.realCount} Різниця: ${difference}`;
 			if (difference < 0) {
 				compareItemWraper.style.backgroundColor = "rgb(253, 184, 184)";

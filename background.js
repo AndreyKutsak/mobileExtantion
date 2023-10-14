@@ -30,19 +30,34 @@ function scheduleFunction() {
 	const startHour = 9; // 9:00 AM
 	const endHour = 18; // 6:00 PM
 	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+<<<<<<< HEAD
 		if (tabs.length === 0) {
 			activeTabUrl = "hide";
 			return;
 		}
 		var activeTab = tabs[0];
 		activeTabUrl = activeTab.url;
+=======
+		if (tabs.length <= 0) {
+			activeTabUrl = undefined
+			return;
+		}
+		console.log(tabs)
+		var activeTabUrl = !tabs[0].includes("baza.m-p.in.ua");
+>>>>>>> 38f02991b4ba681b9357a7490e60338e588fbafa
 		console.log("activeTabUrl", activeTabUrl);
 	});
+
 	if (
 		(currentTime.getHours() >= startHour &&
+<<<<<<< HEAD
 			currentTime.getHours() < endHour &&
 			!activeTabUrl.includes("baza.m-p.in.ua")) ||
 		activeTabUrl === "hide"
+=======
+			currentTime.getHours() < endHour) &&
+		(activeTabUrl == undefined || activeTabUrl)
+>>>>>>> 38f02991b4ba681b9357a7490e60338e588fbafa
 	) {
 		fetchDataAndNotify();
 	}
@@ -62,4 +77,13 @@ chrome.notifications.create({
 	title: "перевірка роботи ",
 	message: "",
 });
+<<<<<<< HEAD
 setInterval(scheduleFunction, interval);
+=======
+chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+	var activeTab = tabs[0];
+	activeTabUrl = activeTab.url;
+	console.log(activeTab, tabs)
+	console.log("activeTabUrl", activeTabUrl);
+});
+>>>>>>> 38f02991b4ba681b9357a7490e60338e588fbafa
