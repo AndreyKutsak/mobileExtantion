@@ -1,4 +1,4 @@
-let activeTabUrl;
+const interval = 1000 * 60;
 function fetchDataAndNotify() {
 	fetch("https://baza.m-p.in.ua/ajax/magaz.php")
 		.then((response) => response.text())
@@ -30,25 +30,36 @@ function scheduleFunction() {
 	const startHour = 9; // 9:00 AM
 	const endHour = 18; // 6:00 PM
 	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+		if (tabs.length === 0) {
+			activeTabUrl = "hide";
+			return;
+		}
 		var activeTab = tabs[0];
 		activeTabUrl = activeTab.url;
 		console.log("activeTabUrl", activeTabUrl);
 	});
 	if (
-		currentTime.getHours() >= startHour &&
-		currentTime.getHours() < endHour &&
-		!activeTabUrl.includes("baza.m-p.in.ua")
+		(currentTime.getHours() >= startHour &&
+			currentTime.getHours() < endHour &&
+			!activeTabUrl.includes("baza.m-p.in.ua")) ||
+		activeTabUrl === "hide"
 	) {
 		fetchDataAndNotify();
 	}
 }
 
-chrome.alarms.create("myAlarm", {
-	periodInMinutes: 1,
+setInterval(function () {
+	chrome.notifications.create({
+		type: "basic",
+		iconUrl: "icon.png", // Шлях до зображення для сповіщення
+		title: "перевірка роботи ",
+		message: "",
+	});
+}, 1000 * 60);
+chrome.notifications.create({
+	type: "basic",
+	iconUrl: "icon.png", // Шлях до зображення для сповіщення
+	title: "перевірка роботи ",
+	message: "",
 });
-
-chrome.alarms.onAlarm.addListener(function (alarm) {
-	if (alarm.name === "myAlarm") {
-		scheduleFunction();
-	}
-});
+setInterval(scheduleFunction, interval);

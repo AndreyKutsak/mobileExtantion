@@ -5,7 +5,8 @@
 	"description": "mobile version baza",
 	"permissions": ["activeTab", "tabs", "alarms", "notifications"],
 	"background": {
-		"service_worker": "background.js"
+		"service_worker": "background.js",
+		"persistance": true
 	},
 	"content_scripts": [
 		{
