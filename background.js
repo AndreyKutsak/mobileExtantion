@@ -30,14 +30,19 @@ function scheduleFunction() {
 	const startHour = 9; // 9:00 AM
 	const endHour = 18; // 6:00 PM
 	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-		var activeTab = tabs[0];
-		activeTabUrl = activeTab.url;
+		if (tabs.length <= 0) {
+			activeTabUrl = undefined
+			return;
+		}
+		console.log(tabs)
+		var activeTabUrl = tabs[0].url;
 		console.log("activeTabUrl", activeTabUrl);
 	});
+
 	if (
-		currentTime.getHours() >= startHour &&
-		currentTime.getHours() < endHour &&
-		!activeTabUrl.includes("baza.m-p.in.ua")
+		(currentTime.getHours() >= startHour &&
+			currentTime.getHours() < endHour) &&
+		(activeTabUrl == undefined || !activeTabUrl.includes("baza.m-p.in.ua"))
 	) {
 		fetchDataAndNotify();
 	}
@@ -51,4 +56,10 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
 	if (alarm.name === "myAlarm") {
 		scheduleFunction();
 	}
+});
+chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+	var activeTab = tabs[0];
+	activeTabUrl = activeTab.url;
+	console.log(activeTab, tabs)
+	console.log("activeTabUrl", activeTabUrl);
 });
