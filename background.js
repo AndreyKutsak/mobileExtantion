@@ -41,7 +41,7 @@ function scheduleFunction() {
 			return;
 		}
 
-		activeTabUrl = !tabs[0].includes("baza.m-p.in.ua");
+		activeTabUrl = !tabs[0].url.includes("baza.m-p.in.ua");
 		console.log("activeTabUrl", activeTabUrl);
 	});
 	if (
