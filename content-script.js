@@ -1057,7 +1057,7 @@ window.addEventListener("load", () => {
 							);
 
 							articleRow.forEach((a) => {
-								if (a.textContent.trim().includes(data.searchQuery)) {
+								if (getGoodIdArticle(a.textContent.trim()).article === data.searchQuery) {
 									let countData = parseSearch.querySelector(".detPr");
 									let images = Array.from(
 										parseSearch.querySelectorAll(".detImg>img")
