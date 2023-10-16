@@ -42,9 +42,7 @@ function scheduleFunction() {
 			activeTabUrl = undefined;
 			return;
 		}
-
 		activeTabUrl = !tabs[0].url.includes("baza.m-p.in.ua");
-		console.log("activeTabUrl", activeTabUrl);
 	});
 	if (
 		currentTime.getHours() >= startHour &&
@@ -54,7 +52,6 @@ function scheduleFunction() {
 		fetchDataAndNotify();
 	}
 }
-
 chrome.runtime.onInstalled.addListener(function () {
 	chrome.alarms.create("test-alarm", {
 		delayInMinutes: 1,
@@ -62,57 +59,7 @@ chrome.runtime.onInstalled.addListener(function () {
 	});
 });
 chrome.alarms.onAlarm.addListener((alarm) => {
-	console.log(alarm);
 	if (alarm.name == "test-alarm") {
-		console.log(alrmCount++);
-		chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-			console.log(tabs);
-			if (tabs.length == 0) {
-				activeTabUrl = undefined;
-				return;
-			}
-			console.log(tabs);
-			activeTabUrl = !tabs[0].url.includes("baza.m-p.in.ua");
-			console.log("activeTabUrl", activeTabUrl);
-			chrome.notifications.create({
-				type: "basic",
-				iconUrl: "icon.png",
-				title: "Тест Будильника",
-				message: `Пройшло ${alrmCount} хвилини`,
-			});
-		});
+		scheduleFunction();
 	}
-	chrome.notifications.create({
-		type: "basic",
-		iconUrl: "icon.png",
-		title: "Тест будильника без пеервірки  вкладки ",
-		message: `Пройшло ${alrmCount} хвилини`,
-	});
-	alrmCount++;
-	console.log(alrmCount);
 });
-setInterval(() => {
-	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-		console.log(tabs);
-		if (tabs.length == 0) {
-			activeTabUrl = undefined;
-			return;
-		}
-		console.log(tabs);
-		activeTabUrl = !tabs[0].url.includes("baza.m-p.in.ua");
-		console.log("activeTabUrl", activeTabUrl);
-		chrome.notifications.create({
-			type: "basic",
-			iconUrl: "icon.png",
-			title: "Тест Інтервала",
-			message: `Пройшло ${intervalCount} хвилини`,
-		});
-	});
-	chrome.notifications.create({
-		type: "basic",
-		iconUrl: "icon.png",
-		title: "Тест Інтервала без перевірки вкладки",
-		message: `Пройшло ${intervalCount} хвилини`,
-	});
-	console.log(intervalCount++);
-}, interval);

@@ -316,7 +316,6 @@ window.addEventListener("load", () => {
 	let getGoodsCount = (text) => {
 		const matches = {};
 		let match;
-
 		while ((match = regexGoodsCount.exec(text)) !== null) {
 			if (match[1] !== undefined) {
 				matches["baseCount"] = parseInt(match[1]);
@@ -653,6 +652,68 @@ window.addEventListener("load", () => {
 	let generateQuestionTanble = (data) => {
 		contentWraper.innerHTML = "";
 		if (data.length > 0) {
+			data.forEach((item) => {
+				let questionWraper = document.createElement("div");
+				questionWraper.className = "question-wraper";
+				// desc part
+				let questionDescWraper = document.createElement("div");
+				questionDescWraper.className = "question-desc-wraper";
+				let questionDescGoods = document.createElement("p");
+				questionDescGoods.className = "question-desc";
+				questionDescGoods.textContent = "Товар";
+				let questionDesc = document.createElement("p");
+				questionDesc.className = "question-desc";
+				questionDesc.textContent = "Питання";
+				let questionMainData = document.createElement("p");
+				questionMainData.className = "question-main-data";
+				questionMainData.textContent = "Додаткова інформація";
+				let questionOrderDesc = document.createElement("p");
+				questionOrderDesc.className = "question-order-desc";
+				questionOrderDesc.textContent = "Замовлення";
+				let questionAnswer = document.createElement("p");
+				questionAnswer.className = "question-answer";
+				questionAnswer.textContent = "Відповідь";
+				// question data part
+				let questionDataWraper = document.createElement("div");
+				questionDataWraper.className = "question-data-wraper";
+				let questionGoodsData = document.createElement("p");
+				questionGoodsData.className = "question-data";
+				questionGoodsData.textContent = item.goodsDesc;
+				let question = document.createElement("p");
+				question.className = "question";
+				question.textContent = item.question;
+				let questionManager = document.createElement("p");
+				questionManager.className = "question-manager";
+				questionManager.textContent = item.questionManager;
+				let questionOrder = document.createElement("p");
+				questionOrder.className = "question-order";
+				questionOrder.textContent = item.questionOrder;
+				let answerWraper = document.createElement("div");
+				answerWraper.className = "answer-wraper";
+				let answerInp = document.createElement("input");
+				answerInp.className = "answer-inp";
+				answerInp.type = "text";
+				answerInp.placeholder = "Відповідь";
+				let answerBtn = document.createElement("button");
+				answerBtn.className = "answer-btn";
+				answerBtn.textContent = "Відправити";
+				answerWraper.append(answerInp, answerBtn);
+				// question desc part
+				questionDescWraper.appendChild(questionDescGoods);
+				questionDescWraper.appendChild(questionMainData);
+				questionDescWraper.appendChild(questionDesc);
+				questionDescWraper.appendChild(questionOrderDesc);
+				questionDescWraper.appendChild(questionAnswer);
+				// question data part
+				questionDataWraper.appendChild(questionGoodsData);
+				questionDataWraper.appendChild(questionManager);
+				questionDataWraper.appendChild(question);
+				questionDataWraper.appendChild(questionOrder);
+				questionDataWraper.appendChild(answerWraper);
+				questionWraper.appendChild(questionDescWraper);
+				questionWraper.appendChild(questionDataWraper);
+				contentWraper.appendChild(questionWraper);
+			});
 		} else {
 			let questiuonTitle = document.createElement("p");
 			questiuonTitle.className = "question-title content-title";
@@ -661,10 +722,65 @@ window.addEventListener("load", () => {
 		}
 	};
 	let getQuestions = () => {
+		let questionData = [];
 		contentWraper.innerHTML = "";
 		contentWraper.appendChild(preloaderWraper);
-		fetch().then().then().catch();
+		// fetch(questionURL, {
+		// 	method: "POST",
+		// })
+		// 	.then((responce) => {
+		// 		return responce.text();
+		// 	})
+		// 	.then((responce) => {
 
+		// 		console.log(questionParse);
+		// 	})
+		// 	.catch((err) => {
+		// 		console.log(err);
+		// 	});
+		let questionText = `<table border="1" cellpadding="0" cellspacing="0" width="98%">
+    <tr>
+        <td align="center" style="padding: 5px;">Товар</td>
+        <td align="center" style="padding: 5px;">Вопрос</td>
+        <td align="center" style="padding: 5px;">Ответ</td>
+        <td align="center" style="padding: 5px;"># Заказа</td>
+    </tr>
+    <tr>
+        <td align="center" style="padding: 5px;">Фланец под «сухие» ТЭНы Tesy, Hi-Therm (4.80.0028)</td>
+        <td title="Козаченко Юлия Владимировна 3 хвилини тому" align="center" style="padding: 5px;">яка довжина трубок?
+        </td>
+        <td align="center" style="padding: 5px;">
+            <input type="text" style="padding: 2px; width: 400px;" id="questionsInp3986"><input type="button"
+                value="Ответить" onclick="addAnswer(3986)">
+        </td>
+        <td align="center" style="padding: 5px; cursor: pointer;" onclick="Orders(1099533);">1099533</td>
+    </tr>
+</table>`;
+		let questionParse = parser(questionText);
+		let questionRow = Array.from(questionParse.querySelectorAll("tr"));
+		questionRow.shift();
+
+		if (questionRow.length > 0) {
+			contentWraper.innerHTML = "";
+			questionRow.forEach((row) => {
+				let data = {};
+				let item = row.querySelectorAll("td");
+				data.goodsDesc = item[0].textContent.trim();
+				data.questionManager = item[1].getAttribute("title").trim();
+				data.question = item[1].textContent.trim();
+				data.questionOrder = item[3].textContent.trim();
+				console.log(
+					item[2].querySelector("input[type='text']").id,
+					item[2].querySelector("input[type='button']")
+				);
+				data.questionNum = item[2]
+					.querySelector("input[type='text']")
+					.id.match(/(\d+)/)[1];
+				questionData.push(data);
+			});
+			console.log(questionData);
+		}
+		generateQuestionTanble(questionData);
 	};
 
 	let generateElaboration = (data) => {
@@ -823,6 +939,22 @@ window.addEventListener("load", () => {
 					imageWraper.appendChild(image);
 					image.addEventListener("click", showImage);
 				});
+				let elaboratiionFooterBtnWraper = document.createElement("div");
+				elaboratiionFooterBtnWraper.className =
+					"elaboratiion-footer-btn-wraper";
+				let reserveBtn = document.createElement("button");
+				reserveBtn.className = "reserve-btn";
+				reserveBtn.textContent = "Резерв";
+				let arrivalbtn = document.createElement("button");
+				arrivalbtn.className = "arrival-btn";
+				arrivalbtn.textContent = "Приходи";
+				let selesBtn = document.createElement("button");
+				selesBtn.className = "seles-btn";
+				selesBtn.textContent = "Продажі";
+
+				elaboratiionFooterBtnWraper.appendChild(reserveBtn);
+				elaboratiionFooterBtnWraper.appendChild(arrivalbtn);
+				elaboratiionFooterBtnWraper.appendChild(selesBtn);
 
 				// Add event listeners
 				sendBtn.addEventListener("click", addElaborationAnswer);
@@ -837,6 +969,7 @@ window.addEventListener("load", () => {
 				tableWraper.appendChild(reserveQualityRow);
 				tableWraper.appendChild(inputRow);
 				tableWraper.appendChild(imageWraper);
+				tableWraper.appendChild(elaboratiionFooterBtnWraper);
 				contentWraper.appendChild(tableWraper);
 			});
 		} else {
@@ -874,7 +1007,6 @@ window.addEventListener("load", () => {
 
 			const elaborationText = await responce.text();
 			const elaborationTable = parser(elaborationText);
-			const positionID = elaborationTable.querySelector(".detDivTitle");
 			let article;
 			const tableRow = Array.from(
 				elaborationTable.querySelectorAll("table>tbody>tr")
@@ -1011,8 +1143,9 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість: ${getGoodsCount(item.count).baseCount
-				} Резерв: ${getGoodsCount(item.count).orderCount}`;
+			itemCount.textContent = `Кількість: ${
+				getGoodsCount(item.count).baseCount
+			} Резерв: ${getGoodsCount(item.count).orderCount}`;
 			let itemArticle = document.createElement("p");
 			itemArticle.className = "item-article";
 			itemArticle.textContent = item.article;
@@ -1094,8 +1227,9 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість по базі: ${getGoodsCount(item.count).baseCount
-				} Резерв: ${getGoodsCount(item.count).orderCount}
+			itemCount.textContent = `Кількість по базі: ${
+				getGoodsCount(item.count).baseCount
+			} Резерв: ${getGoodsCount(item.count).orderCount}
 			Реальна кількість: ${item.realCount} Різниця: ${difference}`;
 			if (difference < 0) {
 				compareItemWraper.style.backgroundColor = "rgb(253, 184, 184)";
@@ -1176,3 +1310,54 @@ window.addEventListener("load", () => {
 	checkElaborations();
 	drawButtonsCount();
 });
+// продажі
+function podrSales(id) {
+	if ($("#podrSales" + id).is(":hidden")) {
+		$("#loader").show();
+		$.post(
+			"https://baza.m-p.in.ua/ajax/podrSales.php",
+			{ id: id },
+			function (data) {
+				$("#podrSales" + id).html(data);
+				$("#loader").hide();
+			}
+		);
+		$("#podrSales" + id).show();
+	} else {
+		$("#podrSales" + id).hide();
+	}
+}
+// резерви
+function podrRezerv(id) {
+	if ($("#podrRezerv" + id).is(":hidden")) {
+		$("#loader").show();
+		$.post(
+			"https://baza.m-p.in.ua/ajax/podrRezerv.php",
+			{ id: id },
+			function (data) {
+				$("#podrRezerv" + id).html(data);
+				$("#loader").hide();
+			}
+		);
+		$("#podrRezerv" + id).show();
+	} else {
+		$("#podrRezerv" + id).hide();
+	}
+}
+// приход
+function podrPrihod(id) {
+	if ($("#podrPrihod" + id).is(":hidden")) {
+		$("#loader").show();
+		$.post(
+			"https://baza.m-p.in.ua/ajax/prihod1.php",
+			{ id: id },
+			function (data) {
+				$("#podrPrihod" + id).html(data);
+				$("#loader").hide();
+			}
+		);
+		$("#podrPrihod" + id).show();
+	} else {
+		$("#podrPrihod" + id).hide();
+	}
+}
