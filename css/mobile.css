@@ -83,7 +83,7 @@ body {
 }
 
 .table-wraper {
-  padding-top: 50px;
+  margin-top: 50px;
   width: 98%;
   margin: 25px auto 0;
   border-radius: 5px;
@@ -99,6 +99,7 @@ body {
   justify-content: flex-start;
   border-bottom: 2px solid #ebeef3;
   color: #323b4f;
+  padding: 10px;
 }
 .table-wraper .table-row .table-desc {
   position: relative;
@@ -140,6 +141,23 @@ body {
   border-radius: 2px;
   background-color: #1cc879;
   cursor: pointer;
+}
+.table-wraper .area-wraper {
+  position: relative;
+}
+.table-wraper .area-wraper .answer-area {
+  width: 100%;
+  resize: none;
+}
+.table-wraper .area-wraper .answer-btn {
+  position: absolute;
+  right: 15px;
+  bottom: 15px;
+  height: 50px;
+  width: 50px;
+  border: none;
+  border-radius: 5px;
+  background-color: #1cc879;
 }
 .table-wraper .image-wraper {
   display: flex;
@@ -291,7 +309,7 @@ body {
   font-weight: 400;
   line-height: 18px;
   max-height: 60px;
-  transition: 4s;
+  transition: 0.4s;
   overflow-y: hidden;
 }
 .search-result-wraper .item-wraper .item-desc::before {

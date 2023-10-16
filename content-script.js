@@ -17,20 +17,6 @@ window.addEventListener("load", () => {
 	// creating and adding new elements to DOM
 	let contentWraper = document.createElement("div");
 	contentWraper.className = "wraper";
-	let preloaderWraper = document.createElement("div");
-	preloaderWraper.className = "preloader-wraper";
-	let preloaderSpiner = document.createElement("div");
-	preloaderSpiner.className = "preloader-spiner";
-	preloaderSpiner.innerHTML = `
-<?xml version="1.0" encoding="utf-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="margin: auto; display: block; shape-rendering: auto;" width="217px" height="217px" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
-<circle cx="50" cy="50" r="32" stroke-width="8" stroke="#85a2b6" stroke-dasharray="50.26548245743669 50.26548245743669" fill="none" stroke-linecap="round">
-  <animateTransform attributeName="transform" type="rotate" dur="3.846153846153846s" repeatCount="indefinite" keyTimes="0;1" values="0 50 50;360 50 50"></animateTransform>
-</circle>
-<circle cx="50" cy="50" r="23" stroke-width="8" stroke="#bbcedd" stroke-dasharray="36.12831551628262 36.12831551628262" stroke-dashoffset="36.12831551628262" fill="none" stroke-linecap="round">
-  <animateTransform attributeName="transform" type="rotate" dur="3.846153846153846s" repeatCount="indefinite" keyTimes="0;1" values="0 50 50;-360 50 50"></animateTransform>
-</circle>
-`;
 	let recycleBinIco = `
 <?xml version="1.0" encoding="iso-8859-1"?>
 
@@ -108,7 +94,6 @@ window.addEventListener("load", () => {
 </g>
 </svg>`;
 
-	preloaderWraper.appendChild(preloaderSpiner);
 	let mainSearchWraper = document.createElement("div");
 	mainSearchWraper.className = "main-search-wraper";
 	let searchWraper = document.createElement("div");
@@ -175,16 +160,55 @@ window.addEventListener("load", () => {
 	mainSearchWraper.appendChild(barcodeDisplayWraper);
 
 	// URL
+	let url = {
+		baza: "https://baza.m-p.in.ua/ajax/magaz.php",
+		getElaboration: "https://baza.m-p.in.ua/ajax/loadElaboration.php",
+		addElaboration: "https://baza.m-p.in.ua/ajax/addElaborationAnswer.php",
+		getQuestion: "https://baza.m-p.in.ua/ajax/loadQuestions.php",
+		addAnswer: "https://baza.m-p.in.ua/ajax/addAnswer.php",
+		search: "https://baza.m-p.in.ua/ajax/search.php",
+		getOrder: "https://baza.m-p.in.ua/ajax/order_cont.php",
+		getReserve: "https://baza.m-p.in.ua/ajax/podrRezerv.php",
+	};
+	//regulars expression
+	let regExp = {
+		elaboration: /Є уточнення: (\d+) шт\./,
+		question: /Є питання: (\d+) шт\./,
+		article: /\s(\d+\.\d+\.\d+)/,
+		number: /№(\d+)/,
+		elaborationArticle: /\((\d+(\.\d+)*)\)/,
+		sentence: /[^\\n]+(?=\\n|$)/g,
+		cell: new RegExp("cell", "gi"),
+		goodsCount:
+			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.)/g,
+	};
+	// intervals
+	let intarval = {
+		elaboration: 10,
+	};
 	let bazaURL = "https://baza.m-p.in.ua/ajax/magaz.php";
 	let elaborationURL = "https://baza.m-p.in.ua/ajax/loadElaboration.php";
 	let addElaborationURL =
 		"https://baza.m-p.in.ua/ajax/addElaborationAnswer.php";
 	let questionURL = "https://baza.m-p.in.ua/ajax/loadQuestions.php";
-
+	let answerURL = "https://baza.m-p.in.ua/ajax/addAnswer.php";
 	let searchURL = "https://baza.m-p.in.ua/ajax/search.php";
 	let openOrderURL = "https://baza.m-p.in.ua/ajax/order_cont.php";
 	let getReserveURL = "https://baza.m-p.in.ua/ajax/podrRezerv.php";
 	let elaborationInterval = 10;
+	let sendIco = `
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
+<svg fill="#ffffff" height="30px" width="30px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.001 512.001" xml:space="preserve" stroke="#ffffff">
+
+<g id="SVGRepo_bgCarrier" stroke-width="0"/>
+
+<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+
+<g id="SVGRepo_iconCarrier"> <g> <g> <path d="M483.927,212.664L66.967,25.834C30.95,9.695-7.905,42.023,1.398,80.368l21.593,89.001 c3.063,12.622,11.283,23.562,22.554,30.014l83.685,47.915c6.723,3.85,6.738,13.546,0,17.405l-83.684,47.915 c-11.271,6.452-19.491,17.393-22.554,30.015l-21.594,89c-9.283,38.257,29.506,70.691,65.569,54.534l416.961-186.83 C521.383,282.554,521.333,229.424,483.927,212.664z M359.268,273.093l-147.519,66.1c-9.44,4.228-20.521,0.009-24.752-9.435 c-4.231-9.44-0.006-20.523,9.434-24.752l109.37-49.006l-109.37-49.006c-9.44-4.231-13.665-15.313-9.434-24.752 c4.229-9.44,15.309-13.666,24.752-9.435l147.519,66.101C373.996,245.505,374.007,266.49,359.268,273.093z"/> </g> </g> </g>
+
+</svg>`;
 	let btnWraper = document.createElement("div");
 	btnWraper.className = "btn-wraper";
 	// btn block
@@ -261,6 +285,51 @@ window.addEventListener("load", () => {
 		storage = JSON.parse(localStorage.getItem("storage"));
 	}
 	// Global functions
+	let drawPreloader = (data) => {
+		let status = data.status || "start";
+		if (status === "start") {
+			let preloaderWraper = document.createElement("div");
+			preloaderWraper.className = "preloader-wraper";
+			let preloaderSpiner = document.createElement("div");
+			preloaderSpiner.className = "preloader-spiner";
+			preloaderSpiner.innerHTML = `
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="margin: auto; display: block; shape-rendering: auto;" width="217px" height="217px" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
+<circle cx="50" cy="50" r="32" stroke-width="8" stroke="#85a2b6" stroke-dasharray="50.26548245743669 50.26548245743669" fill="none" stroke-linecap="round">
+  <animateTransform attributeName="transform" type="rotate" dur="3.846153846153846s" repeatCount="indefinite" keyTimes="0;1" values="0 50 50;360 50 50"></animateTransform>
+</circle>
+<circle cx="50" cy="50" r="23" stroke-width="8" stroke="#bbcedd" stroke-dasharray="36.12831551628262 36.12831551628262" stroke-dashoffset="36.12831551628262" fill="none" stroke-linecap="round">
+  <animateTransform attributeName="transform" type="rotate" dur="3.846153846153846s" repeatCount="indefinite" keyTimes="0;1" values="0 50 50;-360 50 50"></animateTransform>
+</circle>
+`;
+			contentWraper.innerHTML = "";
+			preloaderWraper.appendChild(preloaderSpiner);
+			contentWraper.appendChild(preloaderWraper);
+		} else {
+			contentWraper.innerHTML = "";
+		}
+	};
+
+	let prepareQuery = (data) => {
+		if (data === undefined) {
+			console.error("Помилка при кодуванні інформації", data);
+			return;
+		}
+		if (typeof data !== "object") {
+			console.log("Передано не коректний тип данних");
+			return;
+		}
+		if (Object.values(data).length == 0) {
+			console.log("Відсутня інформація для конвертації");
+			return;
+		}
+		let convertedData = new URLSearchParams();
+		Object.values(data).forEach((item, index) => {
+			convertedData.append(Object.keys(data)[index], item);
+		});
+		console.log(data);
+		return convertedData || false;
+	};
 	let parser = (text) => {
 		let domParser = new DOMParser();
 		let doc = domParser.parseFromString(text, "text/html");
@@ -349,7 +418,7 @@ window.addEventListener("load", () => {
 			alert("Дожина пошукового запиту маєбути більше 2 символів!");
 			return;
 		}
-		contentWraper.appendChild(preloaderWraper);
+		drawPreloader({ status: "start" });
 		let search_sell = 0;
 		let searchData = new URLSearchParams();
 		searchData.append("search", search_query);
@@ -395,7 +464,7 @@ window.addEventListener("load", () => {
 			});
 	};
 	let generateSearch = (data) => {
-		contentWraper.innerHTML = "";
+		drawPreloader({ status: "end" });
 		if (data.length > 0) {
 			let searchWraper = document.createElement("div");
 			searchWraper.className = "search-result-wraper";
@@ -650,69 +719,103 @@ window.addEventListener("load", () => {
 	}
 
 	let generateQuestionTanble = (data) => {
-		contentWraper.innerHTML = "";
+		drawPreloader({ status: "end" });
 		if (data.length > 0) {
 			data.forEach((item) => {
 				let questionWraper = document.createElement("div");
-				questionWraper.className = "question-wraper";
-				// desc part
-				let questionDescWraper = document.createElement("div");
-				questionDescWraper.className = "question-desc-wraper";
-				let questionDescGoods = document.createElement("p");
-				questionDescGoods.className = "question-desc";
-				questionDescGoods.textContent = "Товар";
-				let questionDesc = document.createElement("p");
-				questionDesc.className = "question-desc";
-				questionDesc.textContent = "Питання";
-				let questionMainData = document.createElement("p");
-				questionMainData.className = "question-main-data";
-				questionMainData.textContent = "Додаткова інформація";
-				let questionOrderDesc = document.createElement("p");
-				questionOrderDesc.className = "question-order-desc";
-				questionOrderDesc.textContent = "Замовлення";
-				let questionAnswer = document.createElement("p");
-				questionAnswer.className = "question-answer";
-				questionAnswer.textContent = "Відповідь";
-				// question data part
-				let questionDataWraper = document.createElement("div");
-				questionDataWraper.className = "question-data-wraper";
-				let questionGoodsData = document.createElement("p");
-				questionGoodsData.className = "question-data";
-				questionGoodsData.textContent = item.goodsDesc;
-				let question = document.createElement("p");
-				question.className = "question";
-				question.textContent = item.question;
-				let questionManager = document.createElement("p");
-				questionManager.className = "question-manager";
-				questionManager.textContent = item.questionManager;
-				let questionOrder = document.createElement("p");
-				questionOrder.className = "question-order";
-				questionOrder.textContent = item.questionOrder;
-				let answerWraper = document.createElement("div");
-				answerWraper.className = "answer-wraper";
-				let answerInp = document.createElement("input");
-				answerInp.className = "answer-inp";
-				answerInp.type = "text";
-				answerInp.placeholder = "Відповідь";
+				questionWraper.className = "table-wraper question";
+				// goods description
+				let goodsRow = document.createElement("div");
+				goodsRow.className = "table-row";
+				let goodsDesc = document.createElement("p");
+				goodsDesc.className = "table-desc question-row";
+				goodsDesc.textContent = "Товар";
+				let goodsData = document.createElement("p");
+				goodsData.className = "table-text question";
+				goodsData.textContent = item.goodsDesc;
+				goodsRow.appendChild(goodsDesc);
+				goodsRow.appendChild(goodsData);
+				// question
+				let questionRow = document.createElement("div");
+				questionRow.className = "table-row";
+				let questiondDesc = document.createElement("p");
+				questiondDesc.className = "table-desc question";
+				questiondDesc.textContent = "Питання";
+				let questionData = document.createElement("p");
+				questionData.className = "table-desc";
+				questionData.textContent = item.question;
+				questionRow.appendChild(questiondDesc);
+				questionRow.appendChild(questionData);
+				// main question data
+				let mainDataRow = document.createElement("div");
+				mainDataRow.className = "table-row";
+				let mainDataDesc = document.createElement("p");
+				mainDataDesc.className = "table-desc";
+				mainDataDesc.textContent = "Додаткова Інформація";
+				let mainData = document.createElement("p");
+				mainData.textContent = item.questionManager;
+				mainDataRow.appendChild(mainDataDesc);
+				mainDataRow.appendChild(mainData);
+				// question order
+				let orderRow = document.createElement("div");
+				orderRow.className = "table-row";
+				let orderDdesc = document.createElement("p");
+				orderDdesc.className = "table-desc";
+				orderDdesc.textContent = "Замовлення";
+				let orderNum = document.createElement("p");
+				orderNum.className = "table-desc";
+				orderNum.textContent = item.questionOrder;
+				orderRow.appendChild(orderDdesc);
+				orderRow.appendChild(orderNum);
+				// question answer
+				let answerRow = document.createElement("p");
+				answerRow.className = "table-row area-wraper";
+				let answerArea = document.createElement("textarea");
+				answerArea.className = "answer-area table-input";
+				answerArea.setAttribute("plaseholder", "Відповідь");
+				answerArea.setAttribute("rows", 5);
 				let answerBtn = document.createElement("button");
 				answerBtn.className = "answer-btn";
-				answerBtn.textContent = "Відправити";
-				answerWraper.append(answerInp, answerBtn);
-				// question desc part
-				questionDescWraper.appendChild(questionDescGoods);
-				questionDescWraper.appendChild(questionMainData);
-				questionDescWraper.appendChild(questionDesc);
-				questionDescWraper.appendChild(questionOrderDesc);
-				questionDescWraper.appendChild(questionAnswer);
-				// question data part
-				questionDataWraper.appendChild(questionGoodsData);
-				questionDataWraper.appendChild(questionManager);
-				questionDataWraper.appendChild(question);
-				questionDataWraper.appendChild(questionOrder);
-				questionDataWraper.appendChild(answerWraper);
-				questionWraper.appendChild(questionDescWraper);
-				questionWraper.appendChild(questionDataWraper);
+				answerBtn.innerHTML = sendIco;
+				answerRow.appendChild(answerArea);
+				answerRow.appendChild(answerBtn);
+				// appending elements for generate question table
+				questionWraper.appendChild(goodsRow);
+				questionWraper.appendChild(questionRow);
+				questionWraper.appendChild(mainDataRow);
+				questionWraper.appendChild(orderRow);
+				questionWraper.appendChild(answerRow);
 				contentWraper.appendChild(questionWraper);
+				// add listeners
+				answerBtn.addEventListener("click", () => {
+					if (answerArea.value.length == 0) {
+						alert("Дай коректну відповідь на питання!!!");
+						return;
+					}
+					let answerData = new URLSearchParams();
+					answerData.append("id", String(item.id));
+					answerData.append("text", String(answerArea.value));
+					fetch(answerURL, {
+						method: "POST",
+						body: answerData,
+					})
+						.then((responce) => {
+							return responce.text();
+						})
+						.then((responce) => {
+							if (responce == "ok") {
+								answerArea.remove();
+								answerBtn.remove();
+								answerArea.classList.add("success");
+							} else {
+								alert("Щось пішло не так!!");
+							}
+						})
+						.catch((err) => {
+							alert("Відбулася помилка!!!");
+							console.log(err);
+						});
+				});
 			});
 		} else {
 			let questiuonTitle = document.createElement("p");
@@ -723,68 +826,44 @@ window.addEventListener("load", () => {
 	};
 	let getQuestions = () => {
 		let questionData = [];
-		contentWraper.innerHTML = "";
-		contentWraper.appendChild(preloaderWraper);
-		// fetch(questionURL, {
-		// 	method: "POST",
-		// })
-		// 	.then((responce) => {
-		// 		return responce.text();
-		// 	})
-		// 	.then((responce) => {
+		drawPreloader({ status: "start" });
+		fetch(questionURL, {
+			method: "POST",
+		})
+			.then((responce) => {
+				return responce.text();
+			})
+			.then((responce) => {
+				drawPreloader({ status: "end" });
+				let questionParse = parser(responce);
+				let questionRow = Array.from(questionParse.querySelectorAll("tr"));
+				questionRow.shift();
 
-		// 		console.log(questionParse);
-		// 	})
-		// 	.catch((err) => {
-		// 		console.log(err);
-		// 	});
-		let questionText = `<table border="1" cellpadding="0" cellspacing="0" width="98%">
-    <tr>
-        <td align="center" style="padding: 5px;">Товар</td>
-        <td align="center" style="padding: 5px;">Вопрос</td>
-        <td align="center" style="padding: 5px;">Ответ</td>
-        <td align="center" style="padding: 5px;"># Заказа</td>
-    </tr>
-    <tr>
-        <td align="center" style="padding: 5px;">Фланец под «сухие» ТЭНы Tesy, Hi-Therm (4.80.0028)</td>
-        <td title="Козаченко Юлия Владимировна 3 хвилини тому" align="center" style="padding: 5px;">яка довжина трубок?
-        </td>
-        <td align="center" style="padding: 5px;">
-            <input type="text" style="padding: 2px; width: 400px;" id="questionsInp3986"><input type="button"
-                value="Ответить" onclick="addAnswer(3986)">
-        </td>
-        <td align="center" style="padding: 5px; cursor: pointer;" onclick="Orders(1099533);">1099533</td>
-    </tr>
-</table>`;
-		let questionParse = parser(questionText);
-		let questionRow = Array.from(questionParse.querySelectorAll("tr"));
-		questionRow.shift();
+				if (questionRow.length > 0) {
+					questionRow.forEach((row) => {
+						let data = {};
+						let item = row.querySelectorAll("td");
+						data.goodsDesc = item[0].textContent.trim();
+						data.questionManager = item[1].getAttribute("title").trim();
+						data.question = item[1].textContent.trim();
+						data.id = item[2]
+							.querySelector("input[type='text']")
+							.id.match(/(\d+)/)[1];
+						data.questionOrder = item[3].textContent.trim();
+						questionData.push(data);
+					});
+				}
 
-		if (questionRow.length > 0) {
-			contentWraper.innerHTML = "";
-			questionRow.forEach((row) => {
-				let data = {};
-				let item = row.querySelectorAll("td");
-				data.goodsDesc = item[0].textContent.trim();
-				data.questionManager = item[1].getAttribute("title").trim();
-				data.question = item[1].textContent.trim();
-				data.questionOrder = item[3].textContent.trim();
-				console.log(
-					item[2].querySelector("input[type='text']").id,
-					item[2].querySelector("input[type='button']")
-				);
-				data.questionNum = item[2]
-					.querySelector("input[type='text']")
-					.id.match(/(\d+)/)[1];
-				questionData.push(data);
+				generateQuestionTanble(questionData);
+			})
+			.catch((err) => {
+				alert("Не Вдалося отримати питання!!!");
+				console.log(err);
 			});
-			console.log(questionData);
-		}
-		generateQuestionTanble(questionData);
 	};
 
 	let generateElaboration = (data) => {
-		contentWraper.innerHTML = "";
+		drawPreloader({ status: "end" });
 		if (data.length > 0) {
 			data.forEach((row) => {
 				console.log(row);
@@ -897,19 +976,7 @@ window.addEventListener("load", () => {
 				input.id = `elaborationInput${getOrderId(row.orderNumber)}`;
 				let sendBtn = document.createElement("button");
 
-				sendBtn.innerHTML = `
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
-<svg fill="#ffffff" height="30px" width="30px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.001 512.001" xml:space="preserve" stroke="#ffffff">
-
-<g id="SVGRepo_bgCarrier" stroke-width="0"/>
-
-<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
-
-<g id="SVGRepo_iconCarrier"> <g> <g> <path d="M483.927,212.664L66.967,25.834C30.95,9.695-7.905,42.023,1.398,80.368l21.593,89.001 c3.063,12.622,11.283,23.562,22.554,30.014l83.685,47.915c6.723,3.85,6.738,13.546,0,17.405l-83.684,47.915 c-11.271,6.452-19.491,17.393-22.554,30.015l-21.594,89c-9.283,38.257,29.506,70.691,65.569,54.534l416.961-186.83 C521.383,282.554,521.333,229.424,483.927,212.664z M359.268,273.093l-147.519,66.1c-9.44,4.228-20.521,0.009-24.752-9.435 c-4.231-9.44-0.006-20.523,9.434-24.752l109.37-49.006l-109.37-49.006c-9.44-4.231-13.665-15.313-9.434-24.752 c4.229-9.44,15.309-13.666,24.752-9.435l147.519,66.101C373.996,245.505,374.007,266.49,359.268,273.093z"/> </g> </g> </g>
-
-</svg>`;
+				sendBtn.innerHTML = sendIco;
 				sendBtn.className = "send-btn";
 				sendBtn.dataset.orderNumber = getOrderId(row.orderNumber);
 				inputText.appendChild(input);
@@ -993,7 +1060,7 @@ window.addEventListener("load", () => {
 			"imageLink",
 		];
 
-		contentWraper.appendChild(preloaderWraper);
+		drawPreloader({ status: "start" });
 
 		try {
 			// Виконуємо запит на elaborationURL
@@ -1057,7 +1124,10 @@ window.addEventListener("load", () => {
 							);
 
 							articleRow.forEach((a) => {
-								if (getGoodIdArticle(a.textContent.trim()).article === data.searchQuery) {
+								if (
+									getGoodIdArticle(a.textContent.trim()).article ===
+									data.searchQuery
+								) {
 									let countData = parseSearch.querySelector(".detPr");
 									let images = Array.from(
 										parseSearch.querySelectorAll(".detImg>img")
@@ -1118,7 +1188,7 @@ window.addEventListener("load", () => {
 		}
 	};
 	let generateList = () => {
-		contentWraper.innerHTML = "";
+		drawPreloader({ status: "end" });
 		if (storage.listArray.length == 0) {
 			let listTitle = document.createElement("p");
 			listTitle.className = "list-title content-title";
@@ -1198,7 +1268,7 @@ window.addEventListener("load", () => {
 		});
 	};
 	let generateCompare = () => {
-		contentWraper.innerHTML = "";
+		drawPreloader({ status: "end" });
 		if (storage.compareArray.length == 0) {
 			let compareTitle = document.createElement("p");
 			compareTitle.className = "compare-title content-title";
