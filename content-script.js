@@ -499,6 +499,21 @@ window.addEventListener("load", () => {
 				let listBtn = document.createElement("button");
 				listBtn.className = "list-btn btn";
 				listBtn.textContent = "Рознести";
+				// buttons
+				let goodsBtnWraper = document.createElement("div");
+				goodsBtnWraper.className = "search-btn-wraper";
+				let reserveBtn = document.createElement("button");
+				reserveBtn.className = "search-btn reserve-btn";
+				reserveBtn.textContent = "Резерв";
+				let arrivalBtn = document.createElement("button");
+				arrivalBtn.className = "search-btn reserve-btn";
+				arrivalBtn.textContent = "Приход";
+				let salesBtn = document.createElement("button");
+				salesBtn.className = "search-btn sales-btn";
+				salesBtn.textContent = "Продажі";
+				goodsBtnWraper.appendChild(reserveBtn);
+				goodsBtnWraper.appendChild(arrivalBtn);
+				goodsBtnWraper.appendChild(salesBtn)
 
 				let compareWraper = document.createElement("div");
 				compareWraper.className = "compare-wraper";
@@ -526,6 +541,7 @@ window.addEventListener("load", () => {
 				btnWraper.appendChild(compareWraper);
 				wraper.appendChild(itemDesc);
 				wraper.appendChild(btnWraper);
+				wraper.appendChild(goodsBtnWraper)
 
 				searchWraper.appendChild(wraper);
 				// add event listeners
@@ -1006,22 +1022,22 @@ window.addEventListener("load", () => {
 					imageWraper.appendChild(image);
 					image.addEventListener("click", showImage);
 				});
-				let elaboratiionFooterBtnWraper = document.createElement("div");
-				elaboratiionFooterBtnWraper.className =
-					"elaboratiion-footer-btn-wraper";
+				let buttonsRow = document.createElement("div");
+				buttonsRow.className =
+					"table-row elaboration-btn-wraper";
 				let reserveBtn = document.createElement("button");
-				reserveBtn.className = "reserve-btn";
+				reserveBtn.className = "reserve-btn btn";
 				reserveBtn.textContent = "Резерв";
 				let arrivalbtn = document.createElement("button");
-				arrivalbtn.className = "arrival-btn";
+				arrivalbtn.className = "arrival-btn btn";
 				arrivalbtn.textContent = "Приходи";
 				let selesBtn = document.createElement("button");
-				selesBtn.className = "seles-btn";
+				selesBtn.className = "seles-btn btn";
 				selesBtn.textContent = "Продажі";
 
-				elaboratiionFooterBtnWraper.appendChild(reserveBtn);
-				elaboratiionFooterBtnWraper.appendChild(arrivalbtn);
-				elaboratiionFooterBtnWraper.appendChild(selesBtn);
+				buttonsRow.appendChild(reserveBtn);
+				buttonsRow.appendChild(arrivalbtn);
+				buttonsRow.appendChild(selesBtn);
 
 				// Add event listeners
 				sendBtn.addEventListener("click", addElaborationAnswer);
@@ -1036,7 +1052,7 @@ window.addEventListener("load", () => {
 				tableWraper.appendChild(reserveQualityRow);
 				tableWraper.appendChild(inputRow);
 				tableWraper.appendChild(imageWraper);
-				tableWraper.appendChild(elaboratiionFooterBtnWraper);
+				tableWraper.appendChild(buttonsRow);
 				contentWraper.appendChild(tableWraper);
 			});
 		} else {
@@ -1213,9 +1229,8 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість: ${
-				getGoodsCount(item.count).baseCount
-			} Резерв: ${getGoodsCount(item.count).orderCount}`;
+			itemCount.textContent = `Кількість: ${getGoodsCount(item.count).baseCount
+				} Резерв: ${getGoodsCount(item.count).orderCount}`;
 			let itemArticle = document.createElement("p");
 			itemArticle.className = "item-article";
 			itemArticle.textContent = item.article;
@@ -1297,9 +1312,8 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість по базі: ${
-				getGoodsCount(item.count).baseCount
-			} Резерв: ${getGoodsCount(item.count).orderCount}
+			itemCount.textContent = `Кількість по базі: ${getGoodsCount(item.count).baseCount
+				} Резерв: ${getGoodsCount(item.count).orderCount}
 			Реальна кількість: ${item.realCount} Різниця: ${difference}`;
 			if (difference < 0) {
 				compareItemWraper.style.backgroundColor = "rgb(253, 184, 184)";
@@ -1431,3 +1445,13 @@ function podrPrihod(id) {
 		$("#podrPrihod" + id).hide();
 	}
 }
+
+
+
+fetch("https://docs.google.com/spreadsheets/d/1ifj0S1mx8YIF6K5hm4LhvDaIeSMO4i5vPvZKzmubZWs/edit?pli=1#gid=0", {
+	method: "GET"
+}).then((res) => {
+	return res.text();
+}).then((res) => {
+	console.log(res)
+})

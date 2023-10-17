@@ -154,6 +154,19 @@ body {
 			cursor: pointer;
 		}
 	}
+
+	.elaboration-btn-wrpaer {
+		.btn {
+			font-family: sans-serif;
+			font-size: 14px;
+			font-weight: 600;
+			padding: 10px 15px;
+			border-radius: 5px;
+			border: none;
+			max-width: 120px;
+		}
+	}
+
 	.area-wraper {
 		position: relative;
 
@@ -161,6 +174,7 @@ body {
 			width: 100%;
 			resize: none;
 		}
+
 		.answer-btn {
 			position: absolute;
 			right: 15px;
@@ -288,12 +302,14 @@ body {
 // serarch wraper{
 .search-result-wraper {
 	padding: 30px 10px;
+
 	.item-wraper {
 		padding: 10px;
 		border-radius: 5px;
 		background-color: #fff;
 		box-shadow: 2px 2px 2px #dee6f2;
 		margin-bottom: 30px;
+
 		.item-header {
 			font-family: sans-serif;
 			font-size: 16px;
@@ -305,18 +321,22 @@ body {
 			background-color: #aadefd;
 			margin-bottom: 20px;
 		}
+
 		.item-content-wraper {
 			display: flex;
 			justify-content: space-between;
 			align-items: flex-start;
+
 			a.image-link {
 				height: 100px;
 				min-width: 100px;
 				margin-right: 20px;
+
 				img {
 					height: 100%;
 				}
 			}
+
 			.item-count {
 				font-family: sans-serif;
 				font-size: 16px;
@@ -345,12 +365,10 @@ body {
 				width: 100%;
 				height: 10px;
 				background: rgb(255, 255, 255);
-				background: linear-gradient(
-					90deg,
-					rgba(255, 255, 255, 1) 0%,
-					rgba(255, 255, 255, 0) 58%,
-					rgba(255, 255, 255, 0) 100%
-				);
+				background: linear-gradient(90deg,
+						rgba(255, 255, 255, 1) 0%,
+						rgba(255, 255, 255, 0) 58%,
+						rgba(255, 255, 255, 0) 100%);
 			}
 		}
 
@@ -383,6 +401,7 @@ body {
 			.list-btn {
 				background-color: #1cc879;
 			}
+
 			.compare-wraper {
 				display: flex;
 				justify-content: flex-end;
@@ -401,9 +420,11 @@ body {
 					transform-origin: right;
 					transform: scaleX(0);
 				}
+
 				.visible-inp {
 					transform: scaleX(1);
 				}
+
 				.compare-btn {
 					border-top-left-radius: 0px;
 					border-bottom-left-radius: 0px;
@@ -413,9 +434,11 @@ body {
 		}
 	}
 }
+
 // lists tyling
 .wraper {
 	padding: 50px 10px;
+
 	.list-item,
 	.compare-item {
 		position: relative;
@@ -427,6 +450,7 @@ body {
 		background-color: #dee3ed;
 		box-shadow: rgb(49, 60, 77) 1px 4px 11px 1px;
 		margin-bottom: 20px;
+
 		.del-btn {
 			position: absolute;
 			top: 5px;
@@ -434,9 +458,11 @@ body {
 			border: none;
 			background: none;
 		}
+
 		.item-text-wraper {
 			width: 75%;
 			margin-left: 15px;
+
 			.item-article {
 				font-family: sans-serif;
 				font-size: 14px;
@@ -446,6 +472,7 @@ body {
 				border-radius: 5px;
 				margin-bottom: 20px;
 			}
+
 			.item-count {
 				font-family: sans-serif;
 				font-size: 14px;
@@ -454,11 +481,13 @@ body {
 				padding: 10px;
 				border-radius: 5px;
 			}
+
 			.item-head {
 				font-family: sans-serif;
 				font-size: 14px;
 				font-weight: 600;
 			}
+
 			.procesed-btn {
 				font-family: sans-serif;
 				font-size: 14px;
