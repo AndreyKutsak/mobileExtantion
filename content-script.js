@@ -176,7 +176,7 @@ window.addEventListener("load", () => {
 		question: /Є питання: (\d+) шт\./,
 		article: /\s(\d+\.\d+\.\d+)/,
 		number: /№(\d+)/,
-		elaborationArticle: /\((\d+(\.\d+)*)\)/,
+		elaborationArticle: /\((\d+(\.\d+)*)\)$/,
 		sentence: /[^\\n]+(?=\\n|$)/g,
 		cell: new RegExp("cell", "gi"),
 		goodsCount:
@@ -267,7 +267,7 @@ window.addEventListener("load", () => {
 	let questionPattern = /Є питання: (\d+) шт\./;
 	let regexArticle = /\s(\d+\.\d+\.\d+)/;
 	let regexNumber = /№(\d+)/;
-	let regexElaborationArticle = /\((\d+(\.\d+)*)\)/;
+	let regexElaborationArticle = /\((\d+(\.\d+)*)\)$/;
 	let regexSentens = /[^\\n]+(?=\\n|$)/g;
 	let regexCell = new RegExp("cell", "gi");
 	let regexGoodsCount =
@@ -513,7 +513,7 @@ window.addEventListener("load", () => {
 				salesBtn.textContent = "Продажі";
 				goodsBtnWraper.appendChild(reserveBtn);
 				goodsBtnWraper.appendChild(arrivalBtn);
-				goodsBtnWraper.appendChild(salesBtn)
+				goodsBtnWraper.appendChild(salesBtn);
 
 				let compareWraper = document.createElement("div");
 				compareWraper.className = "compare-wraper";
@@ -541,7 +541,7 @@ window.addEventListener("load", () => {
 				btnWraper.appendChild(compareWraper);
 				wraper.appendChild(itemDesc);
 				wraper.appendChild(btnWraper);
-				wraper.appendChild(goodsBtnWraper)
+				wraper.appendChild(goodsBtnWraper);
 
 				searchWraper.appendChild(wraper);
 				// add event listeners
@@ -1023,8 +1023,7 @@ window.addEventListener("load", () => {
 					image.addEventListener("click", showImage);
 				});
 				let buttonsRow = document.createElement("div");
-				buttonsRow.className =
-					"table-row elaboration-btn-wraper";
+				buttonsRow.className = "table-row elaboration-btn-wraper";
 				let reserveBtn = document.createElement("button");
 				reserveBtn.className = "reserve-btn btn";
 				reserveBtn.textContent = "Резерв";
@@ -1088,7 +1087,87 @@ window.addEventListener("load", () => {
 				throw new Error(`Network response was not ok: ${responce.status}`);
 			}
 
-			const elaborationText = await responce.text();
+			let elaborationText = await responce.text();
+			elaborationText = `<button onclick="clearElaboration();">Почистити</button>
+<select id="eleborationType" onchange="eleborationType()" style="float: right;">
+    <option value="0">У цьому вікні</option>
+    <option value="1">У новій вкладці</option>
+</select>
+<div class="clear"></div>
+<table border="1" cellpadding="0" cellspacing="0" width="98%">
+    <tr>
+        <td align="center" style="padding: 5px;"># Замовлення</td>
+        <td align="center" style="padding: 5px;">Менеджер</td>
+        <td align="center" style="padding: 5px;">Товар</td>
+        <td align="center" style="padding: 5px;">Адрес</td>
+        <td align="center" style="padding: 5px;">Уточнення</td>
+        <td align="center" style="padding: 5px;">Постачальник</td>
+        <td align="center" style="padding: 5px;">Відповідь</td>
+        <td align="center" style="padding: 5px;">Видал.</td>
+    </tr>
+    <tr>
+        <td align="center" style="padding: 5px; background-color: #dff1fe;">
+            <span onclick="Orders(1118313);" style="cursor: pointer; font-weight: bold;"># 1118313 (351987)</span>
+        </td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">
+            <span title="3 хвилини тому">Гловач Ольга Анатоліївна</span>
+        </td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">Бак з барабаном Indseit Ariston C00113810 (1.37.0016)</td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">T2-6.1.7</td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">Уточнення наявності</td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">
+            По базе: 0<br>В заказі: 0
+        </td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe" id="eleborationAnswer351987">
+            <input type="text" id="elaborationInput351987"
+                   style="width: 100px; border: solid 1px #adadad; border-radius: 3px; padding: 2px; margin-left: 10px;">
+            <button onclick="addElaborationAnswer(351987,0)">збер.</button>
+        </td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe"></td>
+    </tr>
+    <tr>
+        <td align="center" style="padding: 5px; background-color: #cbdbe6;">
+            <span onclick="Orders(1118313);" style="cursor: pointer; font-weight: bold;"># 1118313 (351988)</span>
+        </td>
+        <td align="center" style="padding: 5px; background-color: #cbdbe6">
+            <span title="3 хвилини тому">Гловач Ольга Анатоліївна</span>
+        </td>
+        <td align="center" style="padding: 5px; background-color: #cbdbe6">Фільтр поролоновий для вологого прибирання пилососа Zelmer 919.0088 (797694) (6.85.0203)
+        </td>
+        <td align="center" style="padding: 5px; background-color: #cbdbe6">A-15.7.1</td>
+        <td align="center" style="padding: 5px; background-color: #cbdbe6">Уточнення наявності</td>
+        <td align="center" style="padding: 5px; background-color: #cbdbe6">
+            По базе: 1<br>В заказі: 1
+        </td>
+        <td align="center" style="padding: 5px; background-color: #cbdbe6" id="eleborationAnswer351988">
+            <input type="text" id="elaborationInput351988"
+                   style="width: 100px; border: solid 1px #adadad; border-radius: 3px; padding: 2px; margin-left: 10px;">
+            <button onclick="addElaborationAnswer(351988,0)">збер.</button>
+        </td>
+        <td align="center" style="padding: 5px; background-color: #cbdbe6"></td>
+    </tr>
+    <tr>
+        <td align="center" style="padding: 5px; background-color: #dff1fe;">
+            <span onclick="Orders(1118313);" style="cursor: pointer; font-weight: bold;"># 1118313 (351989)</span>
+        </td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">
+            <span title="3 хвилини тому">Гловач Ольга Анатоліївна</span>
+        </td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">Хрестовина барабана Bosch Siemens 684101 (EBI
+            777) (1.8.0231)</td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">D-3.1.2</td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">Уточнення наявності</td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">
+            По базе: 1<br>В заказі: 1
+        </td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe" id="eleborationAnswer351989">
+            <input type="text" id="elaborationInput351989"
+                   style="width: 100px; border: solid 1px #adadad; border-radius: 3px; padding: 2px; margin-left: 10px;">
+            <button onclick="addElaborationAnswer(351989,0)">збер.</button>
+        </td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe"></td>
+    </tr>
+</table>`;
 			const elaborationTable = parser(elaborationText);
 			let article;
 			const tableRow = Array.from(
@@ -1134,14 +1213,12 @@ window.addEventListener("load", () => {
 							return response.text();
 						})
 						.then((responseText) => {
-
 							let parseSearch = parser(responseText);
 							let articleRow = Array.from(
 								parseSearch.querySelectorAll(".detDivTitle")
 							);
 
 							articleRow.forEach((a) => {
-
 								if (
 									getGoodIdArticle(a.textContent.trim()).article ===
 									data.searchQuery
@@ -1231,8 +1308,9 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість: ${getGoodsCount(item.count).baseCount
-				} Резерв: ${getGoodsCount(item.count).orderCount}`;
+			itemCount.textContent = `Кількість: ${
+				getGoodsCount(item.count).baseCount
+			} Резерв: ${getGoodsCount(item.count).orderCount}`;
 			let itemArticle = document.createElement("p");
 			itemArticle.className = "item-article";
 			itemArticle.textContent = item.article;
@@ -1314,8 +1392,9 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість по базі: ${getGoodsCount(item.count).baseCount
-				} Резерв: ${getGoodsCount(item.count).orderCount}
+			itemCount.textContent = `Кількість по базі: ${
+				getGoodsCount(item.count).baseCount
+			} Резерв: ${getGoodsCount(item.count).orderCount}
 			Реальна кількість: ${item.realCount} Різниця: ${difference}`;
 			if (difference < 0) {
 				compareItemWraper.style.backgroundColor = "rgb(253, 184, 184)";
@@ -1447,6 +1526,3 @@ function podrPrihod(id) {
 		$("#podrPrihod" + id).hide();
 	}
 }
-
-
-
