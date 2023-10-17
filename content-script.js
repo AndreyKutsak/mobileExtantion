@@ -168,7 +168,9 @@ window.addEventListener("load", () => {
 		addAnswer: "https://baza.m-p.in.ua/ajax/addAnswer.php",
 		search: "https://baza.m-p.in.ua/ajax/search.php",
 		getOrder: "https://baza.m-p.in.ua/ajax/order_cont.php",
-		getReserve: "https://baza.m-p.in.ua/ajax/podrRezerv.php",
+		reserve: "https://baza.m-p.in.ua/ajax/podrRezerv.php",
+		deliveries: "https://baza.m-p.in.ua/ajax/prihod1.php",
+		sales: "https://baza.m-p.in.ua/ajax/podrSales.php",
 	};
 	//regulars expression
 	let regExp = {
@@ -702,6 +704,78 @@ window.addEventListener("load", () => {
 				console.log(err);
 			});
 	};
+	let load = {
+		storage: [],
+		fetch: function (data) {
+			console.log(data, data.url);
+			fetch(data.url, {
+				method: data.method,
+				body: prepareQuery(data.body),
+			}).then((res) => {
+				let parse = parser(res);
+				let parseRow = Array.from(parse.querySelectorAll("tr"));
+				return parseRow.shift();
+			});
+		},
+		reserve: function (data) {
+			let reserve = this.fetch({
+				url: url.reserve,
+				method: "POST",
+				body: { id: data.id },
+			});
+
+			reserve.forEach((item) => {
+				let data = {};
+				let td = item.querySelectorAll("td");
+				data.id = td[0].textContent;
+				data.storage = td[1].textContent;
+				data.count = td[2].textContent;
+				data.time = td[3].textContent;
+				storage.push(data);
+			});
+			return this.storage;
+		},
+		sales: function (data) {
+			let sales = this.fetch({
+				url: url.sales,
+				method: "POST",
+				body: { id: data.id },
+			});
+
+			sales.forEach((item) => {
+				let data = {};
+				let td = item.querySelectorAll("td");
+				data.orderNumber = td[0].textContent;
+				data.status = td[1].textContent;
+				data.count = td[2].textContent;
+				data.price = td[3].textContent;
+				data.date = td[4].textContent;
+				storage.push(data);
+			});
+			return storage;
+		},
+		deliveries: function (data) {
+			let deliveries = this.fetch({
+				url: url.deliveries,
+				method: "POST",
+				body: { id: data.id },
+			});
+
+			deliveries.forEach((item) => {
+				let data = {};
+				let td = item.querySelectorAll("td");
+				data.date = td[0].textContent;
+				data.provider = td[1].textContent;
+				data.count = td[2].textContent;
+				data.price = td[3].textContent;
+				data.manger = td[4].textContent;
+				data.storage = td[5].textContent;
+				storage.push(data);
+			});
+			return storage;
+		},
+	};
+
 	let checkAnswer = (e) => {
 		e.preventDefault();
 		let answer = e.target.value;
@@ -1087,87 +1161,8 @@ window.addEventListener("load", () => {
 				throw new Error(`Network response was not ok: ${responce.status}`);
 			}
 
-			let elaborationText = await responce.text();
-			elaborationText = `<button onclick="clearElaboration();">Почистити</button>
-<select id="eleborationType" onchange="eleborationType()" style="float: right;">
-    <option value="0">У цьому вікні</option>
-    <option value="1">У новій вкладці</option>
-</select>
-<div class="clear"></div>
-<table border="1" cellpadding="0" cellspacing="0" width="98%">
-    <tr>
-        <td align="center" style="padding: 5px;"># Замовлення</td>
-        <td align="center" style="padding: 5px;">Менеджер</td>
-        <td align="center" style="padding: 5px;">Товар</td>
-        <td align="center" style="padding: 5px;">Адрес</td>
-        <td align="center" style="padding: 5px;">Уточнення</td>
-        <td align="center" style="padding: 5px;">Постачальник</td>
-        <td align="center" style="padding: 5px;">Відповідь</td>
-        <td align="center" style="padding: 5px;">Видал.</td>
-    </tr>
-    <tr>
-        <td align="center" style="padding: 5px; background-color: #dff1fe;">
-            <span onclick="Orders(1118313);" style="cursor: pointer; font-weight: bold;"># 1118313 (351987)</span>
-        </td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe">
-            <span title="3 хвилини тому">Гловач Ольга Анатоліївна</span>
-        </td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe">Бак з барабаном Indseit Ariston C00113810 (1.37.0016)</td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe">T2-6.1.7</td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe">Уточнення наявності</td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe">
-            По базе: 0<br>В заказі: 0
-        </td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe" id="eleborationAnswer351987">
-            <input type="text" id="elaborationInput351987"
-                   style="width: 100px; border: solid 1px #adadad; border-radius: 3px; padding: 2px; margin-left: 10px;">
-            <button onclick="addElaborationAnswer(351987,0)">збер.</button>
-        </td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe"></td>
-    </tr>
-    <tr>
-        <td align="center" style="padding: 5px; background-color: #cbdbe6;">
-            <span onclick="Orders(1118313);" style="cursor: pointer; font-weight: bold;"># 1118313 (351988)</span>
-        </td>
-        <td align="center" style="padding: 5px; background-color: #cbdbe6">
-            <span title="3 хвилини тому">Гловач Ольга Анатоліївна</span>
-        </td>
-        <td align="center" style="padding: 5px; background-color: #cbdbe6">Фільтр поролоновий для вологого прибирання пилососа Zelmer 919.0088 (797694) (6.85.0203)
-        </td>
-        <td align="center" style="padding: 5px; background-color: #cbdbe6">A-15.7.1</td>
-        <td align="center" style="padding: 5px; background-color: #cbdbe6">Уточнення наявності</td>
-        <td align="center" style="padding: 5px; background-color: #cbdbe6">
-            По базе: 1<br>В заказі: 1
-        </td>
-        <td align="center" style="padding: 5px; background-color: #cbdbe6" id="eleborationAnswer351988">
-            <input type="text" id="elaborationInput351988"
-                   style="width: 100px; border: solid 1px #adadad; border-radius: 3px; padding: 2px; margin-left: 10px;">
-            <button onclick="addElaborationAnswer(351988,0)">збер.</button>
-        </td>
-        <td align="center" style="padding: 5px; background-color: #cbdbe6"></td>
-    </tr>
-    <tr>
-        <td align="center" style="padding: 5px; background-color: #dff1fe;">
-            <span onclick="Orders(1118313);" style="cursor: pointer; font-weight: bold;"># 1118313 (351989)</span>
-        </td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe">
-            <span title="3 хвилини тому">Гловач Ольга Анатоліївна</span>
-        </td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe">Хрестовина барабана Bosch Siemens 684101 (EBI
-            777) (1.8.0231)</td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe">D-3.1.2</td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe">Уточнення наявності</td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe">
-            По базе: 1<br>В заказі: 1
-        </td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe" id="eleborationAnswer351989">
-            <input type="text" id="elaborationInput351989"
-                   style="width: 100px; border: solid 1px #adadad; border-radius: 3px; padding: 2px; margin-left: 10px;">
-            <button onclick="addElaborationAnswer(351989,0)">збер.</button>
-        </td>
-        <td align="center" style="padding: 5px; background-color: #dff1fe"></td>
-    </tr>
-</table>`;
+			const elaborationText = await responce.text();
+
 			const elaborationTable = parser(elaborationText);
 			let article;
 			const tableRow = Array.from(
