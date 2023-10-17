@@ -1134,12 +1134,14 @@ window.addEventListener("load", () => {
 							return response.text();
 						})
 						.then((responseText) => {
+
 							let parseSearch = parser(responseText);
 							let articleRow = Array.from(
 								parseSearch.querySelectorAll(".detDivTitle")
 							);
 
 							articleRow.forEach((a) => {
+
 								if (
 									getGoodIdArticle(a.textContent.trim()).article ===
 									data.searchQuery
@@ -1448,10 +1450,3 @@ function podrPrihod(id) {
 
 
 
-fetch("https://docs.google.com/spreadsheets/d/1ifj0S1mx8YIF6K5hm4LhvDaIeSMO4i5vPvZKzmubZWs/edit?pli=1#gid=0", {
-	method: "GET"
-}).then((res) => {
-	return res.text();
-}).then((res) => {
-	console.log(res)
-})
