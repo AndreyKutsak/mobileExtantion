@@ -1218,18 +1218,30 @@ window.addEventListener("load", () => {
 								parseSearch.querySelectorAll(".detDivTitle")
 							);
 
-							articleRow.forEach((a) => {
+							articleRow.forEach((a, index) => {
+								console.log(
+									getGoodIdArticle(a.textContent.trim()).article ===
+										data.searchQuery,
+									getGoodIdArticle(a.textContent.trim()).article,
+									data.searchQuery
+								);
 								if (
 									getGoodIdArticle(a.textContent.trim()).article ===
 									data.searchQuery
 								) {
-									let countData = parseSearch.querySelector(".detPr");
+									let countData = parseSearch.querySelectorAll(".detPr")[index];
 									let images = Array.from(
-										parseSearch.querySelectorAll(".detImg>img")
+										parseSearch
+											.querySelectorAll(".detImg")
+											[index].querySelectorAll("img")
 									);
+
 									let imgSrc = [];
 									let imgLink = [];
 									images.forEach((img) => {
+										if (!img.parentNode.classList.contains("detImg")) {
+											return;
+										}
 										imgSrc.push(img.getAttribute("rel"));
 										imgLink.push(img.alt);
 									});
