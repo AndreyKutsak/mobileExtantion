@@ -546,6 +546,13 @@ window.addEventListener("load", () => {
 				wraper.appendChild(goodsBtnWraper);
 
 				searchWraper.appendChild(wraper);
+
+				reserveBtn.addEventListener("click", () => {
+					let data = load.reserve({ url: url.reserve, id: item.id });
+					data.then((test) => {
+						console.log(test)
+					})
+				})
 				// add event listeners
 				itemDesc.addEventListener("click", (e) => {
 					e.preventDefault();
@@ -706,75 +713,112 @@ window.addEventListener("load", () => {
 	};
 	let load = {
 		storage: [],
-		fetch: function (data) {
+		fetch: async function (data) {
 			console.log(data, data.url);
-			fetch(data.url, {
-				method: data.method,
-				body: prepareQuery(data.body),
-			}).then((res) => {
-				let parse = parser(res);
-				let parseRow = Array.from(parse.querySelectorAll("tr"));
-				return parseRow.shift();
-			});
-		},
-		reserve: function (data) {
-			let reserve = this.fetch({
-				url: url.reserve,
-				method: "POST",
-				body: { id: data.id },
-			});
+			try {
+				const response = await fetch(data.url, {
+					method: data.method,
+					body: prepareQuery(data.body),
+				});
 
-			reserve.forEach((item) => {
-				let data = {};
-				let td = item.querySelectorAll("td");
-				data.id = td[0].textContent;
-				data.storage = td[1].textContent;
-				data.count = td[2].textContent;
-				data.time = td[3].textContent;
-				storage.push(data);
-			});
-			return this.storage;
-		},
-		sales: function (data) {
-			let sales = this.fetch({
-				url: url.sales,
-				method: "POST",
-				body: { id: data.id },
-			});
+				if (!response.ok) {
+					throw new Error(`HTTP Error! Status: ${response.status}`);
+				}
 
-			sales.forEach((item) => {
-				let data = {};
-				let td = item.querySelectorAll("td");
-				data.orderNumber = td[0].textContent;
-				data.status = td[1].textContent;
-				data.count = td[2].textContent;
-				data.price = td[3].textContent;
-				data.date = td[4].textContent;
-				storage.push(data);
-			});
-			return storage;
+				const res = await response.text();
+				const parse = parser(res);
+				const parseRow = Array.from(parse.querySelectorAll("tr"));
+				console.log(parseRow);
+				return parseRow;
+			} catch (error) {
+				console.error("Fetch error:", error);
+				return [];
+			}
 		},
-		deliveries: function (data) {
-			let deliveries = this.fetch({
-				url: url.deliveries,
-				method: "POST",
-				body: { id: data.id },
-			});
+		reserve: async function (data) {
+			try {
+				const reserve = await this.fetch({
+					url: url.reserve,
+					method: "POST",
+					body: { id: data.id },
+				});
+				if (reserve.length == 0) {
+					return
+				}
+				console.log(reserve.shift())
 
-			deliveries.forEach((item) => {
-				let data = {};
-				let td = item.querySelectorAll("td");
-				data.date = td[0].textContent;
-				data.provider = td[1].textContent;
-				data.count = td[2].textContent;
-				data.price = td[3].textContent;
-				data.manger = td[4].textContent;
-				data.storage = td[5].textContent;
-				storage.push(data);
-			});
-			return storage;
+				reserve.forEach((item) => {
+					let rowData = {};
+					let td = item.querySelectorAll("td");
+					rowData.id = td[0].textContent;
+					rowData.storage = td[1].textContent;
+					rowData.count = td[2].textContent;
+					rowData.time = td[3].textContent;
+					this.storage.push(rowData);
+				});
+				console.log(this.storage)
+				return this.storage;
+			} catch (error) {
+				console.error("Reserve error:", error);
+				return this.storage;
+			}
+		},
+		sales: async function (data) {
+			try {
+				const sales = await this.fetch({
+					url: url.sales,
+					method: "POST",
+					body: { id: data.id },
+				});
+				if (sales.length == 0) {
+					return
+				}
+				sales.forEach((item) => {
+					let rowData = {};
+					let td = item.querySelectorAll("td");
+					rowData.orderNumber = td[0].textContent;
+					rowData.status = td[1].textContent;
+					rowData.count = td[2].textContent;
+					rowData.price = td[3].textContent;
+					rowData.date = td[4].textContent;
+					this.storage.push(rowData);
+				});
+				return this.storage;
+			} catch (error) {
+				console.error("Sales error:", error);
+				return this.storage;
+			}
+		},
+		deliveries: async function (data) {
+			try {
+				const deliveries = await this.fetch({
+					url: url.deliveries,
+					method: "POST",
+					body: { id: data.id },
+				});
+				if (deliveries.length == 0) {
+					return
+				}
+
+				deliveries.forEach((item) => {
+					let rowData = {};
+					let td = item.querySelectorAll("td");
+					rowData.date = td[0].textContent;
+					rowData.provider = td[1].textContent;
+					rowData.count = td[2].textContent;
+					rowData.price = td[3].textContent;
+					rowData.manger = td[4].textContent;
+					rowData.storage = td[5].textContent;
+					this.storage.push(rowData);
+				});
+				return this.storage;
+			} catch (error) {
+				console.error("Deliveries error:", error);
+				return this.storage;
+			}
 		},
 	};
+
 
 	let checkAnswer = (e) => {
 		e.preventDefault();
@@ -1115,6 +1159,7 @@ window.addEventListener("load", () => {
 				// Add event listeners
 				sendBtn.addEventListener("click", addElaborationAnswer);
 				input.addEventListener("input", checkAnswer);
+
 				// appending elements
 				tableWraper.appendChild(orderNumberRow);
 				tableWraper.appendChild(managerRow);
@@ -1216,7 +1261,7 @@ window.addEventListener("load", () => {
 							articleRow.forEach((a, index) => {
 								console.log(
 									getGoodIdArticle(a.textContent.trim()).article ===
-										data.searchQuery,
+									data.searchQuery,
 									getGoodIdArticle(a.textContent.trim()).article,
 									data.searchQuery
 								);
@@ -1228,7 +1273,7 @@ window.addEventListener("load", () => {
 									let images = Array.from(
 										parseSearch
 											.querySelectorAll(".detImg")
-											[index].querySelectorAll("img")
+										[index].querySelectorAll("img")
 									);
 
 									let imgSrc = [];
@@ -1315,9 +1360,8 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість: ${
-				getGoodsCount(item.count).baseCount
-			} Резерв: ${getGoodsCount(item.count).orderCount}`;
+			itemCount.textContent = `Кількість: ${getGoodsCount(item.count).baseCount
+				} Резерв: ${getGoodsCount(item.count).orderCount}`;
 			let itemArticle = document.createElement("p");
 			itemArticle.className = "item-article";
 			itemArticle.textContent = item.article;
@@ -1399,9 +1443,8 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість по базі: ${
-				getGoodsCount(item.count).baseCount
-			} Резерв: ${getGoodsCount(item.count).orderCount}
+			itemCount.textContent = `Кількість по базі: ${getGoodsCount(item.count).baseCount
+				} Резерв: ${getGoodsCount(item.count).orderCount}
 			Реальна кількість: ${item.realCount} Різниця: ${difference}`;
 			if (difference < 0) {
 				compareItemWraper.style.backgroundColor = "rgb(253, 184, 184)";
