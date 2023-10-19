@@ -1,6 +1,5 @@
 window.addEventListener("load", () => {
 	let storage = localStorage.getItem("storage");
-
 	let head = document.querySelector("head");
 	head.innerHTML = ` <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -182,7 +181,7 @@ window.addEventListener("load", () => {
 		sentence: /[^\\n]+(?=\\n|$)/g,
 		cell: new RegExp("cell", "gi"),
 		goodsCount:
-			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.)/g,
+			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.)/g,
 	};
 	// intervals
 	let intarval = {
@@ -332,11 +331,62 @@ window.addEventListener("load", () => {
 		console.log(data);
 		return convertedData || false;
 	};
-	let parser = (text) => {
-		let domParser = new DOMParser();
-		let doc = domParser.parseFromString(text, "text/html");
-		return doc;
-	};
+	let get = {
+		url: function (data) {
+			return chrome.runtime.getURL(String(data));
+		},
+		parser: function (data) {
+			let domParser = new DOMParser();
+			let doc = domParser.parseFromString(data, "text/html");
+			return doc;
+
+		},
+		article: function (data) {
+			let matchData = { id: null, article: null };
+			let matchNumber = data.match(regexNumber);
+			let matchArticle = data.match(regexArticle);
+			if (matchNumber && matchArticle) {
+				let numberPart = matchNumber[1];
+				let articlePart = matchArticle[1];
+				matchData.id = numberPart;
+				matchData.article = articlePart;
+				return matchData;
+			}
+			return false;
+		},
+		date: function () {
+			const date = new Date();
+			return {
+				year: date.getFullYear(),
+				month: date.getMonth() + 1,
+				day: date.getDate(),
+				hours: date.getHours(),
+				minutes: date.getMinutes(),
+				seconds: date.getSeconds(),
+			};
+		},
+		orderId: function (data) {
+			const regex = /\((\d+)\)/;
+			const match = data.match(regex);
+			if (match && match.length >= 2) {
+				return parseInt(match[1], 10);
+			}
+			return null;
+		},
+		goodsCount: function (data) {
+			const matches = {};
+			let match;
+			while ((match = regexGoodsCount.exec(data)) !== null) {
+				if (match[1] !== undefined) {
+					matches["baseCount"] = parseInt(match[1]);
+				} else if (match[3] !== undefined) {
+					matches["orderCount"] = parseInt(match[3]);
+				}
+			}
+			return matches;
+		},
+	}
+
 	let updateStorage = () => {
 		localStorage.setItem("storage", JSON.stringify(storage));
 	};
@@ -345,57 +395,7 @@ window.addEventListener("load", () => {
 		document.cookie = "hash=null";
 		window.location.reload();
 	};
-	let getSentenses = (string) => {
-		let matches = string.match(regexSentens);
-		if (matches) {
-			return matches;
-		}
-		return false;
-	};
-	let getDate = () => {
-		const date = new Date();
-		return {
-			year: date.getFullYear(),
-			month: date.getMonth() + 1,
-			day: date.getDate(),
-			hours: date.getHours(),
-			minutes: date.getMinutes(),
-			seconds: date.getSeconds(),
-		};
-	};
-	let getGoodIdArticle = (string) => {
-		let data = { id: null, article: null };
-		let matchNumber = string.match(regexNumber);
-		let matchArticle = string.match(regexArticle);
-		if (matchNumber && matchArticle) {
-			let numberPart = matchNumber[1];
-			let articlePart = matchArticle[1];
-			data.id = numberPart;
-			data.article = articlePart;
-			return data;
-		}
-		return false;
-	};
-	let getOrderId = (number) => {
-		const regex = /\((\d+)\)/;
-		const match = number.match(regex);
-		if (match && match.length >= 2) {
-			return parseInt(match[1], 10);
-		}
-		return null;
-	};
-	let getGoodsCount = (text) => {
-		const matches = {};
-		let match;
-		while ((match = regexGoodsCount.exec(text)) !== null) {
-			if (match[1] !== undefined) {
-				matches["baseCount"] = parseInt(match[1]);
-			} else if (match[3] !== undefined) {
-				matches["orderCount"] = parseInt(match[3]);
-			}
-		}
-		return matches;
-	};
+
 	let showImage = (e) => {
 		e.preventDefault();
 		let imgURL = e.currentTarget.getAttribute("href");
@@ -434,7 +434,7 @@ window.addEventListener("load", () => {
 			})
 			.then((res) => {
 				let searchData = [];
-				let searchResponce = parser(res);
+				let searchResponce = get.parser(res);
 				let goodsId = Array.from(
 					searchResponce.querySelectorAll(".detDivTitle")
 				);
@@ -451,8 +451,8 @@ window.addEventListener("load", () => {
 						searchResponce.querySelectorAll(".titleDet")
 					);
 
-					data.id = getGoodIdArticle(goodsId[index].textContent).id;
-					data.article = getGoodIdArticle(goodsId[index].textContent).article;
+					data.id = get.article(goodsId[index].textContent).id;
+					data.article = get.article(goodsId[index].textContent).article;
 					data.photo = goodsPhoto.getAttribute("src");
 					data.photoLG = goodsPhoto.parentNode.getAttribute("href");
 					data.head = goodsDesc[index].innerHTML.split("<br>")[0].trim();
@@ -560,14 +560,14 @@ window.addEventListener("load", () => {
 				compareInp.addEventListener("input", (e) => {
 					let compareVal = e.currentTarget.value;
 					if (
-						Number(compareVal) !== Number(getGoodsCount(item.count).baseCount)
+						Number(compareVal) !== Number(get.goodsCount(item.count).baseCount)
 					) {
 						e.currentTarget.style.border = `1px solid red`;
 					}
 				});
 				listBtn.addEventListener("click", (e) => {
 					item.isProcesed = false;
-					item.addingDate = getDate();
+					item.addingDate = get.date();
 					if (storage.listArray.includes(item)) {
 						alert("Такий товар вже в списку");
 						return;
@@ -586,11 +586,11 @@ window.addEventListener("load", () => {
 							alert("Такий товар вже в списку");
 							return;
 						}
-						item.addingDate = getDate();
+						item.addingDate = get.date();
 						item.isProcesed = false;
 						item.realCount = Number(compareInp.value);
-						item.goodsBaseCount = getGoodsCount(item.count).baseCount;
-						item.goodsReserve = getGoodsCount(item.count).orderCount;
+						item.goodsBaseCount = get.goodsCount(item.count).baseCount;
+						item.goodsReserve = get.goodsCount(item.count).orderCount;
 						storage.compareArray.push(item);
 						wraper.style.backgroundColor = "#fbc8c8";
 						updateStorage();
@@ -617,7 +617,7 @@ window.addEventListener("load", () => {
 				return res.text();
 			})
 			.then((responce) => {
-				let parserResponce = parser(responce);
+				let parserResponce = get.parser(responce);
 				let responceItems = Array.from(parserResponce.querySelectorAll("div"));
 				responceItems.forEach((item) => {
 					let elaborationResult = item.textContent.match(elaborationPattern);
@@ -725,7 +725,7 @@ window.addEventListener("load", () => {
 				}
 
 				const res = await response.text();
-				const parse = parser(res);
+				const parse = get.parser(res);
 				const parseRow = Array.from(parse.querySelectorAll("tr"));
 				console.log(parseRow);
 				return parseRow;
@@ -816,6 +816,9 @@ window.addEventListener("load", () => {
 				return this.storage;
 			}
 		},
+		icon: async function (data) {
+
+		}
 	};
 
 
@@ -968,7 +971,7 @@ window.addEventListener("load", () => {
 			})
 			.then((responce) => {
 				drawPreloader({ status: "end" });
-				let questionParse = parser(responce);
+				let questionParse = get.parser(responce);
 				let questionRow = Array.from(questionParse.querySelectorAll("tr"));
 				questionRow.shift();
 
@@ -1106,12 +1109,12 @@ window.addEventListener("load", () => {
 				input.dataset.count = row.numberData.baseCount;
 				input.type = "text";
 				input.placeholder = "Кількість";
-				input.id = `elaborationInput${getOrderId(row.orderNumber)}`;
+				input.id = `elaborationInput${get.orderId(row.orderNumber)}`;
 				let sendBtn = document.createElement("button");
 
 				sendBtn.innerHTML = sendIco;
 				sendBtn.className = "send-btn";
-				sendBtn.dataset.orderNumber = getOrderId(row.orderNumber);
+				sendBtn.dataset.orderNumber = get.orderId(row.orderNumber);
 				inputText.appendChild(input);
 				inputText.appendChild(sendBtn);
 				inputRow.appendChild(inputDesc);
@@ -1207,7 +1210,7 @@ window.addEventListener("load", () => {
 
 			const elaborationText = await responce.text();
 
-			const elaborationTable = parser(elaborationText);
+			const elaborationTable = get.parser(elaborationText);
 			let article;
 			const tableRow = Array.from(
 				elaborationTable.querySelectorAll("table>tbody>tr")
@@ -1252,20 +1255,20 @@ window.addEventListener("load", () => {
 							return response.text();
 						})
 						.then((responseText) => {
-							let parseSearch = parser(responseText);
+							let parseSearch = get.parser(responseText);
 							let articleRow = Array.from(
 								parseSearch.querySelectorAll(".detDivTitle")
 							);
 
 							articleRow.forEach((a, index) => {
 								console.log(
-									getGoodIdArticle(a.textContent.trim()).article ===
+									get.article(a.textContent.trim()).article ===
 									data.searchQuery,
-									getGoodIdArticle(a.textContent.trim()).article,
+									get.article(a.textContent.trim()).article,
 									data.searchQuery
 								);
 								if (
-									getGoodIdArticle(a.textContent.trim()).article ===
+									get.article(a.textContent.trim()).article ===
 									data.searchQuery
 								) {
 									let countData = parseSearch.querySelectorAll(".detPr")[index];
@@ -1286,7 +1289,7 @@ window.addEventListener("load", () => {
 									});
 									elaborationRow[key].imagesSrc = imgSrc;
 									elaborationRow[key].imageLink = imgLink;
-									elaborationRow[key].numberData = getGoodsCount(
+									elaborationRow[key].numberData = get.goodsCount(
 										countData.textContent.trim()
 									);
 								}
@@ -1363,8 +1366,8 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість: ${getGoodsCount(item.count).baseCount
-				} Резерв: ${getGoodsCount(item.count).orderCount}`;
+			itemCount.textContent = `Кількість: ${get.goodsCount(item.count).baseCount
+				} Резерв: ${get.goodsCount(item.count).orderCount}`;
 			let itemArticle = document.createElement("p");
 			itemArticle.className = "item-article";
 			itemArticle.textContent = item.article;
@@ -1430,8 +1433,8 @@ window.addEventListener("load", () => {
 			console.log(item)
 			let difference =
 				item.realCount -
-				(getGoodsCount(item.count).baseCount +
-					getGoodsCount(item.count).orderCount);
+				(get.goodsCount(item.count).baseCount +
+					get.goodsCount(item.count).orderCount);
 			let compareItemWraper = document.createElement("div");
 			compareItemWraper.className = "compare-item";
 			let compareDate = document.createElement("p");
@@ -1452,8 +1455,8 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість по базі: ${getGoodsCount(item.count).baseCount
-				} Резерв: ${getGoodsCount(item.count).orderCount}
+			itemCount.textContent = `Кількість по базі: ${get.goodsCount(item.count).baseCount
+				} Резерв: ${get.goodsCount(item.count).orderCount}
 			Реальна кількість: ${item.realCount} Різниця: ${difference}`;
 			if (difference < 0) {
 				compareItemWraper.style.backgroundColor = "rgb(253, 184, 184)";
@@ -1534,55 +1537,5 @@ window.addEventListener("load", () => {
 	document.body.appendChild(contentWraper);
 	checkElaborations();
 	drawButtonsCount();
+
 });
-// продажі
-function podrSales(id) {
-	if ($("#podrSales" + id).is(":hidden")) {
-		$("#loader").show();
-		$.post(
-			"https://baza.m-p.in.ua/ajax/podrSales.php",
-			{ id: id },
-			function (data) {
-				$("#podrSales" + id).html(data);
-				$("#loader").hide();
-			}
-		);
-		$("#podrSales" + id).show();
-	} else {
-		$("#podrSales" + id).hide();
-	}
-}
-// резерви
-function podrRezerv(id) {
-	if ($("#podrRezerv" + id).is(":hidden")) {
-		$("#loader").show();
-		$.post(
-			"https://baza.m-p.in.ua/ajax/podrRezerv.php",
-			{ id: id },
-			function (data) {
-				$("#podrRezerv" + id).html(data);
-				$("#loader").hide();
-			}
-		);
-		$("#podrRezerv" + id).show();
-	} else {
-		$("#podrRezerv" + id).hide();
-	}
-}
-// приход
-function podrPrihod(id) {
-	if ($("#podrPrihod" + id).is(":hidden")) {
-		$("#loader").show();
-		$.post(
-			"https://baza.m-p.in.ua/ajax/prihod1.php",
-			{ id: id },
-			function (data) {
-				$("#podrPrihod" + id).html(data);
-				$("#loader").hide();
-			}
-		);
-		$("#podrPrihod" + id).show();
-	} else {
-		$("#podrPrihod" + id).hide();
-	}
-}
