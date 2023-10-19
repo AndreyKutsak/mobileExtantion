@@ -444,7 +444,6 @@ window.addEventListener("load", () => {
 				searchGoodWraper.forEach((item, index) => {
 					let data = {};
 					let goodsPhoto = item.querySelector(".detImg>a>img");
-					console.log(goodsPhoto.parentNode);
 					let goodsCount = Array.from(
 						searchResponce.querySelectorAll(".detPr")
 					);
@@ -1344,11 +1343,15 @@ window.addEventListener("load", () => {
 			return;
 		}
 		storage.listArray.forEach((item, index) => {
+			console.log(item)
 			let listItemWraper = document.createElement("div");
 			listItemWraper.className = "list-item";
 			let delItemBtn = document.createElement("button");
 			delItemBtn.className = "del-btn btn";
 			delItemBtn.innerHTML = recycleBinIco;
+			let dateDesc = document.createElement("p");
+			dateDesc.className = "desc date-desc";
+			dateDesc.textContent = `${item.addingDate.day}.${item.addingDate.month}.${item.addingDate.year}  ${item.addingDate.hours}:${item.addingDate.minutes}:${item.addingDate.seconds} `
 			let itemImageLink = document.createElement("a");
 			itemImageLink.className = "item-image-link";
 			itemImageLink.setAttribute("href", item.photoLG);
@@ -1380,6 +1383,7 @@ window.addEventListener("load", () => {
 			if (item.isProcesed) {
 				listItemWraper.style.backgroundColor = "#c2edc2";
 			}
+			itemTextWraper.appendChild(dateDesc);
 			itemTextWraper.appendChild(itemArticle);
 			itemTextWraper.appendChild(itemCount);
 			itemTextWraper.appendChild(itemDesc);
@@ -1423,12 +1427,17 @@ window.addEventListener("load", () => {
 			return;
 		}
 		storage.compareArray.forEach((item, index) => {
+			console.log(item)
 			let difference =
 				item.realCount -
 				(getGoodsCount(item.count).baseCount +
 					getGoodsCount(item.count).orderCount);
 			let compareItemWraper = document.createElement("div");
 			compareItemWraper.className = "compare-item";
+			let compareDate = document.createElement("p");
+			compareDate.className = "compare-time";
+			compareDate.textContent = `${item.addingDate.day}.${item.addingDate.month}.${item.addingDate.year}   ${item.addingDate.hours}:${item.addingDate.minutes}:${item.addingDate.seconds}`;
+
 			let delCompareItemBtn = document.createElement("button");
 			delCompareItemBtn.className = "del-btn btn";
 			delCompareItemBtn.innerHTML = recycleBinIco;
@@ -1468,6 +1477,7 @@ window.addEventListener("load", () => {
 			if (item.isProcesed) {
 				compareItemWraper.style.backgroundColor = "#c2edc2";
 			}
+			itemTextWraper.appendChild(compareDate);
 			itemTextWraper.appendChild(itemArticle);
 			itemTextWraper.appendChild(itemCount);
 			itemTextWraper.appendChild(itemDesc);

@@ -411,6 +411,15 @@ body {
   width: 75%;
   margin-left: 15px;
 }
+.wraper .list-item .item-text-wraper .date-desc,
+.wraper .list-item .item-text-wraper .compare-time,
+.wraper .compare-item .item-text-wraper .date-desc,
+.wraper .compare-item .item-text-wraper .compare-time {
+  font-family: sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
 .wraper .list-item .item-text-wraper .item-article,
 .wraper .compare-item .item-text-wraper .item-article {
   font-family: sans-serif;
