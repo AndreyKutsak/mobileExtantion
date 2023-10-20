@@ -118,6 +118,12 @@ window.addEventListener("load", () => {
 			if (data.alt) {
 				element.alt = data.alt;
 			}
+			if (data.style) {
+				element.style = data.style;
+			}
+			if (data.href) {
+				element.href = data.href;
+			}
 			if (data.placeholder) {
 				element.placeholder = data.placeholder;
 			}
@@ -296,6 +302,44 @@ window.addEventListener("load", () => {
 			},
 		],
 	};
+	let compareLIst = get.elements({
+		el: "div",
+		className: "compare-item",
+		children: [{
+			el: "p",
+			className: "compare-time",
+			text: `${item.addingDate.day}.${item.addingDate.month}.${item.addingDate.year}   ${item.addingDate.hours}:${item.addingDate.minutes}:${item.addingDate.seconds}`
+		}, {
+			el: "button",
+			className: "del-btn btn",
+			children: [{
+				el: "img",
+				src: get.url(src.ico.recycle),
+				alt: "Видалити Елемент"
+			}]
+		}, {
+			el: "a",
+			className: "item-image-link",
+			href: item.photoLG,
+			chldren: [
+				{
+					el: "img",
+					src: item.photo,
+					alt: item.head
+				}
+			]
+		}, {
+			el: "div",
+			className: "item-text-wraper",
+			children: {
+				el: "p",
+				className: "item-count",
+				text: `Кількість по базі: ${get.goodsCount(item.count).baseCount
+					} Резерв: ${get.goodsCount(item.count).orderCount}
+			Реальна кількість: ${item.realCount} Різниця: ${difference}`
+			}
+		}]
+	})
 	let btnWraper = get.elements(buttons);
 	// btn block
 	// let elaborationBtn = document.createElement("button");
@@ -1241,7 +1285,7 @@ window.addEventListener("load", () => {
 							articleRow.forEach((a, index) => {
 								console.log(
 									get.article(a.textContent.trim()).article ===
-										data.searchQuery,
+									data.searchQuery,
 									get.article(a.textContent.trim()).article,
 									data.searchQuery
 								);
@@ -1252,7 +1296,7 @@ window.addEventListener("load", () => {
 									let images = Array.from(
 										parseSearch
 											.querySelectorAll(".detImg")
-											[index].querySelectorAll("img")
+										[index].querySelectorAll("img")
 									);
 
 									let imgSrc = [];
@@ -1347,9 +1391,8 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість: ${
-				get.goodsCount(item.count).baseCount
-			} Резерв: ${get.goodsCount(item.count).orderCount}`;
+			itemCount.textContent = `Кількість: ${get.goodsCount(item.count).baseCount
+				} Резерв: ${get.goodsCount(item.count).orderCount}`;
 			let itemArticle = document.createElement("p");
 			itemArticle.className = "item-article";
 			itemArticle.textContent = item.article;
@@ -1440,9 +1483,8 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість по базі: ${
-				get.goodsCount(item.count).baseCount
-			} Резерв: ${get.goodsCount(item.count).orderCount}
+			itemCount.textContent = `Кількість по базі: ${get.goodsCount(item.count).baseCount
+				} Резерв: ${get.goodsCount(item.count).orderCount}
 			Реальна кількість: ${item.realCount} Різниця: ${difference}`;
 			if (difference < 0) {
 				compareItemWraper.style.backgroundColor = "rgb(253, 184, 184)";
