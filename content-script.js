@@ -118,8 +118,13 @@ window.addEventListener("load", () => {
 			if (data.alt) {
 				element.alt = data.alt;
 			}
+			if (data.func) {
+				data.funct();
+			}
 			if (data.style) {
-				element.style = data.style;
+				for (const styleKey in data.style) {
+					element.style[styleKey] = data.style[styleKey];
+				}
 			}
 			if (data.href) {
 				element.href = data.href;
@@ -302,88 +307,9 @@ window.addEventListener("load", () => {
 			},
 		],
 	};
-	let compareLIst = get.elements({
-		el: "div",
-		className: "compare-item",
-		children: [{
-			el: "p",
-			className: "compare-time",
-			text: `${item.addingDate.day}.${item.addingDate.month}.${item.addingDate.year}   ${item.addingDate.hours}:${item.addingDate.minutes}:${item.addingDate.seconds}`
-		}, {
-			el: "button",
-			className: "del-btn btn",
-			children: [{
-				el: "img",
-				src: get.url(src.ico.recycle),
-				alt: "Видалити Елемент"
-			}]
-		}, {
-			el: "a",
-			className: "item-image-link",
-			href: item.photoLG,
-			chldren: [
-				{
-					el: "img",
-					src: item.photo,
-					alt: item.head
-				}
-			]
-		}, {
-			el: "div",
-			className: "item-text-wraper",
-			children: {
-				el: "p",
-				className: "item-count",
-				text: `Кількість по базі: ${get.goodsCount(item.count).baseCount
-					} Резерв: ${get.goodsCount(item.count).orderCount}
-			Реальна кількість: ${item.realCount} Різниця: ${difference}`
-			}
-		}]
-	})
-	let btnWraper = get.elements(buttons);
-	// btn block
-	// let elaborationBtn = document.createElement("button");
-	// elaborationBtn.className = "elaboration-btn btn";
-	// let elaborationIcon = document.createElement("img");
-	// elaborationIcon.src = get.url(src.ico.elaboration);
-	// elaborationBtn.appendChild(elaborationIcon);
-	// let elabortionCount = document.createElement("span");
-	// elabortionCount.className = "elaboration-count counter";
-	// // question btn
-	// let questionBtn = document.createElement("button");
-	// questionBtn.className = "question-btn btn";
-	// let questionIco = document.createElement("img");
-	// questionIco.src = get.url(src.ico.question);
-	// questionBtn.appendChild(questionIco);
-	// let questionCountText = document.createElement("span");
-	// questionCountText.className = "question-count-text counter";
-	// questionBtn.appendChild(questionCountText);
-	// elaborationBtn.appendChild(elabortionCount);
-	// // comapre btn
-	// let compareBtn = document.createElement("button");
-	// compareBtn.className = "compare-btn btn";
-	// let comapreIco = document.createElement("img");
-	// comapreIco.src = get.url(src.ico.compare);
-	// compareBtn.appendChild(comapreIco);
 
-	// let compareBtnCount = document.createElement("span");
-	// compareBtnCount.className = "compare-count counter";
-	// compareBtn.appendChild(compareBtnCount);
-	// // list btn
-	// let listBtn = document.createElement("button");
-	// listBtn.className = "list-btn btn";
-	// let listIco = document.createElement("img");
-	// listIco.src = get.url(src.ico.list);
-	// listBtn.appendChild(listIco);
-	// let listBtnCount = document.createElement("span");
-	// listBtnCount.className = "list-count counter";
-	// listBtn.appendChild(listBtnCount);
-	// let logOutBtn = document.createElement("button");
-	// logOutBtn.className = "log-out-btn btn";
-	// let logOutIco = document.createElement("img");
-	// logOutIco.src = get.url(src.ico.logout);
-	// logOutBtn.appendChild(logOutIco);
-	// patterns
+	let btnWraper = get.elements(buttons);
+
 	let elaborationPattern = /Є уточнення: (\d+) шт\./;
 	let questionPattern = /Є питання: (\d+) шт\./;
 	let regexArticle = /\s(\d+\.\d+\.\d+)/;
@@ -409,16 +335,24 @@ window.addEventListener("load", () => {
 	function drawPreloader(data) {
 		let status = data.status || "start";
 		if (status === "start") {
-			let preloaderWraper = document.createElement("div");
-			preloaderWraper.className = "preloader-wraper";
-			let preloaderSpiner = document.createElement("div");
-			preloaderSpiner.className = "preloader-spiner";
-			let spinerIco = document.createElement("img");
-			spinerIco.src = get.url(src.ico.spiner);
-			preloaderSpiner.appendChild(spinerIco);
-			contentWraper.innerHTML = "";
-			preloaderWraper.appendChild(preloaderSpiner);
-			contentWraper.appendChild(preloaderWraper);
+			let preloader = get.elements({
+				el: "div",
+				className: "preloader-wraper",
+				children: [
+					{
+						el: "div",
+						className: "preloader-spiner",
+						children: [
+							{
+								el: "img",
+								src: get.url(src.ico.spiner),
+								alt: "prelapoder spiner",
+							},
+						],
+					},
+				],
+			});
+			contentWraper.appendChild(preloader);
 		} else {
 			contentWraper.innerHTML = "";
 		}
@@ -1285,7 +1219,7 @@ window.addEventListener("load", () => {
 							articleRow.forEach((a, index) => {
 								console.log(
 									get.article(a.textContent.trim()).article ===
-									data.searchQuery,
+										data.searchQuery,
 									get.article(a.textContent.trim()).article,
 									data.searchQuery
 								);
@@ -1296,7 +1230,7 @@ window.addEventListener("load", () => {
 									let images = Array.from(
 										parseSearch
 											.querySelectorAll(".detImg")
-										[index].querySelectorAll("img")
+											[index].querySelectorAll("img")
 									);
 
 									let imgSrc = [];
@@ -1391,8 +1325,9 @@ window.addEventListener("load", () => {
 			itemTextWraper.className = "item-text-wraper";
 			let itemCount = document.createElement("p");
 			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість: ${get.goodsCount(item.count).baseCount
-				} Резерв: ${get.goodsCount(item.count).orderCount}`;
+			itemCount.textContent = `Кількість: ${
+				get.goodsCount(item.count).baseCount
+			} Резерв: ${get.goodsCount(item.count).orderCount}`;
 			let itemArticle = document.createElement("p");
 			itemArticle.className = "item-article";
 			itemArticle.textContent = item.article;
@@ -1448,9 +1383,11 @@ window.addEventListener("load", () => {
 	function generateCompare() {
 		drawPreloader({ status: "end" });
 		if (storage.compareArray.length == 0) {
-			let compareTitle = document.createElement("p");
-			compareTitle.className = "compare-title content-title";
-			compareTitle.textContent = "Список Розбжностей пустий!!!";
+			let compareTitle = get.elements({
+				el: "p",
+				className: "compare-title content-title",
+				text: "Список Розбжностей пустий!!!",
+			});
 			contentWraper.appendChild(compareTitle);
 			return;
 		}
@@ -1460,85 +1397,98 @@ window.addEventListener("load", () => {
 				item.realCount -
 				(get.goodsCount(item.count).baseCount +
 					get.goodsCount(item.count).orderCount);
-			let compareItemWraper = document.createElement("div");
-			compareItemWraper.className = "compare-item";
-			let compareDate = document.createElement("p");
-			compareDate.className = "compare-time";
-			compareDate.textContent = `${item.addingDate.day}.${item.addingDate.month}.${item.addingDate.year}   ${item.addingDate.hours}:${item.addingDate.minutes}:${item.addingDate.seconds}`;
-
-			let delCompareItemBtn = document.createElement("button");
-			delCompareItemBtn.className = "del-btn btn";
-			let delIco = document.createElement("img");
-			delIco.src = get.url(src.ico.recycle);
-			delCompareItemBtn.appendChild(delIco);
-
-			let itemImageLink = document.createElement("a");
-			itemImageLink.className = "item-image-link";
-			itemImageLink.setAttribute("href", item.photoLG);
-			let itemImage = document.createElement("img");
-			itemImage.className = "item-image";
-			itemImage.src = item.photo;
-			itemImageLink.appendChild(itemImage);
-			let itemTextWraper = document.createElement("div");
-			itemTextWraper.className = "item-text-wraper";
-			let itemCount = document.createElement("p");
-			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість по базі: ${get.goodsCount(item.count).baseCount
-				} Резерв: ${get.goodsCount(item.count).orderCount}
-			Реальна кількість: ${item.realCount} Різниця: ${difference}`;
-			if (difference < 0) {
-				compareItemWraper.style.backgroundColor = "rgb(253, 184, 184)";
-				itemCount.style.backgroundColor = "rgb(253, 184, 184)";
+			function drawDifference() {
+				if (difference <= 0) {
+					return { backgroundColor: "rgb(253, 184, 184)" };
+				}
+				if (item.isProcesed) {
+					return { backgroundColor: "#c2edc2" };
+				}
 			}
-			let itemArticle = document.createElement("p");
-			itemArticle.className = "item-article";
-			itemArticle.textContent = item.article;
-
-			let itemDesc = document.createElement("p");
-			itemDesc.className = "item-head";
-			itemDesc.textContent = item.head;
-			let procesedBtn = document.createElement("button");
-			procesedBtn.dataset.id = item.id;
-			procesedBtn.className = "procesed-btn";
-			if (item.isProcesed) {
-				procesedBtn.textContent = "Оброблено";
-			} else {
-				procesedBtn.textContent = "Обробити";
-			}
-			if (item.isProcesed) {
-				compareItemWraper.style.backgroundColor = "#c2edc2";
-			}
-			itemTextWraper.appendChild(compareDate);
-			itemTextWraper.appendChild(itemArticle);
-			itemTextWraper.appendChild(itemCount);
-			itemTextWraper.appendChild(itemDesc);
-			itemTextWraper.appendChild(procesedBtn);
-			compareItemWraper.appendChild(delCompareItemBtn);
-			compareItemWraper.appendChild(itemImageLink);
-			compareItemWraper.appendChild(itemTextWraper);
-			contentWraper.appendChild(compareItemWraper);
-			procesedBtn.addEventListener("click", (e) => {
-				storage.compareArray.forEach((item) => {
-					if (item.id == Number(e.currentTarget.dataset.id)) {
-						item.isProcesed = true;
-						procesedBtn.textContent = "Оброблено";
-						procesedBtn.parentNode.parentNode.style.backgroundColor = "#c2edc2";
-						updateStorage();
-						drawButtonsCount();
-					}
-				});
+			let compareWraper = get.elements({
+				el: "div",
+				className: "compare-item",
+				style: drawDifference(),
+				children: [
+					{
+						el: "button",
+						className: "del-btn btn",
+						event: "click",
+						hendler: function (e) {
+							e.currentTarget.parentNode.parentNode.remove();
+							storage.compareArray.splice(index, 1);
+							updateStorage();
+						},
+						children: [
+							{
+								el: "img",
+								src: get.url(src.ico.recycle),
+								alt: "Видалити Елемент",
+							},
+						],
+					},
+					{
+						el: "a",
+						className: "item-image-link",
+						href: item.photoLG,
+						event: "click",
+						hendler: showImage,
+						children: [
+							{
+								el: "img",
+								className: "item-image",
+								src: item.photo,
+							},
+						],
+					},
+					{
+						el: "div",
+						className: "item-text-wraper",
+						style: drawDifference(),
+						children: [
+							{
+								el: "p",
+								className: "compare-time",
+								text: `${item.addingDate.day}.${item.addingDate.month}.${item.addingDate.year}   ${item.addingDate.hours}:${item.addingDate.minutes}:${item.addingDate.seconds}`,
+							},
+							{
+								el: "p",
+								className: "item-count",
+								text: `Кількість по базі: ${
+									get.goodsCount(item.count).baseCount
+								} Резерв: ${get.goodsCount(item.count).orderCount}
+			Реальна кількість: ${item.realCount} Різниця: ${difference}`,
+							},
+							{
+								el: "p",
+								className: "item-article",
+								text: item.article,
+							},
+							{
+								el: "p",
+								className: "item-head",
+								text: item.head,
+							},
+							{
+								el: "button",
+								className: "procesed-btn",
+								text: "Обробити",
+								dataId: item.id,
+								event: "click",
+								hendler: function (e) {
+									e.currentTarget.textContent = "Оброблено";
+									e.currentTarget.parentNode.parentNode.style.backgroundColor =
+										"#c2edc2";
+									storage.compareArray[index].isProcesed = true;
+									updateStorage();
+								},
+							},
+						],
+					},
+				],
 			});
-			delCompareItemBtn.addEventListener("click", (e) => {
-				storage.compareArray.forEach((a, index) => {
-					if (a.id == Number(item.id)) {
-						storage.compareArray.splice(index, 1);
-					}
-				});
-				updateStorage();
-				drawButtonsCount();
-				compareItemWraper.remove();
-			});
-			itemImageLink.addEventListener("click", showImage);
+
+			contentWraper.appendChild(compareWraper);
 		});
 	}
 	// check elaborations count
