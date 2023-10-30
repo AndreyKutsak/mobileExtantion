@@ -16,12 +16,13 @@ window.addEventListener("load", () => {
 	// URL
 	let url = {
 		baza: "https://baza.m-p.in.ua/ajax/magaz.php",
-		getElaboration: "https://baza.m-p.in.ua/ajax/loadElaboration.php",
+		elaborations: "https://baza.m-p.in.ua/ajax/loadElaboration.php",
 		addElaboration: "https://baza.m-p.in.ua/ajax/addElaborationAnswer.php",
 		getQuestion: "https://baza.m-p.in.ua/ajax/loadQuestions.php",
 		addAnswer: "https://baza.m-p.in.ua/ajax/addAnswer.php",
 		search: "https://baza.m-p.in.ua/ajax/search.php",
-		getOrder: "https://baza.m-p.in.ua/ajax/order_cont.php",
+		orders: "https://baza.m-p.in.ua/ajax/orders.php",
+		order: "https://baza.m-p.in.ua/ajax/order_cont.php",
 		reserve: "https://baza.m-p.in.ua/ajax/podrRezerv.php",
 		deliveries: "https://baza.m-p.in.ua/ajax/prihod1.php",
 		sales: "https://baza.m-p.in.ua/ajax/podrSales.php",
@@ -31,10 +32,13 @@ window.addEventListener("load", () => {
 		elaboration: /Є уточнення: (\d+) шт\./,
 		question: /Є питання: (\d+) шт\./,
 		article: /\s(\d+\.\d+\.\d+)/,
-		number: /№(\d+)/,
 		elaborationArticle: /\((\d+(\.\d+)*)\)$/,
+		orderArticle: /\d+\.\d+\.\d+/,
+		number: /№(\d+)/,
+
 		sentence: /[^\\n]+(?=\\n|$)/g,
 		cell: new RegExp("cell", "gi"),
+		orderPlace: /[A-Z]\d*-\d+\.\d+\.\d+/,
 		goodsCount:
 			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.)/g,
 	};
@@ -49,6 +53,8 @@ window.addEventListener("load", () => {
 			spiner: "img/spiner.svg",
 			logout: "img/logout-ico.svg",
 			question: "img/question-ico.svg",
+			orders: "img/order-ico.svg",
+			production: "img/production-ico.svg",
 		},
 	};
 	let intarval = {
@@ -63,6 +69,17 @@ window.addEventListener("load", () => {
 			let doc = domParser.parseFromString(data, "text/html");
 			return doc;
 		},
+		elaborationArtice: function (data) {
+			if (data == undefined) {
+				return false;
+			}
+			let article = data.match(regExp.elaborationArticle);
+			if (article !== null) {
+				return article[1];
+			}
+			console.warn(`не вдалось отримати артикул з уточнення ${data}`);
+			return false;
+		},
 		article: function (data) {
 			let matchData = { id: null, article: null };
 			let matchNumber = data.match(regexNumber);
@@ -75,6 +92,18 @@ window.addEventListener("load", () => {
 				return matchData;
 			}
 			return false;
+		},
+		articleAndPlacement: function (data) {
+			if (data !== undefined) {
+				let matchData = { place: null, article: null };
+				let article = data.match(regExp.orderArticle);
+				let place = data.match(regExp.orderPlace);
+				if (article !== null && place !== null) {
+					matchData.article = article[0];
+					matchData.place = place[0];
+				}
+				return matchData;
+			}
 		},
 		date: function () {
 			const date = new Date();
@@ -98,7 +127,7 @@ window.addEventListener("load", () => {
 		goodsCount: function (data) {
 			const matches = {};
 			let match;
-			while ((match = regexGoodsCount.exec(data)) !== null) {
+			while ((match = regExp.goodsCount.exec(data)) !== null) {
 				if (match[1] !== undefined) {
 					matches["baseCount"] = parseInt(match[1]);
 				} else if (match[3] !== undefined) {
@@ -119,7 +148,7 @@ window.addEventListener("load", () => {
 				element.alt = data.alt;
 			}
 			if (data.func) {
-				data.funct();
+				data.func.call(element);
 			}
 			if (data.style) {
 				for (const styleKey in data.style) {
@@ -129,6 +158,10 @@ window.addEventListener("load", () => {
 			if (data.href) {
 				element.href = data.href;
 			}
+			if (data.value) {
+				element.value = data.value;
+			}
+
 			if (data.placeholder) {
 				element.placeholder = data.placeholder;
 			}
@@ -142,8 +175,17 @@ window.addEventListener("load", () => {
 				element.textContent = data.text;
 			}
 			if (data.data) {
-				element.dataset = data.data;
+				data.data.forEach((item) => {
+					const keys = Object.keys(item);
+					const values = Object.values(item);
+					if (keys.length === 1) {
+						const key = keys[0];
+						const value = values[0];
+						element.dataset[key] = value;
+					}
+				});
 			}
+
 			if (data.event && data.hendler && typeof data.hendler === "function") {
 				element.addEventListener(data.event, data.hendler);
 			}
@@ -179,136 +221,965 @@ window.addEventListener("load", () => {
 
 	// creating and adding new elements to DOM
 	let contentWraper = get.elements({ el: "div", className: "wraper" });
-	let mainSearchWraper = document.createElement("div");
-	mainSearchWraper.className = "main-search-wraper";
-	let searchWraper = document.createElement("div");
-	searchWraper.className = "search-wraper";
-	let searchInp = document.createElement("input");
-	searchInp.className = "search-inp";
-	searchInp.placeholder = "Пошук";
-	let barCodeSearch = document.createElement("button");
-	barCodeSearch.className = "bar-code-search-btn";
-	barCodeSearch.dataset.scaning = "false";
-	let barcodeIco = document.createElement("img");
-	barcodeIco.src = get.url(src.ico.barcode);
-	barCodeSearch.appendChild(barcodeIco);
-	let searchSendBtn = document.createElement("input");
-	searchSendBtn.className = "search-send-btn";
-	searchSendBtn.type = "submit";
-	searchSendBtn.value = "Пошук";
-	let barcodeDisplayWraper = document.createElement("div");
-	barcodeDisplayWraper.className = "barcode-display-wraper hide-barcode";
-	let barcodeDisplay = document.createElement("div");
-	barcodeDisplay.className = "barcode";
-	barcodeDisplay.id = "reader";
-	barcodeDisplayWraper.appendChild(barcodeDisplay);
-
-	searchWraper.appendChild(searchInp);
-	searchWraper.appendChild(barCodeSearch);
-	searchWraper.appendChild(searchSendBtn);
-	mainSearchWraper.appendChild(searchWraper);
-	mainSearchWraper.appendChild(barcodeDisplayWraper);
-
-	let bazaURL = "https://baza.m-p.in.ua/ajax/magaz.php";
-	let elaborationURL = "https://baza.m-p.in.ua/ajax/loadElaboration.php";
-	let addElaborationURL =
-		"https://baza.m-p.in.ua/ajax/addElaborationAnswer.php";
-	let questionURL = "https://baza.m-p.in.ua/ajax/loadQuestions.php";
-	let answerURL = "https://baza.m-p.in.ua/ajax/addAnswer.php";
-	let searchURL = "https://baza.m-p.in.ua/ajax/search.php";
-	let openOrderURL = "https://baza.m-p.in.ua/ajax/order_cont.php";
-	let getReserveURL = "https://baza.m-p.in.ua/ajax/podrRezerv.php";
-
-	let buttons = {
+	let searchWraper = get.elements({
 		el: "div",
-		className: "btn-wraper",
+		className: "main-search-wraper",
 		children: [
 			{
-				el: "button",
-				className: "elaboration-btn btn",
-				event: "click",
-				hendler: elaborations,
+				el: "div",
+				className: "search-wraper",
 				children: [
 					{
-						el: "span",
-						className: "elabortion-count counter",
+						el: "input",
+						type: "text",
+						className: "search-inp",
+						placeholder: "Пошук",
 					},
 					{
-						el: "img",
-						src: get.url(src.ico.elaboration),
-						alt: "Наявні уточнення",
+						el: "button",
+						className: "bar-code-search-btn",
+						event: "click",
+						hendler: barcodeRecognition,
+						data: [
+							{
+								scanning: false,
+							},
+						],
+						children: [
+							{
+								el: "img",
+								src: get.url(src.ico.barcode),
+								alt: "Штрих код",
+							},
+						],
+					},
+					{
+						el: "input",
+						type: "submit",
+						value: "Пошук",
+						className: "search-send-btn",
+						event: "click",
+						hendler: function (e) {
+							let search_query =
+								e.currentTarget.parentElement.querySelector(
+									".search-inp"
+								).value;
+							if (search_query.length < 2) {
+								alert("Дожина пошукового запиту маєбути більше 2 символів!");
+								return;
+							}
+							generate.preloader({ status: "start" });
+							let search_sell = 0;
+							let result = load.search({
+								search: search_query,
+								search_sell: search_sell,
+							});
+							result.then((data) => {
+								generate.search(data);
+							});
+						},
 					},
 				],
 			},
 			{
-				el: "button",
-				className: "question-btn btn",
-				event: "click",
-				hendler: getQuestions,
+				el: "div",
+				className: "barcode-display-wraper hide-barcode",
 				children: [
 					{
-						el: "span",
-						className: "question-count counter",
-					},
-					{
-						el: "img",
-						src: get.url(src.ico.question),
-						alt: "Наявні питання",
-					},
-				],
-			},
-			{
-				el: "button",
-				className: "compare-btn btn",
-				event: "click",
-				hendler: generateCompare,
-				children: [
-					{
-						el: "span",
-						className: "compare-count counter",
-					},
-					,
-					{
-						el: "img",
-						src: get.url(src.ico.compare),
-						alt: "Розбіжності товару",
-					},
-				],
-			},
-			{
-				el: "button",
-				className: "list-btn btn",
-				event: "click",
-				hendler: generateList,
-				children: [
-					{
-						el: "span",
-						className: "list-count counter",
-					},
-					{
-						el: "img",
-						src: get.url(src.ico.list),
-						alt: "Список на рознесення товару",
-					},
-				],
-			},
-			{
-				el: "button",
-				className: "log-out-btn btn",
-				event: "click",
-				hendler: logOut,
-				children: [
-					{
-						el: "img",
-						src: get.url(src.ico.logout),
-						alt: "Вийти з Акаунта",
+						el: "div",
+						className: " barcode",
+						id: "reader",
 					},
 				],
 			},
 		],
-	};
+	});
 
-	let btnWraper = get.elements(buttons);
+	let bazaURL = "https://baza.m-p.in.ua/ajax/magaz.php";
+
+	let addElaborationURL =
+		"https://baza.m-p.in.ua/ajax/addElaborationAnswer.php";
+	let questionURL = "https://baza.m-p.in.ua/ajax/loadQuestions.php";
+	let answerURL = "https://baza.m-p.in.ua/ajax/addAnswer.php";
+
+	let generate = {
+		message: function (data) {
+			let element = get.elements({
+				el: "div",
+				className: "message-title content-title",
+				text: data,
+			});
+			return element;
+		},
+		preloader: function (data) {
+			if (data.status == "start") {
+				let element = get.elements({
+					el: "div",
+					className: "preloader-wraper wraper",
+					children: [
+						{
+							el: "img",
+							className: "preloader-spiner",
+							src: get.url(src.ico.spiner),
+						},
+					],
+				});
+				contentWraper.innerHTML = "";
+				contentWraper.appendChild(element);
+			} else {
+				let element = contentWraper.querySelector(".preloader-wraper");
+				if (element) {
+					contentWraper.removeChild(element);
+				}
+			}
+		},
+		reserve: function (data) {
+			if (data.length > 0) {
+				let = reserveWraper = get.elements({
+					el: "div",
+					className: "reserve-wraper wraper",
+				});
+				data.forEach((element) => {
+					let reserve = get.elements({
+						el: "div",
+						className: "reserve-item",
+						children: [
+							{
+								el: "div",
+								className: "reserve-row id-row",
+								// hendler
+								children: [
+									{
+										el: "p",
+										className: "row-desc",
+										text: "ID",
+									},
+									{
+										el: "p",
+										className: "row-desc",
+										text: element.id,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "reserve-row storage-row",
+								children: [
+									{
+										el: "p",
+										className: "row-desc",
+										text: "Склад",
+									},
+									{
+										el: "p",
+										className: "row-desc",
+										text: element.storage,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "reserve-row count-row",
+								children: [
+									{
+										el: "p",
+										className: "row-desc",
+										text: "Кількість",
+									},
+									{
+										el: "p",
+										className: "row-desc",
+										text: element.count,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "reserve-row time-row",
+								children: [
+									{
+										el: "p",
+										className: "row-desc",
+										text: "Час",
+									},
+									{
+										el: "p",
+										className: "row-desc",
+										text: element.time,
+									},
+								],
+							},
+						],
+					});
+					reserveWraper.appendChild(reserve);
+				});
+				return reserveWraper;
+			}
+			return generate.message("Немає резервів.");
+		},
+		sales: function (data) {
+			if (data.length > 0) {
+				let salseWraper = get.elements({
+					el: "div",
+					className: "sales-wraper wraper",
+				});
+				data.forEach((element) => {
+					let sales = get.elements({
+						el: "div",
+						className: "sales-item",
+						children: [
+							{
+								el: "div",
+								className: "sales-row id-row",
+								// hendler
+								children: [
+									{
+										el: "p",
+										className: "row-desc",
+										text: "Номер Замовлення",
+									},
+									{
+										el: "p",
+										className: "row-desc",
+										text: element.orderNumber,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "sales-row status-row",
+								children: [
+									{
+										el: "p",
+										className: "row-desc",
+										text: "Статус",
+									},
+									{
+										el: "p",
+										className: "row-desc",
+										text: element.status,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "sales-row count-row",
+								children: [
+									{
+										el: "p",
+										className: "row-desc",
+										text: "Кількість",
+									},
+									{
+										el: "p",
+										className: "row-desc",
+										text: element.count,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "sales-row price-row",
+								children: [
+									{
+										el: "p",
+										className: "row-desc",
+										text: "Дата",
+									},
+									{
+										el: "p",
+										className: "row-desc",
+										text: element.date,
+									},
+								],
+							},
+						],
+					});
+					salseWraper.appendChild(sales);
+				});
+				return salseWraper;
+			}
+			return generate.message("Немає продажів.");
+		},
+		deliveries: function (data) {
+			if (data.length > 0) {
+				let deliveriesWraper = get.elements({
+					el: "div",
+					className: "deliveries-wraper wraper",
+				});
+				data.forEach((element) => {
+					let deliveries = get.elements({
+						el: "div",
+						className: "deliveries-item",
+						children: [
+							{
+								el: "div",
+								className: "deliveries-row date-row",
+								children: [
+									{
+										el: "p",
+										className: "row-desc",
+										text: "Дата",
+									},
+									{
+										el: "p",
+										className: "row-desc",
+										text: element.date,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "deliveries-row provider-row",
+								children: [
+									{
+										el: "p",
+										className: "row-desc",
+										text: "Постачальник",
+									},
+									{
+										el: "p",
+										className: "row-desc",
+										text: element.provider,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "deliveries-row count-row",
+								children: [
+									{
+										el: "p",
+										className: "row-desc",
+										text: "Кількість",
+									},
+									{
+										el: "p",
+										className: "row-desc",
+										text: element.count,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "deliveries-row manager-row",
+								children: [
+									{
+										el: "p",
+										className: "row-desc",
+										text: "Хто додав",
+									},
+									{ el: "p", className: "row-desc", text: element.manager },
+								],
+							},
+						],
+					});
+					deliveriesWraper.appendChild(deliveries);
+				});
+				return deliveriesWraper;
+			}
+			return generate.message("Немає Поставок.");
+		},
+		orders: function (data) {
+			if (data.length > 0) {
+				let ordersWraper = get.elements({
+					el: "div",
+					className: "orders-wraper wraper",
+				});
+				data.forEach((item) => {
+					let orderRow = get.elements({
+						el: "div",
+						className: "order-row",
+						event: "click",
+						hendler: function (e) {
+							load.order({ id: item.id }).then((data) => {
+								console.log(data);
+							});
+						},
+						children: [
+							{
+								el: "p",
+								className: "row-desc id",
+								text: item.id,
+							},
+							{
+								el: "p",
+								className: "row-desc number",
+								text: item.Number,
+							},
+							{
+								el: "p",
+								className: "row-desc status client",
+								text: item.client,
+							},
+							{
+								el: "p",
+								className: "row-desc status",
+								text: item.status,
+							},
+							{
+								el: "p",
+								className: "row-desc city",
+								text: item.city,
+							},
+							{ el: "p", className: "row-desc type", text: item.type },
+							{ el: "p", className: "row-desc date", text: item.date },
+						],
+					});
+					ordersWraper.appendChild(orderRow);
+				});
+				return ordersWraper;
+			}
+			return generate.message("Немає замовлень.");
+		},
+		order: function (data) {
+			let orderWraper = get.elements({ el: "div", className: "order-wraper" });
+			if (data.length > 0) {
+				data.forEach((item) => {});
+				return;
+			}
+			return generate.message("Сталася помилка під час отримання інформації.");
+		},
+		compare: function () {
+			contentWraper.innerHTML = "";
+			if (storage.compareArray.length > 0) {
+				storage.compareArray.forEach((item, index) => {
+					console.log(item);
+					let difference =
+						item.realCount -
+						(get.goodsCount(item.count).baseCount +
+							get.goodsCount(item.count).orderCount);
+					function drawDifference() {
+						if (difference <= 0) {
+							return { backgroundColor: "rgb(253, 184, 184)" };
+						}
+						if (item.isProcesed) {
+							return { backgroundColor: "#c2edc2" };
+						}
+					}
+					let compareItem = get.elements({
+						el: "div",
+						className: "compare-item",
+						style: drawDifference(),
+						children: [
+							{
+								el: "button",
+								className: "del-btn btn",
+								event: "click",
+								hendler: function (e) {
+									e.currentTarget.parentNode.parentNode.remove();
+									storage.compareArray.splice(index, 1);
+									updateStorage();
+								},
+								children: [
+									{
+										el: "img",
+										src: get.url(src.ico.recycle),
+										alt: "Видалити Елемент",
+									},
+								],
+							},
+							{
+								el: "a",
+								className: "item-image-link",
+								href: item.photoLG,
+								event: "click",
+								hendler: showImage,
+								children: [
+									{
+										el: "img",
+										className: "item-image",
+										src: item.photo,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "item-text-wraper",
+								style: drawDifference(),
+								children: [
+									{
+										el: "p",
+										className: "compare-time",
+										text: `${item.addingDate.day}.${item.addingDate.month}.${item.addingDate.year}   ${item.addingDate.hours}:${item.addingDate.minutes}:${item.addingDate.seconds}`,
+									},
+									{
+										el: "p",
+										className: "item-count",
+										text: `Кількість по базі: ${
+											get.goodsCount(item.count).baseCount
+										} Резерв: ${get.goodsCount(item.count).orderCount}
+			Реальна кількість: ${item.realCount} Різниця: ${difference}`,
+									},
+									{
+										el: "p",
+										className: "item-article",
+										text: item.article,
+									},
+									{
+										el: "p",
+										className: "item-head",
+										text: item.head,
+									},
+									{
+										el: "button",
+										className: "procesed-btn",
+										text: "Обробити",
+										dataId: item.id,
+										event: "click",
+										hendler: function (e) {
+											e.currentTarget.textContent = "Оброблено";
+											e.currentTarget.parentNode.parentNode.style.backgroundColor =
+												"#c2edc2";
+											storage.compareArray[index].isProcesed = true;
+											updateStorage();
+										},
+									},
+								],
+							},
+						],
+					});
+					contentWraper.appendChild(compareItem);
+				});
+				return;
+			}
+
+			generate.message("Немає розбіжностей!!!.");
+		},
+		search: function (data) {
+			generate.preloader({ status: "end" });
+			if (data.length > 0) {
+				data.forEach((item) => {
+					let searchItem = get.elements({
+						el: "div",
+						className: "item-wraper",
+						data: [{ id: item.id }],
+						children: [
+							{
+								el: "div",
+								className: "item-header",
+								text: `ID: ${item.id} | Артикул: ${item.article}`,
+							},
+							{
+								el: "div",
+								className: "item-content-wraper",
+								children: [
+									{
+										el: "a",
+										className: "image-link",
+										href: item.photoLG,
+										event: "click",
+										hendler: showImage,
+										children: [
+											{
+												el: "img",
+												className: "image-link",
+												src: item.photo,
+											},
+										],
+									},
+									{
+										el: "div",
+										className: "item-text-raper",
+										children: [
+											{
+												el: "p",
+												className: "item-count",
+												text: item.count,
+											},
+										],
+									},
+								],
+							},
+							{
+								el: "p",
+								className: "item-desc",
+								event: "click",
+								hendler: function (e) {
+									e.currentTarget.classList.toggle("visible");
+								},
+								text: item.desc,
+							},
+							{
+								el: "div",
+								className: "item-btn-wraper",
+								children: [
+									{
+										el: "button",
+										className: "list-btn btn",
+										text: "Рознести",
+										event: "click",
+										hendler: function (e) {
+											item.isProcesed = false;
+											item.addingDate = get.date();
+											if (storage.listArray.includes(item)) {
+												alert("Такий товар вже в списку");
+												return;
+											}
+											storage.listArray.push(item);
+											updateStorage();
+											drawButtonsCount();
+										},
+									},
+									{
+										el: "div",
+										className: "compare-wraper",
+										children: [
+											{
+												el: "input",
+												type: "number",
+												className: "compare-inp",
+												event: "input",
+												hendler: function (e) {
+													let compareVal = e.currentTarget.value;
+													if (
+														Number(compareVal) !==
+														Number(get.goodsCount(item.count).baseCount)
+													) {
+														e.currentTarget.style.border = `1px solid red`;
+													}
+												},
+												placeholder: "Фактична кількість",
+											},
+											{
+												el: "button",
+												className: "compare-btn btn",
+												text: "Пересорт",
+												event: "click",
+												hendler: function (e) {
+													let compareInp =
+														e.currentTarget.parentElement.querySelector(
+															".compare-inp"
+														);
+													let wraper =
+														e.currentTarget.parentElement.parentElement
+															.parentElement;
+													if (compareInp.classList.contains("visible-inp")) {
+														if (compareInp.value.length == 0) {
+															alert("Введи коректну відповідь");
+															return;
+														}
+														if (storage.compareArray.includes(item)) {
+															alert("Такий товар вже в списку");
+															return;
+														}
+														item.addingDate = get.date();
+														item.isProcesed = false;
+														item.realCount = Number(compareInp.value);
+														item.goodsBaseCount = get.goodsCount(
+															item.count
+														).baseCount;
+														item.goodsReserve = get.goodsCount(
+															item.count
+														).orderCount;
+														storage.compareArray.push(item);
+														wraper.style.backgroundColor = "#fbc8c8";
+														updateStorage();
+														drawButtonsCount();
+													}
+													compareInp.classList.toggle("visible-inp");
+												},
+											},
+										],
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "item-data-btn-wraper",
+								children: [
+									{
+										el: "button",
+										className: "reserve-btn btn",
+										text: "Резерв",
+										event: "click",
+										hendler: function (e) {
+											let reserve = load.reserve({ id: item.id });
+											let footer =
+												e.currentTarget.parentElement.parentElement.querySelector(
+													".item-footer"
+												);
+											footer.innerHTML = "";
+											reserve.then((reserve) => {
+												console.log(reserve, generate.reserve(reserve));
+												footer.appendChild(generate.reserve(reserve));
+											});
+										},
+									},
+									{
+										el: "button",
+										className: "cales-btn btn",
+										text: "Продажі",
+										event: "click",
+										hendler: function (e) {
+											let sales = load.sales({ id: item.id });
+											let footer =
+												e.currentTarget.parentElement.parentElement.querySelector(
+													".item-footer"
+												);
+											footer.innerHTML = "";
+											sales.then((data) => {
+												footer.appendChild(generate.sales(data));
+											});
+										},
+									},
+									{
+										el: "button",
+										className: "deliveries-btn btn",
+										text: "Приходи",
+										event: "click",
+										hendler: function (e) {
+											let deliveries = load.deliveries({ id: item.id });
+											let footer =
+												e.currentTarget.parentElement.parentElement.querySelector(
+													".item-footer"
+												);
+											footer.innerHTML = "";
+											deliveries.then((data) => {
+												footer.appendChild(generate.deliveries(data));
+											});
+										},
+									},
+								],
+							},
+							{ el: "div", className: "item-footer" },
+						],
+					});
+					contentWraper.classList.add("search-result-wraper");
+					contentWraper.appendChild(searchItem);
+				});
+				return;
+			}
+			generate.message("Нічого не знайдено!!");
+		},
+		elaborations: function (data) {
+			generate.preloader({ status: "end" });
+			if (data.length > 0) {
+				let elaborationWraper = get.elements({
+					el: "div",
+					className: "elaboration-wraper",
+				});
+				data.forEach((item) => {
+					console.log(item, item.count.orderCount);
+					let elaborationItem = get.elements({
+						el: "div",
+						className: "table-wraper wraper",
+						children: [
+							{
+								el: "div",
+								className: "table-row",
+								children: [
+									{
+										el: "p",
+										className: "table-desc",
+										text: "Номер Замовлення",
+									},
+									{ el: "p", className: "table-text", text: item.order },
+								],
+							},
+							{
+								el: "div",
+								className: "table-row",
+								children: [
+									{
+										el: "p",
+										className: "table-desc",
+										text: "Менеджер",
+									},
+									{ el: "p", className: "table-text", text: item.manager },
+								],
+							},
+							{
+								el: "div",
+								className: "table-row",
+								children: [
+									{
+										el: "p",
+										className: "table-desc",
+										text: "Імя товару",
+									},
+									{
+										el: "p",
+										className: "table-text",
+										event: "click",
+										hendler: function () {
+											let inp = document.querySelector(".search-inp");
+											let searchBtn =
+												document.querySelector(".search-send-btn");
+											inp.value = get.elaborationArtice(item.positionName);
+											searchBtn.click();
+											inp.value = "";
+										},
+
+										text: item.positionName,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "table-row",
+								children: [
+									{
+										el: "p",
+										className: "table-desc",
+										text: "Місце товару:",
+									},
+									{
+										el: "p",
+										className: "table-text",
+										text: item.place,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "table-row",
+								children: [
+									{
+										el: "p",
+										className: "table-desc",
+										text: "Тип Уточнення:",
+									},
+									{
+										el: "p",
+										className: "table-text",
+										text: item.type,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "table-row",
+								children: [
+									{
+										el: "p",
+										className: "table-desc",
+										text: "Кількість",
+									},
+									{
+										el: "p",
+										className: "table-text",
+										text: item.quality,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "table-row",
+								children: [
+									{
+										el: "p",
+										className: "table-desc",
+										text: "Резерв:",
+									},
+									{
+										el: "p",
+										className: "table-text",
+										text: String(item.count.orderCount),
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "table-row",
+								children: [
+									{
+										el: "p",
+										className: "table-row",
+										text: "Вкажи кількість:",
+									},
+									{
+										el: "div",
+										className: "table-input-wraper",
+										children: [
+											{
+												el: "input",
+												type: "text",
+												placeholder: "Кількість",
+												className: "table-input",
+												data: [{ count: item.count.baseCount }],
+												event: "input",
+												hendler: checkAnswer,
+												id: `elaborationInput${get.orderId(item.order)}`,
+											},
+											{
+												el: "button",
+												className: "table-btn",
+												event: "click",
+												data: [{ order: get.orderId(item.order) }],
+												hendler: addElaborationAnswer,
+												children: [
+													{
+														el: "img",
+														src: get.url(src.ico.send),
+														alt: "send",
+													},
+												],
+											},
+										],
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "table-row",
+								children: [
+									{ el: "p", className: "table-desc", text: "Фото товару." },
+									{
+										el: "div",
+										className: "image-wraper",
+										children: item.imagesSrc.map((source, index) => {
+											return {
+												el: "a",
+												event: "click",
+												hendler: showImage,
+												href: item.imageLink[index],
+												children: [{ el: "img", src: source }],
+											};
+										}),
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "table-row elaboration-btn-wraper",
+								children: [
+									{
+										el: "button",
+										className: "reserve-btn btn",
+										event: "click",
+										text: "Резерв",
+										hendler: function (e) {},
+									},
+									{
+										el: "button",
+										className: "arrival-btn btn",
+										text: "Приход",
+										event: "click",
+										hendler: function (e) {},
+									},
+									{
+										el: "button",
+										className: "sales-btn btn",
+										text: "Продажі",
+										event: "click",
+										hendler: function (e) {},
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "item-footer",
+							},
+						],
+					});
+					elaborationWraper.appendChild(elaborationItem);
+				});
+				return elaborationWraper;
+			}
+			return generate.message("Зараз немає уточнень");
+		},
+	};
 
 	let elaborationPattern = /Є уточнення: (\d+) шт\./;
 	let questionPattern = /Є питання: (\d+) шт\./;
@@ -325,6 +1196,7 @@ window.addEventListener("load", () => {
 			JSON.stringify({
 				listArray: [],
 				compareArray: [],
+				addresses: [],
 			})
 		);
 		storage = JSON.parse(localStorage.getItem("storage"));
@@ -332,31 +1204,6 @@ window.addEventListener("load", () => {
 		storage = JSON.parse(localStorage.getItem("storage"));
 	}
 	// Global functions
-	function drawPreloader(data) {
-		let status = data.status || "start";
-		if (status === "start") {
-			let preloader = get.elements({
-				el: "div",
-				className: "preloader-wraper",
-				children: [
-					{
-						el: "div",
-						className: "preloader-spiner",
-						children: [
-							{
-								el: "img",
-								src: get.url(src.ico.spiner),
-								alt: "prelapoder spiner",
-							},
-						],
-					},
-				],
-			});
-			contentWraper.appendChild(preloader);
-		} else {
-			contentWraper.innerHTML = "";
-		}
-	}
 
 	function updateStorage() {
 		localStorage.setItem("storage", JSON.stringify(storage));
@@ -387,200 +1234,6 @@ window.addEventListener("load", () => {
 			],
 		});
 		contentWraper.appendChild(image);
-	}
-	function search() {
-		let search_query = searchInp.value;
-		if (search_query.length < 2) {
-			alert("Дожина пошукового запиту маєбути більше 2 символів!");
-			return;
-		}
-		drawPreloader({ status: "start" });
-		let search_sell = 0;
-		let searchData = new URLSearchParams();
-		searchData.append("search", search_query);
-		searchData.append("search_sel", search_sell);
-		fetch(searchURL, {
-			method: "POST",
-			body: searchData,
-		})
-			.then((res) => {
-				return res.text();
-			})
-			.then((res) => {
-				let searchData = [];
-				let searchResponce = get.parser(res);
-				let goodsId = Array.from(
-					searchResponce.querySelectorAll(".detDivTitle")
-				);
-				let searchGoodWraper = Array.from(
-					searchResponce.querySelectorAll(".detDiv")
-				);
-				searchGoodWraper.forEach((item, index) => {
-					let data = {};
-					let goodsPhoto = item.querySelector(".detImg>a>img");
-					let goodsCount = Array.from(
-						searchResponce.querySelectorAll(".detPr")
-					);
-					let goodsDesc = Array.from(
-						searchResponce.querySelectorAll(".titleDet")
-					);
-
-					data.id = get.article(goodsId[index].textContent).id;
-					data.article = get.article(goodsId[index].textContent).article;
-					data.photo = goodsPhoto.getAttribute("src");
-					data.photoLG = goodsPhoto.parentNode.getAttribute("href");
-					data.head = goodsDesc[index].innerHTML.split("<br>")[0].trim();
-					data.desc = goodsDesc[index].textContent.trim();
-					data.count = goodsCount[index].textContent.trim();
-					searchData.push(data);
-				});
-
-				generateSearch(searchData);
-			});
-	}
-	function generateSearch(data) {
-		drawPreloader({ status: "end" });
-		if (data.length > 0) {
-			let searchWraper = document.createElement("div");
-			searchWraper.className = "search-result-wraper";
-			data.forEach((item) => {
-				let wraper = document.createElement("div");
-				wraper.className = "item-wraper";
-				wraper.dataset.id = `${item.id}`;
-				let itemHeader = document.createElement("div");
-				itemHeader.className = "item-header";
-				itemHeader.innerHTML = `ID: ${item.id} | Артикул: ${item.article}`;
-				let itemContentWraper = document.createElement("div");
-				itemContentWraper.className = "item-content-wraper";
-				let itemImageLink = document.createElement("a");
-				itemImageLink.className = "image-link";
-				itemImageLink.href = item.photoLG;
-				let image = document.createElement("img");
-				image.src = item.photo;
-				image.className = "item-image";
-				let textWraper = document.createElement("div");
-				textWraper.className = "item-text-wraper";
-				let itemCountWraper = document.createElement("div");
-				itemCountWraper.className = "item-count-wraper";
-				let itemDesc = document.createElement("p");
-				itemDesc.className = "item-desc";
-				itemDesc.textContent = item.desc;
-				let itemCount = document.createElement("p");
-				itemCount.className = "item-count";
-				itemCount.textContent = item.count;
-				// buttons
-				let btnWraper = document.createElement("div");
-				btnWraper.className = "item-btn-wraper";
-				let listBtn = document.createElement("button");
-				listBtn.className = "list-btn btn";
-				listBtn.textContent = "Рознести";
-				// buttons
-				let goodsBtnWraper = document.createElement("div");
-				goodsBtnWraper.className = "search-btn-wraper";
-				let reserveBtn = document.createElement("button");
-				reserveBtn.className = "search-btn reserve-btn";
-				reserveBtn.textContent = "Резерв";
-				let arrivalBtn = document.createElement("button");
-				arrivalBtn.className = "search-btn reserve-btn";
-				arrivalBtn.textContent = "Приход";
-				let salesBtn = document.createElement("button");
-				salesBtn.className = "search-btn sales-btn";
-				salesBtn.textContent = "Продажі";
-				goodsBtnWraper.appendChild(reserveBtn);
-				goodsBtnWraper.appendChild(arrivalBtn);
-				goodsBtnWraper.appendChild(salesBtn);
-
-				let compareWraper = document.createElement("div");
-				compareWraper.className = "compare-wraper";
-				let compareBtn = document.createElement("button");
-				compareBtn.className = "compare-btn btn";
-				compareBtn.textContent = "Пересорт";
-
-				let compareInp = document.createElement("input");
-				compareInp.className = "compare-inp";
-				compareInp.type = "number";
-				compareInp.placeholder = "Фактична кількість";
-				// appending image
-				itemImageLink.appendChild(image);
-				// wrapper appending
-				wraper.appendChild(itemHeader);
-				wraper.appendChild(itemContentWraper);
-				itemCountWraper.appendChild(itemCount);
-				itemContentWraper.appendChild(itemImageLink);
-				itemContentWraper.appendChild(itemCountWraper);
-				itemContentWraper.appendChild(textWraper);
-				itemContentWraper.appendChild(textWraper);
-				btnWraper.appendChild(listBtn);
-				compareWraper.appendChild(compareInp);
-				compareWraper.appendChild(compareBtn);
-				btnWraper.appendChild(compareWraper);
-				wraper.appendChild(itemDesc);
-				wraper.appendChild(btnWraper);
-				wraper.appendChild(goodsBtnWraper);
-
-				searchWraper.appendChild(wraper);
-
-				reserveBtn.addEventListener("click", () => {
-					let data = load.reserve({ url: url.reserve, id: item.id });
-					data.then((test) => {
-						console.log(test);
-					});
-				});
-				// add event listeners
-				itemDesc.addEventListener("click", (e) => {
-					e.preventDefault();
-					itemDesc.classList.toggle("visible");
-				});
-				compareInp.addEventListener("input", (e) => {
-					let compareVal = e.currentTarget.value;
-					if (
-						Number(compareVal) !== Number(get.goodsCount(item.count).baseCount)
-					) {
-						e.currentTarget.style.border = `1px solid red`;
-					}
-				});
-				listBtn.addEventListener("click", (e) => {
-					item.isProcesed = false;
-					item.addingDate = get.date();
-					if (storage.listArray.includes(item)) {
-						alert("Такий товар вже в списку");
-						return;
-					}
-					storage.listArray.push(item);
-					updateStorage();
-					drawButtonsCount();
-				});
-				compareBtn.addEventListener("click", (e) => {
-					if (compareInp.classList.contains("visible-inp")) {
-						if (compareInp.value.length == 0) {
-							alert("Введи коректну відповідь");
-							return;
-						}
-						if (storage.compareArray.includes(item)) {
-							alert("Такий товар вже в списку");
-							return;
-						}
-						item.addingDate = get.date();
-						item.isProcesed = false;
-						item.realCount = Number(compareInp.value);
-						item.goodsBaseCount = get.goodsCount(item.count).baseCount;
-						item.goodsReserve = get.goodsCount(item.count).orderCount;
-						storage.compareArray.push(item);
-						wraper.style.backgroundColor = "#fbc8c8";
-						updateStorage();
-						drawButtonsCount();
-					}
-					compareInp.classList.toggle("visible-inp");
-				});
-				itemImageLink.addEventListener("click", showImage);
-			});
-			contentWraper.appendChild(searchWraper);
-		} else {
-			let searchTitle = document.createElement("p");
-			searchTitle.className = "question-title content-title";
-			searchTitle.textContent = "Нічого не знайдено";
-			contentWraper.appendChild(searchTitle);
-		}
 	}
 
 	function checkElaborations() {
@@ -647,18 +1300,22 @@ window.addEventListener("load", () => {
 	}
 	function addElaborationAnswer(e) {
 		let elaboration = new URLSearchParams();
-		let orderNumber = e.currentTarget.dataset.orderNumber;
+		let orderNumber = e.currentTarget.dataset.order;
 		let elaborationInp = document.getElementById(
 			`elaborationInput${orderNumber}`
 		);
 		let btn = e.currentTarget;
 		let count = Number(elaborationInp.dataset.count);
+		console.log(e, elaborationInp, orderNumber);
 		if (elaborationInp.value == "") {
 			alert("Введи коректну відповідь");
 			return false;
 		}
 		if (count > Number(getNum(elaborationInp.value))) {
-			alert(" Сподіваюся ти був уважним");
+			let isSend = confirm(
+				"Введена кількість менша від кількості в базі. ТОчно відправити данні?"
+			);
+			if (!isSend) return false;
 		}
 
 		elaboration.append("text", elaborationInp.value);
@@ -688,9 +1345,10 @@ window.addEventListener("load", () => {
 		storage: [],
 		fetch: async function (data) {
 			try {
+				const requestBody = data.body ? get.decode(data.body) : "";
 				const response = await fetch(data.url, {
 					method: data.method,
-					body: get.decode(data.body),
+					body: requestBody,
 				});
 
 				if (!response.ok) {
@@ -699,9 +1357,7 @@ window.addEventListener("load", () => {
 
 				const res = await response.text();
 				const parse = get.parser(res);
-				const parseRow = Array.from(parse.querySelectorAll("tr"));
-				parseRow.shift();
-				return parseRow;
+				return parse;
 			} catch (error) {
 				console.error("Fetch error:", error);
 				return [];
@@ -714,10 +1370,14 @@ window.addEventListener("load", () => {
 				method: "POST",
 				body: { id: data.id },
 			});
-			if (reserve.length === 0) {
+
+			const rows = Array.from(reserve.querySelectorAll("tr"));
+			rows.shift();
+			if (rows.length === 0) {
 				return [];
 			}
-			reserve.forEach((item) => {
+
+			rows.forEach((item) => {
 				let rowData = {};
 				let td = item.querySelectorAll("td");
 				rowData.id = td[0].textContent;
@@ -735,16 +1395,18 @@ window.addEventListener("load", () => {
 				method: "POST",
 				body: { id: data.id },
 			});
+
+			let rows = Array.from(sales.querySelectorAll("tr"));
+			rows.shift();
 			if (sales.length === 0) {
 				return [];
 			}
-			sales.forEach((item) => {
+			rows.forEach((item) => {
 				let rowData = {};
 				let td = item.querySelectorAll("td");
 				rowData.orderNumber = td[0].textContent;
 				rowData.status = td[1].textContent;
 				rowData.count = td[2].textContent;
-				rowData.price = td[3].textContent;
 				rowData.date = td[4].textContent;
 				this.storage.push(rowData);
 			});
@@ -757,29 +1419,190 @@ window.addEventListener("load", () => {
 				method: "POST",
 				body: { id: data.id },
 			});
+			let rows = Array.from(deliveries.querySelectorAll("tr"));
+			rows.shift();
 			if (deliveries.length === 0) {
 				return [];
 			}
-			deliveries.forEach((item) => {
+			rows.forEach((item) => {
 				let rowData = {};
 				let td = item.querySelectorAll("td");
 				rowData.date = td[0].textContent;
 				rowData.provider = td[1].textContent;
 				rowData.count = td[2].textContent;
 				rowData.price = td[3].textContent;
-				rowData.manger = td[4].textContent;
+				rowData.manager = td[4].textContent;
 				rowData.storage = td[5].textContent;
 				this.storage.push(rowData);
 			});
 			return this.storage;
 		},
+		search: async function (data) {
+			this.storage = [];
+			const result = await this.fetch({
+				url: url.search,
+				method: "POST",
+				body: { search: data.search, search_sel: data.search_sell },
+			});
+
+			let goodsId = Array.from(result.querySelectorAll(".detDivTitle"));
+			let searchGoodWraper = Array.from(result.querySelectorAll(".detDiv"));
+			searchGoodWraper.forEach((item, index) => {
+				let data = {};
+				let goodsPhoto = item.querySelector(".detImg>a>img");
+				let goodsCount = Array.from(result.querySelectorAll(".detPr"));
+				let goodsDesc = Array.from(result.querySelectorAll(".titleDet"));
+				data.id = get.article(goodsId[index].textContent).id;
+				data.article = get.article(goodsId[index].textContent).article;
+				data.photo = goodsPhoto.getAttribute("src");
+				data.photoLG = goodsPhoto.parentNode.getAttribute("href");
+				data.head = goodsDesc[index].innerHTML.split("<br>")[0].trim();
+				data.desc = goodsDesc[index].textContent.trim();
+				data.count = goodsCount[index].textContent.trim();
+				this.storage.push(data);
+			});
+
+			return this.storage;
+		},
+		orders: async function () {
+			this.storage = [];
+			const orders = await this.fetch({
+				url: url.orders,
+				method: "POST",
+			});
+			let rows = Array.from(orders.querySelectorAll("table tr"));
+
+			rows.shift();
+			rows.forEach((item) => {
+				let rowData = {};
+				let td = Array.from(item.querySelectorAll("td"));
+				if (td.length < 6) {
+					return;
+				}
+
+				rowData.id = td[0].textContent;
+				rowData.Number = td[1].textContent;
+				rowData.client = td[2].textContent;
+				rowData.ststus = td[3].textContent;
+				rowData.city = td[4].textContent;
+				rowData.type = td[5].textContent;
+				rowData.date = td[6].textContent;
+				this.storage.push(rowData);
+			});
+			console.log(this.storage);
+			return this.storage;
+		},
+		order: async function (data) {
+			this.storage = [];
+			const order = await this.fetch({
+				url: url.order,
+				method: "POST",
+				body: { id: data.id },
+			});
+			let rows = Array.from(order.querySelectorAll("table tr"));
+			rows.shift();
+			rows.forEach((item) => {
+				let td = Array.from(item.querySelectorAll("td"));
+
+				if (td.length > 5) {
+					let rowData = {};
+					console.log(td[2], td);
+					rowData.img = td[2].querySelector("img");
+					Array.from(td[3].children).forEach((child) => {
+						child.textContent = "";
+					});
+					rowData.positionName = td[3].textContent.trim();
+					rowData.articleAndPlace = get.articleAndPlacement(
+						td[4].textContent.trim()
+					);
+					rowData.price = td[5].textContent.trim();
+					this.storage.push(rowData);
+				}
+			});
+			console.log(this.storage);
+			return this.storage;
+		},
+		production: async function (data) {
+			this.storage = [];
+			return;
+		},
+		elaborations: async function (data) {
+			this.storage = [];
+			const elaborations = await this.fetch({
+				url: url.elaborations,
+				method: "POST",
+			});
+			const rows = Array.from(elaborations.querySelectorAll("table tbody tr"));
+			rows.shift();
+			const elaborationsList = await Promise.all(
+				rows.map(async (data) => {
+					let elaborationData = {};
+					let cell = Array.from(data.querySelectorAll("td"));
+					elaborationData.order = cell[0].textContent.trim();
+					elaborationData.manager = cell[1].textContent.trim();
+					elaborationData.positionName = cell[2].textContent.trim();
+					elaborationData.place = cell[3].textContent.trim();
+					elaborationData.type = cell[4].textContent.trim();
+					elaborationData.quality = cell[5].textContent.trim();
+					elaborationData.search = get.elaborationArtice(
+						cell[2].textContent.trim()
+					);
+
+					const search = await load.fetch({
+						url: url.search,
+						method: "POST",
+						body: { search: elaborationData.search, search_sel: "0" },
+					});
+
+					const result = Array.from(search.querySelectorAll(".detDivTitle"));
+					result.forEach((item, index) => {
+						if (
+							get.article(item.textContent.trim()).article ===
+							elaborationData.search
+						) {
+							let countData = search.querySelectorAll(".detPr")[index];
+							let images = Array.from(
+								search
+									.querySelectorAll(".detImg")
+									[index].querySelectorAll("img")
+							);
+
+							let imgSrc = [];
+							let imgLink = [];
+							images.forEach((img) => {
+								if (!img.parentNode.classList.contains("detImg")) {
+									return;
+								}
+								imgSrc.push(img.getAttribute("rel"));
+								imgLink.push(img.alt);
+							});
+							elaborationData.imagesSrc = imgSrc;
+							elaborationData.imageLink = imgLink;
+							elaborationData.count = get.goodsCount(
+								countData.textContent.trim()
+							);
+							console.log(
+								countData,
+								get.goodsCount(countData.textContent.trim())
+							);
+						}
+					});
+					return elaborationData;
+				})
+			);
+			this.storage = elaborationsList;
+			console.log(this.storage);
+			return this.storage;
+		},
+		question: async function (data) {},
+		production: async function (data) {},
 	};
 
 	function checkAnswer(e) {
 		e.preventDefault();
 		let answer = e.target.value;
 		let count = Number(e.target.dataset.count);
-
+		console.log(answer, count, e);
 		if (getNum(answer) > count) {
 			e.target.parentNode.parentNode.classList.add("warn");
 			alert("Перевір ще раз,І не забудь вказати лишки в пересорт");
@@ -808,7 +1631,7 @@ window.addEventListener("load", () => {
 	}
 
 	function generateQuestionTanble(data) {
-		drawPreloader({ status: "end" });
+		generate.preloader({ status: "end" });
 		if (data.length > 0) {
 			data.forEach((item) => {
 				let questionWraper = document.createElement("div");
@@ -917,7 +1740,7 @@ window.addEventListener("load", () => {
 	}
 	function getQuestions() {
 		let questionData = [];
-		drawPreloader({ status: "start" });
+		generate.preloader({ status: "start" });
 		fetch(questionURL, {
 			method: "POST",
 		})
@@ -925,7 +1748,7 @@ window.addEventListener("load", () => {
 				return responce.text();
 			})
 			.then((responce) => {
-				drawPreloader({ status: "end" });
+				generate.preloader({ status: "end" });
 				let questionParse = get.parser(responce);
 				let questionRow = Array.from(questionParse.querySelectorAll("tr"));
 				questionRow.shift();
@@ -953,317 +1776,6 @@ window.addEventListener("load", () => {
 			});
 	}
 
-	function generateElaboration(data) {
-		drawPreloader({ status: "end" });
-		if (data.length > 0) {
-			data.forEach((row) => {
-				console.log(row);
-				let tableWraper = document.createElement("div");
-				tableWraper.className = "table-wraper";
-				// order number
-				let orderNumberRow = document.createElement("div");
-				orderNumberRow.className = "table-row";
-				let orderNumberDesc = document.createElement("div");
-				orderNumberDesc.className = "table-desc";
-				orderNumberDesc.textContent = "Номер Замовлення";
-				let orderNumberText = document.createElement("div");
-				orderNumberText.className = "table-text";
-				orderNumberText.textContent = row.orderNumber;
-				orderNumberRow.appendChild(orderNumberDesc);
-				orderNumberRow.appendChild(orderNumberText);
-				// order manager
-				let managerRow = document.createElement("div");
-				managerRow.className = "table-row";
-				let managerDesc = document.createElement("div");
-				managerDesc.className = "table-desc";
-				managerDesc.textContent = "Менеджер";
-				let managerName = document.createElement("div");
-				managerName.className = "table-text";
-				managerName.textContent = row.orderManager;
-				managerRow.appendChild(managerDesc);
-				managerRow.appendChild(managerName);
-				// position name
-				let positionNameRow = document.createElement("div");
-				positionNameRow.className = "table-row";
-				let positionNameDesc = document.createElement("div");
-				positionNameDesc.className = "table-desc";
-				positionNameDesc.textContent = "Імя товару";
-				let positionNameText = document.createElement("div");
-				positionNameText.className = "table-text";
-				positionNameText.textContent = row.positionName;
-				positionNameRow.appendChild(positionNameDesc);
-				positionNameRow.appendChild(positionNameText);
-				// position place
-				let placeRow = document.createElement("div");
-				placeRow.className = "table-row";
-				let placeDesc = document.createElement("div");
-				placeDesc.className = "table-desc";
-				placeDesc.textContent = "Місце";
-				let placeText = document.createElement("div");
-				placeText.className = "table-text";
-				placeText.textContent = row.positionPlace;
-				placeRow.appendChild(placeDesc);
-				placeRow.appendChild(placeText);
-
-				// elaboration type
-				let elaborationTypeRow = document.createElement("div");
-				elaborationTypeRow.className = "table-row";
-				let elaborationTypeDesc = document.createElement("div");
-				elaborationTypeDesc.className = "table-desc";
-				elaborationTypeDesc.textContent = "Тип Уточнення";
-				let elaborationTypeText = document.createElement("div");
-				elaborationTypeText.className = "table-text";
-				elaborationTypeText.textContent = row.elaborationType;
-				elaborationTypeRow.appendChild(elaborationTypeDesc);
-				elaborationTypeRow.appendChild(elaborationTypeText);
-				// position quality
-				let positionQualityRow = document.createElement("div");
-				positionQualityRow.className = "table-row";
-				let positionQualityDesc = document.createElement("div");
-				positionQualityDesc.className = "table-desc";
-				positionQualityDesc.textContent = "Кількість товару";
-
-				let positionQualityText = document.createElement("div");
-				positionQualityText.className = "table-text";
-				if (row.numberData.baseCount == 0) {
-					positionQualityText.style.backgroundColor = "#fbc8c8";
-				} else {
-					positionQualityText.style.backgroundColor = "#c2edc2";
-				}
-				positionQualityText.textContent = row.positionQuality;
-				positionQualityRow.appendChild(positionQualityDesc);
-				positionQualityRow.appendChild(positionQualityText);
-				// reserve quality
-				let reserveQualityRow = document.createElement("div");
-				reserveQualityRow.className = "table-row";
-				let reserveQualityDesc = document.createElement("div");
-				reserveQualityDesc.className = "table-desc";
-				reserveQualityDesc.textContent = "Резерв";
-				let reserveQualityText = document.createElement("div");
-				reserveQualityText.className = "table-text";
-				if (row.numberData.orderCount == 0) {
-					reserveQualityText.style.backgroundColor = "#c2edc2";
-				} else {
-					reserveQualityText.style.backgroundColor = "#fbc8c8";
-				}
-				reserveQualityText.textContent = row.numberData.orderCount;
-				reserveQualityRow.appendChild(reserveQualityDesc);
-				reserveQualityRow.appendChild(reserveQualityText);
-				console.log(row, row.reserveQuality);
-				// input row
-				let inputRow = document.createElement("div");
-				inputRow.className = "table-row";
-				let inputDesc = document.createElement("div");
-				inputDesc.className = "table-desc";
-				inputDesc.textContent = "Вкажи Кількість";
-				let inputText = document.createElement("div");
-				inputText.className = "table-input-wraper";
-				let input = document.createElement("input");
-				input.className = "table-input";
-				console.log(row.numberData);
-				input.dataset.count = row.numberData.baseCount;
-				input.type = "text";
-				input.placeholder = "Кількість";
-				input.id = `elaborationInput${get.orderId(row.orderNumber)}`;
-				let sendBtn = document.createElement("button");
-				let sendIco = document.createElement("img");
-				sendIco.src = get.url(src.ico.send);
-				sendBtn.appendChild(sendIco);
-				sendBtn.className = "send-btn";
-				sendBtn.dataset.orderNumber = get.orderId(row.orderNumber);
-				inputText.appendChild(input);
-				inputText.appendChild(sendBtn);
-				inputRow.appendChild(inputDesc);
-				inputRow.appendChild(inputText);
-				// image row
-				let imageRow = document.createElement("div");
-				imageRow.className = "table-row";
-				let imageDesc = document.createElement("div");
-				imageDesc.className = "table-desc";
-				imageDesc.textContent = "Фото товару";
-				let imageWraper = document.createElement("div");
-				imageWraper.className = "image-wraper";
-
-				let images = row.imagesSrc.map((src, index) => {
-					let a = document.createElement("a");
-					a.href = row.imageLink[index];
-					let img = document.createElement("img");
-					img.src = src;
-					a.appendChild(img);
-
-					return a;
-				});
-
-				images.forEach((image) => {
-					imageWraper.appendChild(image);
-					image.addEventListener("click", showImage);
-				});
-				let buttonsRow = document.createElement("div");
-				buttonsRow.className = "table-row elaboration-btn-wraper";
-				let reserveBtn = document.createElement("button");
-				reserveBtn.className = "reserve-btn btn";
-				reserveBtn.textContent = "Резерв";
-				let arrivalbtn = document.createElement("button");
-				arrivalbtn.className = "arrival-btn btn";
-				arrivalbtn.textContent = "Приходи";
-				let selesBtn = document.createElement("button");
-				selesBtn.className = "seles-btn btn";
-				selesBtn.textContent = "Продажі";
-
-				buttonsRow.appendChild(reserveBtn);
-				buttonsRow.appendChild(arrivalbtn);
-				buttonsRow.appendChild(selesBtn);
-
-				// Add event listeners
-				sendBtn.addEventListener("click", addElaborationAnswer);
-				input.addEventListener("input", checkAnswer);
-
-				// appending elements
-				tableWraper.appendChild(orderNumberRow);
-				tableWraper.appendChild(managerRow);
-				tableWraper.appendChild(positionNameRow);
-				tableWraper.appendChild(placeRow);
-				tableWraper.appendChild(elaborationTypeRow);
-				tableWraper.appendChild(positionQualityRow);
-				tableWraper.appendChild(reserveQualityRow);
-				tableWraper.appendChild(inputRow);
-				tableWraper.appendChild(imageWraper);
-				tableWraper.appendChild(buttonsRow);
-				contentWraper.appendChild(tableWraper);
-			});
-		} else {
-			let elaborationTitle = document.createElement("p");
-			elaborationTitle.className = "elaboration-title content-title";
-			elaborationTitle.textContent = "Зараз немає Уточнень";
-			contentWraper.appendChild(elaborationTitle);
-		}
-	}
-	async function elaborations() {
-		let keysStore = [
-			"orderNumber",
-			"orderManager",
-			"positionName",
-			"positionPlace",
-			"elaborationType",
-			"positionQuality",
-			"reserveQuality",
-			"searchQuery",
-			"imagesSrc",
-			"imageLink",
-		];
-
-		drawPreloader({ status: "start" });
-
-		try {
-			// Виконуємо запит на elaborationURL
-			const responce = await fetch(elaborationURL, {
-				method: "POST",
-			});
-
-			if (!responce.ok) {
-				throw new Error(`Network response was not ok: ${responce.status}`);
-			}
-
-			const elaborationText = await responce.text();
-
-			const elaborationTable = get.parser(elaborationText);
-			let article;
-			const tableRow = Array.from(
-				elaborationTable.querySelectorAll("table>tbody>tr")
-			);
-
-			tableRow.shift();
-			const elaborationRow = tableRow.map((data) => {
-				let elaborationData = {};
-				let dataCells = Array.from(data.querySelectorAll("td"));
-				dataCells.forEach((td, tdIndex) => {
-					elaborationData[keysStore[tdIndex]] = String(td.textContent.trim());
-					if (keysStore[tdIndex] == "searchQuery") {
-						article = `${elaborationData["positionName"]}`.match(
-							regexElaborationArticle
-						)[1];
-
-						elaborationData[keysStore[tdIndex]] = article.trim();
-					}
-				});
-				return elaborationData;
-			});
-
-			// Масив для зберігання обіцянок
-			const promises = [];
-			elaborationRow.forEach((data, key) => {
-				let request = new URLSearchParams();
-				request.append("search", data.searchQuery);
-				request.append("search_sel", "0");
-
-				// Додаємо обіцянку в масив
-				promises.push(
-					fetch(searchURL, {
-						method: "POST",
-						body: request,
-					})
-						.then((response) => {
-							if (!response.ok) {
-								throw new Error(
-									`Network response was not ok: ${response.status}`
-								);
-							}
-							return response.text();
-						})
-						.then((responseText) => {
-							let parseSearch = get.parser(responseText);
-							let articleRow = Array.from(
-								parseSearch.querySelectorAll(".detDivTitle")
-							);
-
-							articleRow.forEach((a, index) => {
-								console.log(
-									get.article(a.textContent.trim()).article ===
-										data.searchQuery,
-									get.article(a.textContent.trim()).article,
-									data.searchQuery
-								);
-								if (
-									get.article(a.textContent.trim()).article === data.searchQuery
-								) {
-									let countData = parseSearch.querySelectorAll(".detPr")[index];
-									let images = Array.from(
-										parseSearch
-											.querySelectorAll(".detImg")
-											[index].querySelectorAll("img")
-									);
-
-									let imgSrc = [];
-									let imgLink = [];
-									images.forEach((img) => {
-										if (!img.parentNode.classList.contains("detImg")) {
-											return;
-										}
-										imgSrc.push(img.getAttribute("rel"));
-										imgLink.push(img.alt);
-									});
-									elaborationRow[key].imagesSrc = imgSrc;
-									elaborationRow[key].imageLink = imgLink;
-									elaborationRow[key].numberData = get.goodsCount(
-										countData.textContent.trim()
-									);
-								}
-							});
-						})
-				);
-			});
-
-			// Очікуємо завершення всіх обіцянок
-			await Promise.all(promises);
-
-			// Зараз можна викликати generateElaboration
-			generateElaboration(elaborationRow);
-		} catch (error) {
-			console.error(error);
-			alert(String(error));
-			// Обробка помилок
-		}
-	}
 	function drawButtonsCount() {
 		let listCount = 0;
 		let compareCount = 0;
@@ -1294,7 +1806,7 @@ window.addEventListener("load", () => {
 		}
 	}
 	function generateList() {
-		drawPreloader({ status: "end" });
+		contentWraper.innerHTML = "";
 		if (storage.listArray.length == 0) {
 			let listTitle = document.createElement("p");
 			listTitle.className = "list-title content-title";
@@ -1380,126 +1892,130 @@ window.addEventListener("load", () => {
 			itemImageLink.addEventListener("click", showImage);
 		});
 	}
-	function generateCompare() {
-		drawPreloader({ status: "end" });
-		if (storage.compareArray.length == 0) {
-			let compareTitle = get.elements({
-				el: "p",
-				className: "compare-title content-title",
-				text: "Список Розбжностей пустий!!!",
-			});
-			contentWraper.appendChild(compareTitle);
-			return;
-		}
-		storage.compareArray.forEach((item, index) => {
-			console.log(item);
-			let difference =
-				item.realCount -
-				(get.goodsCount(item.count).baseCount +
-					get.goodsCount(item.count).orderCount);
-			function drawDifference() {
-				if (difference <= 0) {
-					return { backgroundColor: "rgb(253, 184, 184)" };
-				}
-				if (item.isProcesed) {
-					return { backgroundColor: "#c2edc2" };
-				}
-			}
-			let compareWraper = get.elements({
-				el: "div",
-				className: "compare-item",
-				style: drawDifference(),
-				children: [
-					{
-						el: "button",
-						className: "del-btn btn",
-						event: "click",
-						hendler: function (e) {
-							e.currentTarget.parentNode.parentNode.remove();
-							storage.compareArray.splice(index, 1);
-							updateStorage();
-						},
-						children: [
-							{
-								el: "img",
-								src: get.url(src.ico.recycle),
-								alt: "Видалити Елемент",
-							},
-						],
-					},
-					{
-						el: "a",
-						className: "item-image-link",
-						href: item.photoLG,
-						event: "click",
-						hendler: showImage,
-						children: [
-							{
-								el: "img",
-								className: "item-image",
-								src: item.photo,
-							},
-						],
-					},
-					{
-						el: "div",
-						className: "item-text-wraper",
-						style: drawDifference(),
-						children: [
-							{
-								el: "p",
-								className: "compare-time",
-								text: `${item.addingDate.day}.${item.addingDate.month}.${item.addingDate.year}   ${item.addingDate.hours}:${item.addingDate.minutes}:${item.addingDate.seconds}`,
-							},
-							{
-								el: "p",
-								className: "item-count",
-								text: `Кількість по базі: ${
-									get.goodsCount(item.count).baseCount
-								} Резерв: ${get.goodsCount(item.count).orderCount}
-			Реальна кількість: ${item.realCount} Різниця: ${difference}`,
-							},
-							{
-								el: "p",
-								className: "item-article",
-								text: item.article,
-							},
-							{
-								el: "p",
-								className: "item-head",
-								text: item.head,
-							},
-							{
-								el: "button",
-								className: "procesed-btn",
-								text: "Обробити",
-								dataId: item.id,
-								event: "click",
-								hendler: function (e) {
-									e.currentTarget.textContent = "Оброблено";
-									e.currentTarget.parentNode.parentNode.style.backgroundColor =
-										"#c2edc2";
-									storage.compareArray[index].isProcesed = true;
-									updateStorage();
-								},
-							},
-						],
-					},
-				],
-			});
 
-			contentWraper.appendChild(compareWraper);
-		});
-	}
 	// check elaborations count
 	setInterval(checkElaborations, intarval.elaboration * 1000);
 
-	searchSendBtn.addEventListener("click", search);
-	barCodeSearch.addEventListener("click", barcodeRecognition);
-	document.body.appendChild(btnWraper);
 	// add content-wrapper
-	document.body.appendChild(mainSearchWraper);
+
+	let buttons = {
+		el: "div",
+		className: "btn-wraper",
+		children: [
+			{
+				el: "button",
+				className: "elaboration-btn btn",
+				event: "click",
+				hendler: function () {
+					generate.preloader({ status: "start" });
+					let elaborations = load.elaborations();
+					elaborations.then((data) => {
+						generate.preloader({ status: "end" });
+						contentWraper.appendChild(generate.elaborations(data));
+					});
+				},
+				children: [
+					{
+						el: "span",
+						className: "elabortion-count counter",
+					},
+					{
+						el: "img",
+						src: get.url(src.ico.elaboration),
+						alt: "Наявні уточнення",
+					},
+				],
+			},
+			{
+				el: "button",
+				className: "question-btn btn",
+				event: "click",
+				hendler: getQuestions,
+				children: [
+					{
+						el: "span",
+						className: "question-count counter",
+					},
+					{
+						el: "img",
+						src: get.url(src.ico.question),
+						alt: "Наявні питання",
+					},
+				],
+			},
+			{
+				el: "button",
+				className: "compare-btn btn",
+				event: "click",
+				hendler: generate.compare,
+				children: [
+					{
+						el: "span",
+						className: "compare-count counter",
+					},
+					,
+					{
+						el: "img",
+						src: get.url(src.ico.compare),
+						alt: "Розбіжності товару",
+					},
+				],
+			},
+			{
+				el: "button",
+				className: "list-btn btn",
+				event: "click",
+				hendler: generateList,
+				children: [
+					{
+						el: "span",
+						className: "list-count counter",
+					},
+					{
+						el: "img",
+						src: get.url(src.ico.list),
+						alt: "Список на рознесення товару",
+					},
+				],
+			},
+			{
+				el: "button",
+				className: "orders-btn btn",
+				event: "click",
+				hendler: function () {
+					let orders = load.orders();
+					orders.then((data) => {
+						let mainWraper = document.querySelector(".wraper");
+						mainWraper.innerHTML = "";
+						mainWraper.appendChild(generate.orders(data));
+					});
+				},
+				children: [{ el: "img", src: get.url(src.ico.orders) }],
+			},
+			{
+				el: "img",
+				className: "production-btn btn",
+				src: get.url(src.ico.production),
+			},
+			{
+				el: "button",
+				className: "log-out-btn btn",
+				event: "click",
+				hendler: logOut,
+				children: [
+					{
+						el: "img",
+						src: get.url(src.ico.logout),
+						alt: "Вийти з Акаунта",
+					},
+				],
+			},
+		],
+	};
+	let btnWraper = get.elements(buttons);
+	document.body.appendChild(searchWraper);
 	document.body.appendChild(contentWraper);
+	document.body.appendChild(btnWraper);
 	checkElaborations();
 	drawButtonsCount();
 });
