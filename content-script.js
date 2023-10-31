@@ -187,7 +187,9 @@ window.addEventListener("load", () => {
 			}
 
 			if (data.event && data.hendler && typeof data.hendler === "function") {
-				element.addEventListener(data.event, data.hendler);
+				element.addEventListener(data.event, (event) => {
+					data.hendler.call(element, event); // Виклик хендлера в контексті створеного DOM-елемента
+				});
 			}
 			if (data.children) {
 				data.children.forEach((child) => {
@@ -894,11 +896,17 @@ window.addEventListener("load", () => {
 										text: "Резерв",
 										event: "click",
 										hendler: function (e) {
-											let reserve = load.reserve({ id: item.id });
 											let footer =
 												e.currentTarget.parentElement.parentElement.querySelector(
 													".item-footer"
 												);
+											if (footer.classList.contains("active")) {
+												footer.innerHTML = "";
+												footer.classList.toggle("active");
+												return;
+											}
+											let reserve = load.reserve({ id: item.id });
+											footer.classList.toggle("active");
 											footer.innerHTML = "";
 											reserve.then((reserve) => {
 												console.log(reserve, generate.reserve(reserve));
@@ -912,12 +920,20 @@ window.addEventListener("load", () => {
 										text: "Продажі",
 										event: "click",
 										hendler: function (e) {
-											let sales = load.sales({ id: item.id });
 											let footer =
 												e.currentTarget.parentElement.parentElement.querySelector(
 													".item-footer"
 												);
+											if (footer.classList.contains("active")) {
+												footer.innerHTML = "";
+												footer.classList.toggle("active");
+												return;
+											}
+											let sales = load.sales({ id: item.id });
+
 											footer.innerHTML = "";
+											footer.classList.toggle("active");
+
 											sales.then((data) => {
 												footer.appendChild(generate.sales(data));
 											});
@@ -929,11 +945,17 @@ window.addEventListener("load", () => {
 										text: "Приходи",
 										event: "click",
 										hendler: function (e) {
-											let deliveries = load.deliveries({ id: item.id });
 											let footer =
 												e.currentTarget.parentElement.parentElement.querySelector(
 													".item-footer"
 												);
+											if (footer.classList.contains("active")) {
+												footer.innerHTML = "";
+												footer.classList.toggle("active");
+												return;
+											}
+											let deliveries = load.deliveries({ id: item.id });
+											footer.classList.toggle("active");
 											footer.innerHTML = "";
 											deliveries.then((data) => {
 												footer.appendChild(generate.deliveries(data));
@@ -960,10 +982,19 @@ window.addEventListener("load", () => {
 					className: "elaboration-wraper",
 				});
 				data.forEach((item) => {
-					console.log(item, item.count.orderCount);
+					console.log(item);
+					let isReserve = "success",
+						isSmallCount = "success";
+					if (item.count.baseCount < 1) {
+						isSmallCount = "danger";
+					}
+					if (item.count.orderCount > 0) {
+						isReserve = "danger";
+					}
+
 					let elaborationItem = get.elements({
 						el: "div",
-						className: "table-wraper wraper",
+						className: "table-wraper",
 						children: [
 							{
 								el: "div",
@@ -1049,7 +1080,7 @@ window.addEventListener("load", () => {
 							},
 							{
 								el: "div",
-								className: "table-row",
+								className: `table-row ${isSmallCount}`,
 								children: [
 									{
 										el: "p",
@@ -1065,7 +1096,7 @@ window.addEventListener("load", () => {
 							},
 							{
 								el: "div",
-								className: "table-row",
+								className: `table-row ${isReserve}`,
 								children: [
 									{
 										el: "p",
@@ -1104,7 +1135,7 @@ window.addEventListener("load", () => {
 											},
 											{
 												el: "button",
-												className: "table-btn",
+												className: "send-btn",
 												event: "click",
 												data: [{ order: get.orderId(item.order) }],
 												hendler: addElaborationAnswer,
@@ -1122,7 +1153,7 @@ window.addEventListener("load", () => {
 							},
 							{
 								el: "div",
-								className: "table-row",
+								className: "table-row image-row",
 								children: [
 									{ el: "p", className: "table-desc", text: "Фото товару." },
 									{
@@ -1142,7 +1173,7 @@ window.addEventListener("load", () => {
 							},
 							{
 								el: "div",
-								className: "table-row elaboration-btn-wraper",
+								className: "elaboration-btn-wraper",
 								children: [
 									{
 										el: "button",
@@ -1185,18 +1216,15 @@ window.addEventListener("load", () => {
 	let questionPattern = /Є питання: (\d+) шт\./;
 	let regexArticle = /\s(\d+\.\d+\.\d+)/;
 	let regexNumber = /№(\d+)/;
-	let regexElaborationArticle = /\((\d+(\.\d+)*)\)$/;
-	let regexSentens = /[^\\n]+(?=\\n|$)/g;
 	let regexCell = new RegExp("cell", "gi");
-	let regexGoodsCount =
-		/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.)/g;
+
 	if (storage == null) {
 		localStorage.setItem(
 			"storage",
 			JSON.stringify({
 				listArray: [],
 				compareArray: [],
-				addresses: [],
+				addresses: {},
 			})
 		);
 		storage = JSON.parse(localStorage.getItem("storage"));
@@ -1268,6 +1296,10 @@ window.addEventListener("load", () => {
 			});
 	}
 	function barcodeRecognition() {
+		let barCodeSearch = document.querySelector(".bar-code-search-btn");
+		let barcodeDisplayWraper = document.querySelector(
+			".barcode-display-wraper"
+		);
 		let html5QrcodeScanner = new Html5QrcodeScanner("reader", {
 			fps: 10,
 			qrbox: 250,
@@ -1354,9 +1386,11 @@ window.addEventListener("load", () => {
 				if (!response.ok) {
 					throw new Error(`HTTP Error! Status: ${response.status}`);
 				}
+				response;
 
 				const res = await response.text();
 				const parse = get.parser(res);
+
 				return parse;
 			} catch (error) {
 				console.error("Fetch error:", error);
@@ -1532,7 +1566,9 @@ window.addEventListener("load", () => {
 				url: url.elaborations,
 				method: "POST",
 			});
+
 			const rows = Array.from(elaborations.querySelectorAll("table tbody tr"));
+
 			rows.shift();
 			const elaborationsList = await Promise.all(
 				rows.map(async (data) => {

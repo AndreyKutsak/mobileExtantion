@@ -108,7 +108,6 @@ body {
 		justify-content: flex-start;
 		border-bottom: 2px solid #ebeef3;
 		color: #323b4f;
-		padding: 10px;
 
 		.table-desc {
 			position: relative;
@@ -184,6 +183,13 @@ body {
 			border: none;
 			border-radius: 5px;
 			background-color: #1cc879;
+		}
+	}
+	.image-row {
+		display: block;
+		.table-desc {
+			width: 100%;
+			text-align: center;
 		}
 	}
 
@@ -537,7 +543,8 @@ body {
 	}
 }
 // butoons
-.item-data-btn-wraper {
+.item-data-btn-wraper,
+.elaboration-btn-wraper {
 	padding: 20px 10px;
 	display: flex;
 	justify-content: space-between;
@@ -558,18 +565,38 @@ body {
 .item-footer,
 .elaboration-btn-wrpaer {
 	.wraper {
-		border-radius: 5px;
-		margin-bottom: 30px;
-		padding: 20px 10px;
+		.sales-item,
+		.deliveries-item,
+		.reserve-item {
+			border-radius: 5px;
+			margin-bottom: 30px;
+			padding: 20px 10px 0;
+			background-color: rgb(231, 238, 247);
+		}
 		.deliveries-row,
 		.sales-row,
 		.reserve-row {
 			display: flex;
 			justify-content: flex-start;
 			align-items: center;
+			border-bottom: 2px solid #4c5769;
+
+			.row-desc {
+				font-family: sans-serif;
+				font-size: 14px;
+				&:first-child {
+					width: 30%;
+				}
+				&:last-child {
+					width: 70%;
+					text-align: right;
+				}
+			}
 		}
 	}
 	.content-title {
+		position: static;
+		transform: none;
 		font-size: 18px;
 		font-weight: 600;
 		text-transform: uppercase;
