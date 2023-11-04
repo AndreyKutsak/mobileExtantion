@@ -595,37 +595,55 @@ window.addEventListener("load", () => {
 						event: "click",
 						hendler: function (e) {
 							load.order({ id: item.id }).then((data) => {
-								console.log(data);
+								let itemFooter = this.querySelector(".row-footer");
+								if (itemFooter.classList.contains("active")) {
+									itemFooter.innerHTML = "";
+									itemFooter.classList.remove("active");
+									return;
+								}
+								itemFooter.classList.add("active");
+								itemFooter.innerHTML = "";
+								itemFooter.appendChild(generate.order(data));
 							});
 						},
 						children: [
 							{
-								el: "p",
-								className: "row-desc id",
-								text: item.id,
+								el: "div",
+								className: "row-body",
+								children: [
+									{
+										el: "p",
+										className: "row-desc id",
+										text: item.id,
+									},
+									{
+										el: "p",
+										className: "row-desc number",
+										text: item.Number,
+									},
+									{
+										el: "p",
+										className: "row-desc status client",
+										text: item.client,
+									},
+									{
+										el: "p",
+										className: "row-desc status",
+										text: item.status,
+									},
+									{
+										el: "p",
+										className: "row-desc city",
+										text: item.city,
+									},
+									{ el: "p", className: "row-desc type", text: item.type },
+									{ el: "p", className: "row-desc date", text: item.date },
+								],
 							},
 							{
-								el: "p",
-								className: "row-desc number",
-								text: item.Number,
+								el: "div",
+								className: "row-footer",
 							},
-							{
-								el: "p",
-								className: "row-desc status client",
-								text: item.client,
-							},
-							{
-								el: "p",
-								className: "row-desc status",
-								text: item.status,
-							},
-							{
-								el: "p",
-								className: "row-desc city",
-								text: item.city,
-							},
-							{ el: "p", className: "row-desc type", text: item.type },
-							{ el: "p", className: "row-desc date", text: item.date },
 						],
 					});
 					ordersWraper.appendChild(orderRow);
@@ -637,13 +655,58 @@ window.addEventListener("load", () => {
 		order: function (data) {
 			let orderWraper = get.elements({ el: "div", className: "order-wraper" });
 			if (data.length > 0) {
-				data.forEach((item) => {});
-				return;
+				data.forEach((item) => {
+					let orderItem = get.elements({
+						el: "div",
+						className: "order-item",
+						children: [
+							{
+								el: "img",
+								className: "goods-image",
+								src: item.imgSrc,
+								aly: item.positionName,
+							},
+							{
+								el: "div",
+								className: "text-wraper",
+								children: [
+									{
+										el: "p",
+										className: "order-article",
+										children: [
+											{
+												el: "span",
+												className: "article",
+												text: item.articleAndPlace.article,
+											},
+											{
+												el: "span",
+												className: "place",
+												text: item.articleAndPlace.place,
+											},
+										],
+									},
+									{
+										el: "p",
+										className: "position-name",
+										text: item.positionName,
+									},
+								],
+							},
+						],
+					});
+					orderWraper.appendChild(orderItem);
+				});
+				return orderWraper;
 			}
 			return generate.message("Сталася помилка під час отримання інформації.");
 		},
 		compare: function () {
 			contentWraper.innerHTML = "";
+			let compareWraper = get.elements({
+				el: "div",
+				className: "compare-wraper",
+			});
 			if (storage.compareArray.length > 0) {
 				storage.compareArray.forEach((item, index) => {
 					console.log(item);
@@ -668,11 +731,8 @@ window.addEventListener("load", () => {
 								el: "button",
 								className: "del-btn btn",
 								event: "click",
-								hendler: function (e) {
-									e.currentTarget.parentNode.parentNode.remove();
-									storage.compareArray.splice(index, 1);
-									updateStorage();
-								},
+								hendler: hendlers.removeItem,
+								data: [{ article: item.article }, { arr: "compareArray" }],
 								children: [
 									{
 										el: "img",
@@ -741,12 +801,95 @@ window.addEventListener("load", () => {
 							},
 						],
 					});
-					contentWraper.appendChild(compareItem);
+					compareWraper.appendChild(compareItem);
 				});
-				return;
+				return compareWraper;
 			}
 
-			generate.message("Немає розбіжностей!!!.");
+			return generate.message("Немає розбіжностей!!!");
+		},
+		list: function () {
+			if (storage.listArray.length > 0) {
+				let listWraper = get.elements({ el: "div", className: "list-wraper" });
+				storage.listArray.forEach((item, index) => {
+					let isProcesedText = "Обробити",
+						isProcesedClass = ``;
+					if (item.isProcesed) {
+						isProcesedText = "Оброблено";
+						isProcesedClass = "success";
+					}
+					let listItem = get.elements({
+						el: "div",
+						className: `list-item ${isProcesedClass}`,
+						children: [
+							{
+								el: "button",
+								className: "del-btn btn",
+								event: "click",
+								data: [{ article: item.article }, { arr: "listArray" }],
+								hendler: hendlers.removeItem,
+								children: [
+									{
+										el: "img",
+										src: get.url(src.ico.recycle),
+										alt: "Видалити елемент",
+									},
+								],
+							},
+							{
+								el: "a",
+								className: "item-image-link",
+								href: item.photoLG,
+								children: [
+									{
+										el: "img",
+										className: "item-image",
+										src: item.photo,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "item-text-wraper",
+								children: [
+									{
+										el: "p",
+										className: "desc date-desc",
+										text: `${item.addingDate.day}.${item.addingDate.month}.${item.addingDate.year}  ${item.addingDate.hours}:${item.addingDate.minutes}:${item.addingDate.seconds} `,
+									},
+									{
+										el: "p",
+										className: "item-article",
+										text: item.article,
+									},
+									{
+										el: "p",
+										className: "item-head",
+										text: item.head,
+									},
+									{
+										el: "button",
+										className: "procesed-btn",
+										text: isProcesedText,
+										data: [{ dataId: item.id }],
+										event: "click",
+										hendler: function (e) {
+											e.currentTarget.textContent = "Оброблено";
+											e.currentTarget.parentNode.parentNode.style.backgroundColor =
+												"#c2edc2";
+											storage.listArray[index].isProcesed = true;
+											updateStorage();
+										},
+									},
+								],
+							},
+						],
+					});
+					listWraper.appendChild(listItem);
+				});
+				return listWraper;
+			}
+			return generate.message("Список товару на розноску пустий!!!");
 		},
 		search: function (data) {
 			generate.preloader({ status: "end" });
@@ -1538,16 +1681,25 @@ window.addEventListener("load", () => {
 			rows.forEach((item) => {
 				let td = Array.from(item.querySelectorAll("td"));
 
+				if (td.length > 7) {
+					td.shift();
+				}
+
 				if (td.length > 5) {
+					let checkStyle = td[0].getAttribute("style");
+
+					if (checkStyle.includes("background-color:#d7cafb;")) {
+						return;
+					}
+
 					let rowData = {};
-					console.log(td[2], td);
-					rowData.img = td[2].querySelector("img");
-					Array.from(td[3].children).forEach((child) => {
+					rowData.imgSrc = td[1].querySelector("img").src;
+					Array.from(td[2].children).forEach((child) => {
 						child.textContent = "";
 					});
-					rowData.positionName = td[3].textContent.trim();
+					rowData.positionName = td[2].textContent.trim();
 					rowData.articleAndPlace = get.articleAndPlacement(
-						td[4].textContent.trim()
+						td[3].textContent.trim()
 					);
 					rowData.price = td[5].textContent.trim();
 					this.storage.push(rowData);
@@ -1633,7 +1785,28 @@ window.addEventListener("load", () => {
 		question: async function (data) {},
 		production: async function (data) {},
 	};
-
+	let hendlers = {
+		removeItem: function () {
+			let article = this.dataset.article;
+			let arr = this.dataset.arr;
+			storage[arr].forEach((item, index) => {
+				console.log(item.article, article);
+				if (item.article === article) {
+					storage[arr].splice(index, 1);
+				}
+			});
+			updateStorage();
+			let parent = this.parentElement.remove();
+		},
+		generateList: function () {
+			contentWraper.innerHTML = "";
+			contentWraper.appendChild(generate.list());
+		},
+		generateCompare: function () {
+			contentWraper.innerHTML = "";
+			contentWraper.appendChild(generate.compare());
+		},
+	};
 	function checkAnswer(e) {
 		e.preventDefault();
 		let answer = e.target.value;
@@ -1841,93 +2014,6 @@ window.addEventListener("load", () => {
 			compareBtnCount.style.display = "none";
 		}
 	}
-	function generateList() {
-		contentWraper.innerHTML = "";
-		if (storage.listArray.length == 0) {
-			let listTitle = document.createElement("p");
-			listTitle.className = "list-title content-title";
-			listTitle.textContent = "Список на розноску товару Пустий!!!";
-			contentWraper.appendChild(listTitle);
-			return;
-		}
-		storage.listArray.forEach((item, index) => {
-			console.log(item);
-			let listItemWraper = document.createElement("div");
-			listItemWraper.className = "list-item";
-			let delItemBtn = document.createElement("button");
-			delItemBtn.className = "del-btn btn";
-			let delItemImg = document.createElement("img");
-			delItemImg.src = get.url(src.ico.recycle);
-			delItemBtn.appendChild(delItemImg);
-			let dateDesc = document.createElement("p");
-			dateDesc.className = "desc date-desc";
-			dateDesc.textContent = `${item.addingDate.day}.${item.addingDate.month}.${item.addingDate.year}  ${item.addingDate.hours}:${item.addingDate.minutes}:${item.addingDate.seconds} `;
-			let itemImageLink = document.createElement("a");
-			itemImageLink.className = "item-image-link";
-			itemImageLink.setAttribute("href", item.photoLG);
-			let itemImage = document.createElement("img");
-			itemImage.className = "item-image";
-			itemImage.src = item.photo;
-			itemImageLink.appendChild(itemImage);
-			let itemTextWraper = document.createElement("div");
-			itemTextWraper.className = "item-text-wraper";
-			let itemCount = document.createElement("p");
-			itemCount.className = "item-count";
-			itemCount.textContent = `Кількість: ${
-				get.goodsCount(item.count).baseCount
-			} Резерв: ${get.goodsCount(item.count).orderCount}`;
-			let itemArticle = document.createElement("p");
-			itemArticle.className = "item-article";
-			itemArticle.textContent = item.article;
-			let itemDesc = document.createElement("p");
-			itemDesc.className = "item-head";
-			itemDesc.textContent = item.head;
-			let procesedBtn = document.createElement("button");
-			procesedBtn.className = "procesed-btn";
-			procesedBtn.dataset.id = item.id;
-			if (item.isProcesed) {
-				procesedBtn.textContent = "Оброблено";
-			} else {
-				procesedBtn.textContent = "Обробити";
-			}
-
-			if (item.isProcesed) {
-				listItemWraper.style.backgroundColor = "#c2edc2";
-			}
-			itemTextWraper.appendChild(dateDesc);
-			itemTextWraper.appendChild(itemArticle);
-			itemTextWraper.appendChild(itemCount);
-			itemTextWraper.appendChild(itemDesc);
-			itemTextWraper.appendChild(procesedBtn);
-			listItemWraper.appendChild(delItemBtn);
-			listItemWraper.appendChild(itemImageLink);
-			listItemWraper.appendChild(itemTextWraper);
-			contentWraper.appendChild(listItemWraper);
-			procesedBtn.addEventListener("click", (e) => {
-				storage.listArray.forEach((item) => {
-					if (item.id == Number(e.currentTarget.dataset.id)) {
-						item.isProcesed = true;
-						procesedBtn.textContent = "Оброблено";
-						procesedBtn.parentNode.parentNode.style.backgroundColor = "#c2edc2";
-						updateStorage();
-						drawButtonsCount();
-					}
-				});
-			});
-			delItemBtn.addEventListener("click", (e) => {
-				storage.listArray.forEach((a, index) => {
-					if (a.id == Number(item.id)) {
-						storage.listArray.splice(index, 1);
-					}
-				});
-
-				updateStorage();
-				drawButtonsCount();
-				listItemWraper.remove();
-			});
-			itemImageLink.addEventListener("click", showImage);
-		});
-	}
 
 	// check elaborations count
 	setInterval(checkElaborations, intarval.elaboration * 1000);
@@ -1983,7 +2069,7 @@ window.addEventListener("load", () => {
 				el: "button",
 				className: "compare-btn btn",
 				event: "click",
-				hendler: generate.compare,
+				hendler: hendlers.generateCompare,
 				children: [
 					{
 						el: "span",
@@ -2001,7 +2087,7 @@ window.addEventListener("load", () => {
 				el: "button",
 				className: "list-btn btn",
 				event: "click",
-				hendler: generateList,
+				hendler: hendlers.generateList,
 				children: [
 					{
 						el: "span",

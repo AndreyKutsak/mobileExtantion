@@ -14,6 +14,18 @@ body {
 	background-color: #e7eef7;
 }
 
+.warn {
+	background-color: #ffe09e;
+}
+
+.danger {
+	background-color: #ff8e8e;
+}
+
+.success {
+	background-color: #aeffb2;
+}
+
 // prelaoder
 .preloader-wraper {
 	position: absolute;
@@ -196,18 +208,6 @@ body {
 	.image-wraper {
 		display: flex;
 		justify-content: center;
-	}
-
-	.warn {
-		background-color: #ffe09e;
-	}
-
-	.danger {
-		background-color: #ff8e8e;
-	}
-
-	.success {
-		background-color: #aeffb2;
 	}
 }
 
@@ -455,7 +455,7 @@ body {
 		align-items: center;
 		padding: 30px 10px 20px;
 		border-radius: 5px;
-		background-color: #dee3ed;
+		background-color: #cbcbcb;
 		box-shadow: rgb(49, 60, 77) 1px 4px 11px 1px;
 		margin-bottom: 20px;
 
@@ -523,9 +523,12 @@ body {
 .orders-wraper {
 	padding: 20px 5px;
 	.order-row {
-		display: flex;
-		justify-content: flex-start;
-		align-items: center;
+		.row-body {
+			display: flex;
+			justify-content: flex-start;
+			align-items: center;
+		}
+
 		border: 2px solid #4c5769;
 		background-color: #fff;
 		.row-desc {
