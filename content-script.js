@@ -1,5 +1,4 @@
 window.addEventListener("load", () => {
-	let storage = localStorage.getItem("storage");
 	let head = document.querySelector("head");
 	head.innerHTML = ` <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +13,70 @@ window.addEventListener("load", () => {
 		child.remove();
 	});
 	// URL
+	let storage = {
+		data: {},
+		init: function () {
+			let storedData = JSON.parse(localStorage.getItem("storage"));
+			if (storedData) {
+				this.data = this.observe(storedData);
+			} else {
+				this.data = {
+					listArray: [],
+					compareArray: [],
+					questions: [],
+					elaborations: [],
+					addresses: {},
+				};
+				this.data = this.observe(this.data);
+				this.save();
+			}
+		},
+		save: function () {
+			localStorage.setItem("storage", JSON.stringify(this.data));
+		},
+		address: function (data) {
+			if (!data.article) {
+				console.error(
+					"Артикул є обов'язковим для отримання чи збереження даних"
+				);
+				return;
+			}
+			let savedArticle = JSON.parse(localStorage.getItem("storage"));
+			if (data.place) {
+				this.data.addresses[data.article] = this.observe({ place: data.place });
+			}
+			if (data.cell) {
+				this.data.addresses[data.article] = this.observe({ cell: data.cell });
+			}
+			this.save();
+			if (savedArticle.addresses[data.article]) {
+				return savedArticle.addresses[data.article];
+			} else {
+				return false;
+			}
+		},
+		observe: function (obj) {
+			if (typeof obj !== "object" || obj === null) {
+				return obj;
+			}
+
+			for (let key in obj) {
+				obj[key] = this.observe(obj[key]);
+			}
+
+			return new Proxy(obj, {
+				set: function (target, key, value) {
+					target[key] = value;
+					storage.save();
+					console.log(
+						`Змінено: storage.data.${key} = ${JSON.stringify(value)}`
+					);
+					return true;
+				},
+			});
+		},
+	};
+	storage.init();
 	let url = {
 		baza: "https://baza.m-p.in.ua/ajax/magaz.php",
 		elaborations: "https://baza.m-p.in.ua/ajax/loadElaboration.php",
@@ -101,6 +164,7 @@ window.addEventListener("load", () => {
 				if (article !== null && place !== null) {
 					matchData.article = article[0];
 					matchData.place = place[0];
+					storage.address(matchData);
 				}
 				return matchData;
 			}
@@ -122,6 +186,16 @@ window.addEventListener("load", () => {
 			if (match && match.length >= 2) {
 				return parseInt(match[1], 10);
 			}
+			return null;
+		},
+		num: function (data) {
+			const regex = /\d+/;
+			const matches = data.match(regex);
+
+			if (matches && matches.length > 0) {
+				return parseInt(matches[0], 10);
+			}
+
 			return null;
 		},
 		goodsCount: function (data) {
@@ -221,6 +295,7 @@ window.addEventListener("load", () => {
 		},
 	};
 
+	console.log(storage.data);
 	// creating and adding new elements to DOM
 	let contentWraper = get.elements({ el: "div", className: "wraper" });
 	let searchWraper = get.elements({
@@ -611,21 +686,21 @@ window.addEventListener("load", () => {
 								el: "div",
 								className: "row-body",
 								children: [
-									{
-										el: "p",
-										className: "row-desc id",
-										text: item.id,
-									},
+									// {
+									// 	el: "p",
+									// 	className: "row-desc id",
+									// 	text: item.id,
+									// },
 									{
 										el: "p",
 										className: "row-desc number",
 										text: item.Number,
 									},
-									{
-										el: "p",
-										className: "row-desc status client",
-										text: item.client,
-									},
+									// {
+									// 	el: "p",
+									// 	className: "row-desc status client",
+									// 	text: item.client,
+									// },
 									{
 										el: "p",
 										className: "row-desc status",
@@ -656,6 +731,10 @@ window.addEventListener("load", () => {
 			let orderWraper = get.elements({ el: "div", className: "order-wraper" });
 			if (data.length > 0) {
 				data.forEach((item) => {
+					storage.address({
+						article: item.articleAndPlace.article,
+						place: item.articleAndPlace.place,
+					});
 					let orderItem = get.elements({
 						el: "div",
 						className: "order-item",
@@ -672,7 +751,7 @@ window.addEventListener("load", () => {
 								children: [
 									{
 										el: "p",
-										className: "order-article",
+										className: "order-article success",
 										children: [
 											{
 												el: "span",
@@ -707,8 +786,8 @@ window.addEventListener("load", () => {
 				el: "div",
 				className: "compare-wraper",
 			});
-			if (storage.compareArray.length > 0) {
-				storage.compareArray.forEach((item, index) => {
+			if (storage.data.compareArray.length > 0) {
+				storage.data.compareArray.forEach((item, index) => {
 					console.log(item);
 					let difference =
 						item.realCount -
@@ -793,8 +872,7 @@ window.addEventListener("load", () => {
 											e.currentTarget.textContent = "Оброблено";
 											e.currentTarget.parentNode.parentNode.style.backgroundColor =
 												"#c2edc2";
-											storage.compareArray[index].isProcesed = true;
-											updateStorage();
+											storage.data.compareArray[index].isProcesed = true;
 										},
 									},
 								],
@@ -809,9 +887,9 @@ window.addEventListener("load", () => {
 			return generate.message("Немає розбіжностей!!!");
 		},
 		list: function () {
-			if (storage.listArray.length > 0) {
+			if (storage.data.listArray.length > 0) {
 				let listWraper = get.elements({ el: "div", className: "list-wraper" });
-				storage.listArray.forEach((item, index) => {
+				storage.data.listArray.forEach((item, index) => {
 					let isProcesedText = "Обробити",
 						isProcesedClass = ``;
 					if (item.isProcesed) {
@@ -877,8 +955,7 @@ window.addEventListener("load", () => {
 											e.currentTarget.textContent = "Оброблено";
 											e.currentTarget.parentNode.parentNode.style.backgroundColor =
 												"#c2edc2";
-											storage.listArray[index].isProcesed = true;
-											updateStorage();
+											storage.data.listArray[index].isProcesed = true;
 										},
 									},
 								],
@@ -894,7 +971,11 @@ window.addEventListener("load", () => {
 		search: function (data) {
 			generate.preloader({ status: "end" });
 			if (data.length > 0) {
+				let searchInp = document.querySelector(".search-inp").value;
 				data.forEach((item) => {
+					if (searchInp !== "" && searchInp.match(regExp.cell)) {
+						storage.address({ article: item.article, cell: searchInp });
+					}
 					let searchItem = get.elements({
 						el: "div",
 						className: "item-wraper",
@@ -957,12 +1038,11 @@ window.addEventListener("load", () => {
 										hendler: function (e) {
 											item.isProcesed = false;
 											item.addingDate = get.date();
-											if (storage.listArray.includes(item)) {
+											if (storage.data.listArray.includes(item)) {
 												alert("Такий товар вже в списку");
 												return;
 											}
-											storage.listArray.push(item);
-											updateStorage();
+											storage.data.listArray.push(item);
 											drawButtonsCount();
 										},
 									},
@@ -1004,7 +1084,7 @@ window.addEventListener("load", () => {
 															alert("Введи коректну відповідь");
 															return;
 														}
-														if (storage.compareArray.includes(item)) {
+														if (storage.data.compareArray.includes(item)) {
 															alert("Такий товар вже в списку");
 															return;
 														}
@@ -1017,9 +1097,9 @@ window.addEventListener("load", () => {
 														item.goodsReserve = get.goodsCount(
 															item.count
 														).orderCount;
-														storage.compareArray.push(item);
+														storage.data.compareArray.push(item);
 														wraper.style.backgroundColor = "#fbc8c8";
-														updateStorage();
+
 														drawButtonsCount();
 													}
 													compareInp.classList.toggle("visible-inp");
@@ -1119,12 +1199,17 @@ window.addEventListener("load", () => {
 		},
 		elaborations: function (data) {
 			generate.preloader({ status: "end" });
+
 			if (data.length > 0) {
 				let elaborationWraper = get.elements({
 					el: "div",
 					className: "elaboration-wraper",
 				});
 				data.forEach((item) => {
+					storage.address({
+						article: get.elaborationArtice(item.positionName),
+						place: item.place,
+					});
 					console.log(item);
 					let isReserve = "success",
 						isSmallCount = "success";
@@ -1361,24 +1446,6 @@ window.addEventListener("load", () => {
 	let regexNumber = /№(\d+)/;
 	let regexCell = new RegExp("cell", "gi");
 
-	if (storage == null) {
-		localStorage.setItem(
-			"storage",
-			JSON.stringify({
-				listArray: [],
-				compareArray: [],
-				addresses: {},
-			})
-		);
-		storage = JSON.parse(localStorage.getItem("storage"));
-	} else {
-		storage = JSON.parse(localStorage.getItem("storage"));
-	}
-	// Global functions
-
-	function updateStorage() {
-		localStorage.setItem("storage", JSON.stringify(storage));
-	}
 	function logOut() {
 		document.cookie = "login=null";
 		document.cookie = "hash=null";
@@ -1789,14 +1856,13 @@ window.addEventListener("load", () => {
 		removeItem: function () {
 			let article = this.dataset.article;
 			let arr = this.dataset.arr;
-			storage[arr].forEach((item, index) => {
+			storage.data[arr].forEach((item, index) => {
 				console.log(item.article, article);
 				if (item.article === article) {
-					storage[arr].splice(index, 1);
+					storage.data[arr].splice(index, 1);
 				}
 			});
-			updateStorage();
-			let parent = this.parentElement.remove();
+			this.parentElement.remove();
 		},
 		generateList: function () {
 			contentWraper.innerHTML = "";
@@ -1990,13 +2056,15 @@ window.addEventListener("load", () => {
 		let compareCount = 0;
 		let listBtnCount = document.querySelector(".list-count");
 		let compareBtnCount = document.querySelector(".compare-count");
-		if (storage == null) return;
-		storage.listArray.forEach((item) => {
+		if (storage.data == null) return;
+		if (storage.data.listArray.length === 0) return;
+		storage.data.listArray.forEach((item) => {
 			if (!item.isProcesed) {
 				listCount++;
 			}
 		});
-		storage.compareArray.forEach((item) => {
+		if (storage.data.compareArray.length === 0) return;
+		storage.data.compareArray.forEach((item) => {
 			if (!item.isProcesed) {
 				compareCount++;
 			}

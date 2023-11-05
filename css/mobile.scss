@@ -528,16 +528,33 @@ body {
 			justify-content: flex-start;
 			align-items: center;
 		}
-
+		.row-footer > .order-wraper > .order-item {
+			font-family: sans-serif;
+			font-size: 14px;
+			display: flex;
+			justify-content: flex-start;
+			align-items: flex-start;
+			padding: 5px;
+			.text-wraper {
+				padding-left: 10px;
+				width: 90%;
+				.order-article {
+					display: flex;
+					justify-content: space-between;
+					border-radius: 2px;
+					padding: 5px;
+				}
+			}
+		}
 		border: 2px solid #4c5769;
 		background-color: #fff;
 		.row-desc {
 			font-family: sans-serif;
-			font-size: 14px;
-			text-transform: uppercase;
+			font-size: 12px;
+
 			font-weight: 400;
 			border-right: 2px #4c5769;
-			padding: 5px;
+			padding: 2px;
 			transition: 0.4s;
 			&:active {
 				transform: scale(0.9);
