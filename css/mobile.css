@@ -497,6 +497,9 @@ body {
   border-radius: 2px;
   padding: 5px;
 }
+.orders-wraper .order-row .row-footer > .order-wraper > .order-item .position-quality {
+  padding: 5px 10px;
+}
 .orders-wraper .order-row .row-desc {
   font-family: sans-serif;
   font-size: 12px;

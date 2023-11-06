@@ -68,9 +68,6 @@ window.addEventListener("load", () => {
 				set: function (target, key, value) {
 					target[key] = value;
 					storage.save();
-					console.log(
-						`Змінено: storage.data.${key} = ${JSON.stringify(value)}`
-					);
 					return true;
 				},
 			});
@@ -89,6 +86,7 @@ window.addEventListener("load", () => {
 		reserve: "https://baza.m-p.in.ua/ajax/podrRezerv.php",
 		deliveries: "https://baza.m-p.in.ua/ajax/prihod1.php",
 		sales: "https://baza.m-p.in.ua/ajax/podrSales.php",
+		production: "https://baza.m-p.in.ua/ajax/ourGoods.php",
 	};
 	//regulars expression
 	let regExp = {
@@ -295,7 +293,6 @@ window.addEventListener("load", () => {
 		},
 	};
 
-	console.log(storage.data);
 	// creating and adding new elements to DOM
 	let contentWraper = get.elements({ el: "div", className: "wraper" });
 	let searchWraper = get.elements({
@@ -409,6 +406,12 @@ window.addEventListener("load", () => {
 					contentWraper.removeChild(element);
 				}
 			}
+		},
+		production: function (data) {
+			console.log(data);
+			return get.elements({
+				el: "div",
+			});
 		},
 		reserve: function (data) {
 			if (data.length > 0) {
@@ -769,6 +772,11 @@ window.addEventListener("load", () => {
 										el: "p",
 										className: "position-name",
 										text: item.positionName,
+									},
+									{
+										el: "p",
+										className: "position-quality success",
+										text: item.quality,
 									},
 								],
 							},
@@ -1747,12 +1755,19 @@ window.addEventListener("load", () => {
 			rows.shift();
 			rows.forEach((item) => {
 				let td = Array.from(item.querySelectorAll("td"));
+				let quality;
 
 				if (td.length > 7) {
 					td.shift();
 				}
 
 				if (td.length > 5) {
+					console.log(td[5]);
+					if (td[4].querySelector("input")) {
+						quality = td[4].querySelector("input[type='text']").value;
+					} else {
+						quality = td[4].textContent;
+					}
 					let checkStyle = td[0].getAttribute("style");
 
 					if (checkStyle.includes("background-color:#d7cafb;")) {
@@ -1768,6 +1783,7 @@ window.addEventListener("load", () => {
 					rowData.articleAndPlace = get.articleAndPlacement(
 						td[3].textContent.trim()
 					);
+					rowData.quality = quality.trim();
 					rowData.price = td[5].textContent.trim();
 					this.storage.push(rowData);
 				}
@@ -1775,9 +1791,31 @@ window.addEventListener("load", () => {
 			console.log(this.storage);
 			return this.storage;
 		},
-		production: async function (data) {
+		production: async function () {
 			this.storage = [];
-			return;
+			const production = await this.fetch({
+				url: url.production,
+				method: "POST",
+			});
+			let table = production.querySelector("table tbody");
+
+			let rows = Array.from(table.children);
+			rows.shift();
+			console.log(rows, table.children);
+			rows.forEach((item, index) => {
+				let rowData = {};
+				let table = item.querySelector("table");
+				if (table) {
+					let th = Array.from(rows[index - 1].querySelectorAll("td"));
+					let td = Array.from(rows[index].querySelectorAll("td"));
+					rowData.id = th[1].textContent;
+					rowData.name = th[2].textContent;
+					rowData.article = th[3].textContent;
+					rowData.img = td[0].querySelector("img").src;
+					console.log(rowData);
+				}
+				console.log(table);
+			});
 		},
 		elaborations: async function (data) {
 			this.storage = [];
@@ -1850,7 +1888,6 @@ window.addEventListener("load", () => {
 			return this.storage;
 		},
 		question: async function (data) {},
-		production: async function (data) {},
 	};
 	let hendlers = {
 		removeItem: function () {
@@ -1871,6 +1908,10 @@ window.addEventListener("load", () => {
 		generateCompare: function () {
 			contentWraper.innerHTML = "";
 			contentWraper.appendChild(generate.compare());
+		},
+		production: function () {
+			generate.preloader({ status: "start" });
+			load.production();
 		},
 	};
 	function checkAnswer(e) {
@@ -2183,9 +2224,17 @@ window.addEventListener("load", () => {
 				children: [{ el: "img", src: get.url(src.ico.orders) }],
 			},
 			{
-				el: "img",
+				el: "button",
 				className: "production-btn btn",
-				src: get.url(src.ico.production),
+				event: "click",
+				hendler: hendlers.production,
+				children: [
+					{
+						el: "img",
+						src: get.url(src.ico.production),
+						alt: "Виробництво",
+					},
+				],
 			},
 			{
 				el: "button",
