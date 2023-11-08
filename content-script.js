@@ -101,7 +101,7 @@ window.addEventListener("load", () => {
 		cell: new RegExp("cell", "gi"),
 		orderPlace: /[A-Z]\d*-\d+\.\d+\.\d+/,
 		goodsCount:
-			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.)/g,
+			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.упак\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.упак\.)/g,
 	};
 	let src = {
 		ico: {
@@ -408,9 +408,75 @@ window.addEventListener("load", () => {
 			}
 		},
 		production: function (data) {
+			let descNames = [
+				"Назва",
+				"Артикул",
+				"Кількість",
+				"Наявність",
+				"Вистачає на",
+			];
 			console.log(data);
 			return get.elements({
 				el: "div",
+				className: "prduction-wraper",
+				children: [
+					{
+						el: "button",
+						className: "get-to-production-btn",
+						text: "Взяти в виробництво",
+						event: "click",
+						hendler: hendlers.getToProduction,
+					},
+					{
+						el: "div",
+						className: "production-content-wraper",
+						children: [
+							{
+								el: "p",
+								className: "production-item-head",
+								text: item.name,
+							},
+							{
+								el: "div",
+								className: "flex-container",
+								children: [
+									{
+										el: "img",
+										src: item.img,
+										className: "prodction-item-img",
+									},
+									{
+										el: "div",
+										className: "text-wraper",
+										children: item.components.map((component, index) => {
+											return get.elements({
+												el: "div",
+												className: "component-wraper",
+												children: [
+													{
+														el: "p",
+														className: "component-desc desc",
+														text: descNames[index],
+													},
+													{
+														el: "p",
+														className: "component-desc desc",
+														text: component,
+													},
+													{
+														el: "button",
+														className: "collect-btn",
+														text: "Взяти",
+													},
+												],
+											});
+										}),
+									},
+								],
+							},
+						],
+					},
+				],
 			});
 		},
 		reserve: function (data) {
@@ -801,6 +867,11 @@ window.addEventListener("load", () => {
 						item.realCount -
 						(get.goodsCount(item.count).baseCount +
 							get.goodsCount(item.count).orderCount);
+					let isProcesed = { text: "Обробити" };
+					if (item.isProcesed) {
+						isProcesed.class = "success";
+						isProcesed.text = "Оброблено";
+					}
 					function drawDifference() {
 						if (difference <= 0) {
 							return { backgroundColor: "rgb(253, 184, 184)" };
@@ -811,7 +882,7 @@ window.addEventListener("load", () => {
 					}
 					let compareItem = get.elements({
 						el: "div",
-						className: "compare-item",
+						className: `compare-item ${isProcesed.class}`,
 						style: drawDifference(),
 						children: [
 							{
@@ -873,15 +944,10 @@ window.addEventListener("load", () => {
 									{
 										el: "button",
 										className: "procesed-btn",
-										text: "Обробити",
-										dataId: item.id,
+										text: isProcesed.text,
+										data: [{ index: index }, { arr: "compareArray" }],
 										event: "click",
-										hendler: function (e) {
-											e.currentTarget.textContent = "Оброблено";
-											e.currentTarget.parentNode.parentNode.style.backgroundColor =
-												"#c2edc2";
-											storage.data.compareArray[index].isProcesed = true;
-										},
+										hendler: hendlers.procesed,
 									},
 								],
 							},
@@ -957,14 +1023,9 @@ window.addEventListener("load", () => {
 										el: "button",
 										className: "procesed-btn",
 										text: isProcesedText,
-										data: [{ dataId: item.id }],
+										data: [{ index: index }, { arr: "listArray" }],
 										event: "click",
-										hendler: function (e) {
-											e.currentTarget.textContent = "Оброблено";
-											e.currentTarget.parentNode.parentNode.style.backgroundColor =
-												"#c2edc2";
-											storage.data.listArray[index].isProcesed = true;
-										},
+										hendler: hendlers.procesed,
 									},
 								],
 							},
@@ -993,6 +1054,13 @@ window.addEventListener("load", () => {
 								el: "div",
 								className: "item-header",
 								text: `ID: ${item.id} | Артикул: ${item.article}`,
+							},
+							{
+								el: "input",
+								type: "checkbox",
+								className: "status-check",
+								event: "click",
+								hendler: hendlers.check,
 							},
 							{
 								el: "div",
@@ -1207,7 +1275,6 @@ window.addEventListener("load", () => {
 		},
 		elaborations: function (data) {
 			generate.preloader({ status: "end" });
-
 			if (data.length > 0) {
 				let elaborationWraper = get.elements({
 					el: "div",
@@ -1890,6 +1957,12 @@ window.addEventListener("load", () => {
 		question: async function (data) {},
 	};
 	let hendlers = {
+		check: function () {
+			let parentEl = this.parentElement;
+			parentEl.classList.toggle("success");
+			parentEl.parentNode.appendChild(parentEl);
+			parentEl.remove();
+		},
 		removeItem: function () {
 			let article = this.dataset.article;
 			let arr = this.dataset.arr;
@@ -1900,7 +1973,9 @@ window.addEventListener("load", () => {
 				}
 			});
 			this.parentElement.remove();
+			drawButtonsCount();
 		},
+		getToProduction: function () {},
 		generateList: function () {
 			contentWraper.innerHTML = "";
 			contentWraper.appendChild(generate.list());
@@ -1908,6 +1983,18 @@ window.addEventListener("load", () => {
 		generateCompare: function () {
 			contentWraper.innerHTML = "";
 			contentWraper.appendChild(generate.compare());
+		},
+		procesed: function () {
+			let itemWraper = this.parentNode.parentNode;
+			let arr = this.dataset.arr;
+			let index = this.data.index;
+			this.textContent = "Оброблено";
+			this.parentNode.parentNode.style.backgroundColor = "#c2edc2";
+			storage.data[arr][index].isProcesed = true;
+			storage.data[arr].push(storage.data[arr][index]);
+			storage.data[arr].splice(index, 1);
+			itemWraper.parentNode.appendChild(itemWraper);
+			itemWraper.remove();
 		},
 		production: function () {
 			generate.preloader({ status: "start" });
