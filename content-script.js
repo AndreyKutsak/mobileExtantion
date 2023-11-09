@@ -408,76 +408,82 @@ window.addEventListener("load", () => {
 			}
 		},
 		production: function (data) {
-			let descNames = [
-				"Назва",
-				"Артикул",
-				"Кількість",
-				"Наявність",
-				"Вистачає на",
-			];
-			console.log(data);
-			return get.elements({
-				el: "div",
-				className: "prduction-wraper",
-				children: [
-					{
-						el: "button",
-						className: "get-to-production-btn",
-						text: "Взяти в виробництво",
-						event: "click",
-						hendler: hendlers.getToProduction,
-					},
-					{
+			if (data.length > 0) {
+				let descNames = [
+					"Назва",
+					"Місце",
+					"Артикул",
+					"Кількість",
+					"Наявність",
+					"Вистачає на",
+				];
+				let prodctionWraper = get.elements({
+					el: "div",
+					className: "production-wraper",
+				});
+				data.forEach((item) => {
+					console.log(item);
+					let prodItem = get.elements({
 						el: "div",
-						className: "production-content-wraper",
+						className: "prduction-wraper",
 						children: [
 							{
-								el: "p",
-								className: "production-item-head",
-								text: item.name,
+								el: "button",
+								className: "get-to-production-btn",
+								text: "Взяти в виробництво",
+								event: "click",
+								hendler: hendlers.getToProduction,
 							},
 							{
 								el: "div",
-								className: "flex-container",
+								className: "production-content-wraper",
 								children: [
 									{
-										el: "img",
-										src: item.img,
-										className: "prodction-item-img",
+										el: "p",
+										className: "production-item-head",
+										text: item.name,
 									},
 									{
 										el: "div",
-										className: "text-wraper",
-										children: item.components.map((component, index) => {
-											return get.elements({
+										className: "flex-container",
+										children: [
+											{
+												el: "img",
+												src: item.img,
+												className: "prodction-item-img",
+											},
+											{
 												el: "div",
-												className: "component-wraper",
-												children: [
-													{
-														el: "p",
-														className: "component-desc desc",
-														text: descNames[index],
-													},
-													{
-														el: "p",
-														className: "component-desc desc",
-														text: component,
-													},
-													{
-														el: "button",
-														className: "collect-btn",
-														text: "Взяти",
-													},
-												],
-											});
-										}),
+												className: "text-wraper",
+
+												children: Object.values(item.components).map((part) => {
+													return {
+														el: "div",
+														className: "component-wraper",
+														children: Object.values(part).map((desc, index) => {
+															console.log(descNames[index], desc);
+															return {
+																el: "p",
+																className: "desc",
+																text: `${descNames[index]}: ${desc}`,
+															};
+														}),
+													};
+												}),
+											},
+										],
 									},
 								],
 							},
 						],
-					},
-				],
-			});
+					});
+					prodctionWraper.appendChild(prodItem);
+				});
+
+				return prodctionWraper;
+			} else {
+				return generate.message("Немає виробництва.");
+			}
 		},
 		reserve: function (data) {
 			if (data.length > 0) {
@@ -945,7 +951,7 @@ window.addEventListener("load", () => {
 										el: "button",
 										className: "procesed-btn",
 										text: isProcesed.text,
-										data: [{ index: index }, { arr: "compareArray" }],
+										data: [{ id: item.id }, { arr: "compareArray" }],
 										event: "click",
 										hendler: hendlers.procesed,
 									},
@@ -1023,7 +1029,7 @@ window.addEventListener("load", () => {
 										el: "button",
 										className: "procesed-btn",
 										text: isProcesedText,
-										data: [{ index: index }, { arr: "listArray" }],
+										data: [{ id: item.id }, { arr: "listArray" }],
 										event: "click",
 										hendler: hendlers.procesed,
 									},
@@ -1118,7 +1124,7 @@ window.addEventListener("load", () => {
 												alert("Такий товар вже в списку");
 												return;
 											}
-											storage.data.listArray.push(item);
+											storage.data.listArray.unshift(item);
 											drawButtonsCount();
 										},
 									},
@@ -1173,7 +1179,7 @@ window.addEventListener("load", () => {
 														item.goodsReserve = get.goodsCount(
 															item.count
 														).orderCount;
-														storage.data.compareArray.push(item);
+														storage.data.compareArray.unshift(item);
 														wraper.style.backgroundColor = "#fbc8c8";
 
 														drawButtonsCount();
@@ -1864,7 +1870,7 @@ window.addEventListener("load", () => {
 				url: url.production,
 				method: "POST",
 			});
-			let table = document.querySelector("table tbody");
+			let table = production.querySelector("table tbody");
 
 			let rows = Array.from(table.children);
 			rows.shift();
@@ -1888,16 +1894,19 @@ window.addEventListener("load", () => {
 						let componentData = Array.from(item.querySelectorAll("td"));
 						componentData.shift();
 						obj.name = componentData[0].textContent.trim();
+						obj.place =
+							storage.data.addresses[componentData[1].textContent.trim()]
+								?.place ?? "Ще не збережено";
 						obj.article = componentData[1].textContent.trim();
 						obj.count = componentData[3].textContent.trim();
 						obj.availability = componentData[5].textContent.trim();
 						obj.enough = componentData[6].textContent.trim();
 						return obj;
 					});
-
-					console.log(rowData);
+					this.storage.push(rowData);
 				}
 			});
+			return this.storage;
 		},
 		elaborations: async function (data) {
 			this.storage = [];
@@ -1976,7 +1985,6 @@ window.addEventListener("load", () => {
 			let parentEl = this.parentElement;
 			parentEl.classList.toggle("success");
 			parentEl.parentNode.appendChild(parentEl);
-			parentEl.remove();
 		},
 		removeItem: function () {
 			let article = this.dataset.article;
@@ -2002,18 +2010,26 @@ window.addEventListener("load", () => {
 		procesed: function () {
 			let itemWraper = this.parentNode.parentNode;
 			let arr = this.dataset.arr;
-			let index = this.data.index;
+			let id = this.dataset.id;
 			this.textContent = "Оброблено";
 			this.parentNode.parentNode.style.backgroundColor = "#c2edc2";
-			storage.data[arr][index].isProcesed = true;
-			storage.data[arr].push(storage.data[arr][index]);
-			storage.data[arr].splice(index, 1);
+			storage.data[arr].forEach((item, index) => {
+				if (item.id === id) {
+					item.isProcesed = true;
+					storage.data[arr].push(item);
+					storage.data[arr].splice(index, 1);
+				}
+			});
+
 			itemWraper.parentNode.appendChild(itemWraper);
-			itemWraper.remove();
+			drawButtonsCount();
 		},
 		production: function () {
 			generate.preloader({ status: "start" });
-			load.production();
+			load.production().then((data) => {
+				generate.preloader({ status: "end" });
+				contentWraper.appendChild(generate.production(data));
+			});
 		},
 	};
 	function checkAnswer(e) {
