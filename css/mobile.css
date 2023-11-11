@@ -590,4 +590,91 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   text-align: center;
+}
+
+.production-wraper .production-item-wraper {
+  border-radius: 5px;
+  border: 1px solid #4c5769;
+  background-color: #fff;
+  margin-bottom: 30px;
+  padding: 10px 5px;
+}
+.production-wraper .production-item-wraper .item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  margin-bottom: 15px;
+}
+.production-wraper .production-item-wraper .item-head .get-to-production-btn {
+  font-family: sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 2px;
+  padding: 5px 10px;
+  transition: 0.4s;
+  background-color: #1cc879;
+  color: #fff;
+  transition: 0.4s;
+}
+.production-wraper .production-item-wraper .item-head .get-to-production-btn:active {
+  transform: scale(0.9);
+}
+.production-wraper .production-item-wraper .item-head .item-input {
+  max-width: 80px;
+  border: none;
+  border-radius: 2px;
+  outline: none;
+  border: 2px solid #4c5769;
+  border-radius: 2px;
+}
+.production-wraper .production-item-wraper .production-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #323b4f;
+}
+.production-wraper .production-item-wraper .production-item-head .item-article {
+  background-color: #db7171;
+  padding: 5px 10px;
+  border-radius: 2px;
+}
+.production-wraper .production-item-wraper .flex-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+.production-wraper .production-item-wraper .flex-container .text-wraper {
+  min-width: 60%;
+}
+.production-wraper .production-item-wraper .flex-container .text-wraper .component-wraper {
+  border-bottom: 2px solid #4c5769;
+  margin-bottom: 10px;
+  padding: 5px 10px;
+}
+.production-wraper .production-item-wraper .flex-container .text-wraper .component-wraper .desc {
+  font-family: sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #323b4f;
+}
+.production-wraper .production-item-wraper .flex-container .text-wraper .component-wraper .add-btn {
+  font-family: sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 2px;
+  padding: 5px 10px;
+  transition: 0.4s;
+  background-color: #1cc879;
+  color: #fff;
+}
+.production-wraper .production-item-wraper .flex-container .text-wraper .component-wraper .add-btn:active {
+  transform: scale(0.9);
 }/*# sourceMappingURL=mobile.css.map */

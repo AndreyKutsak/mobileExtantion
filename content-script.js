@@ -26,6 +26,9 @@ window.addEventListener("load", () => {
 					questions: [],
 					elaborations: [],
 					addresses: {},
+					history: [],
+					production: [],
+					settings: {},
 				};
 				this.data = this.observe(this.data);
 				this.save();
@@ -425,15 +428,30 @@ window.addEventListener("load", () => {
 					console.log(item);
 					let prodItem = get.elements({
 						el: "div",
-						className: "prduction-wraper",
+						className: "production-item-wraper",
 						children: [
 							{
-								el: "button",
-								className: "get-to-production-btn",
-								text: "Взяти в виробництво",
-								event: "click",
-								hendler: hendlers.getToProduction,
+								el: "div",
+								className: "item-head",
+								children: [
+									{
+										el: "button",
+										className: "get-to-production-btn",
+										text: "Взяти в виробництво",
+										event: "click",
+										data: [{ id: item.id }],
+										hendler: hendlers.getToProduction,
+									},
+
+									{
+										el: "input",
+										type: "number",
+										className: "item-input",
+										placeholder: "Кількість",
+									},
+								],
 							},
+
 							{
 								el: "div",
 								className: "production-content-wraper",
@@ -442,6 +460,13 @@ window.addEventListener("load", () => {
 										el: "p",
 										className: "production-item-head",
 										text: item.name,
+										children: [
+											{
+												el: "span",
+												className: "component-item-article",
+												text: item.article,
+											},
+										],
 									},
 									{
 										el: "div",
@@ -460,14 +485,22 @@ window.addEventListener("load", () => {
 													return {
 														el: "div",
 														className: "component-wraper",
-														children: Object.values(part).map((desc, index) => {
-															console.log(descNames[index], desc);
-															return {
-																el: "p",
-																className: "desc",
-																text: `${descNames[index]}: ${desc}`,
-															};
-														}),
+														children: Object.values(part)
+															.map((desc, index) => {
+																console.log(descNames[index], desc);
+																return {
+																	el: "p",
+																	className: "desc",
+																	text: `${descNames[index]}: ${desc}`,
+																};
+															})
+															.concat({
+																el: "button",
+																className: "add-btn",
+																text: "Взяти",
+																event: "click",
+																hendler: hendlers.addToList,
+															}),
 													};
 												}),
 											},
@@ -1887,6 +1920,9 @@ window.addEventListener("load", () => {
 					componentRows.pop();
 					rowData.id = th[1].textContent;
 					rowData.name = th[2].textContent;
+					rowData.place =
+						storage.data.addresses[th[3].textContent]?.place ??
+						"Ще не збережено";
 					rowData.article = th[3].textContent;
 					rowData.img = td[0].querySelector("img").src;
 					rowData.components = componentRows.map((item) => {
@@ -1998,7 +2034,24 @@ window.addEventListener("load", () => {
 			this.parentElement.remove();
 			drawButtonsCount();
 		},
-		getToProduction: function () {},
+		getToProduction: function () {
+			console.log(this);
+			let parent = this.parentNode.parentNode;
+			let id = this.dataset.id;
+			let count = this.parentNode.querySelector(".item-input");
+			if (count.value == "") {
+				alert("Введіть кількість");
+				return;
+			}
+			if (count.value == "0") {
+				alert("Введіть кількість більше нуля");
+				return;
+			}
+			storage.data.production.push({ id: id, count: count.value });
+			count.disabled = true;
+			parent.classList.add("danger");
+			parent.parentNode.prepend(parent);
+		},
 		generateList: function () {
 			contentWraper.innerHTML = "";
 			contentWraper.appendChild(generate.list());
@@ -2030,6 +2083,10 @@ window.addEventListener("load", () => {
 				generate.preloader({ status: "end" });
 				contentWraper.appendChild(generate.production(data));
 			});
+		},
+		addToList: function () {
+			this.textContent = "Взято";
+			this.parentNode.classList.add("success");
 		},
 	};
 	function checkAnswer(e) {
