@@ -1308,7 +1308,11 @@ window.addEventListener("load", () => {
 							{
 								el: "div",
 								className: "item-header",
-								text: `ID: ${item.id} | Артикул: ${item.article}`,
+								text: `ID: ${item.id} | Артикул: ${item.article} | Місце:${
+									storage.data.addresses[item.article].place ?? "Не збережено"
+								} | Cell: ${
+									storage.data.addresses[item.article].cell ?? "Не збережено"
+								}`,
 							},
 							{
 								el: "input",
