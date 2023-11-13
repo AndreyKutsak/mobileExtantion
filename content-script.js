@@ -99,12 +99,12 @@ window.addEventListener("load", () => {
 		elaborationArticle: /\((\d+(\.\d+)*)\)$/,
 		orderArticle: /\d+\.\d+\.\d+/,
 		number: /№(\d+)/,
-
+		num: /\d+/,
 		sentence: /[^\\n]+(?=\\n|$)/g,
 		cell: new RegExp("cell", "gi"),
 		orderPlace: /[A-Z]\d*-\d+\.\d+\.\d+/,
 		goodsCount:
-			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.упак\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.упак\.)/g,
+			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.)/g,
 	};
 	let src = {
 		ico: {
@@ -190,9 +190,7 @@ window.addEventListener("load", () => {
 			return null;
 		},
 		num: function (data) {
-			const regex = /\d+/;
-			const matches = data.match(regex);
-
+			const matches = data.match(regExp.num);
 			if (matches && matches.length > 0) {
 				return parseInt(matches[0], 10);
 			}
@@ -295,7 +293,227 @@ window.addEventListener("load", () => {
 			return convertedData || false;
 		},
 	};
+	let hendlers = {
+		check: function () {
+			let parentEl = this.parentElement;
+			parentEl.classList.toggle("success");
+			parentEl.parentNode.appendChild(parentEl);
+		},
+		removeItem: function () {
+			let article = this.dataset.article;
+			let arr = this.dataset.arr;
+			storage.data[arr].forEach((item, index) => {
+				console.log(item.article, article);
+				if (item.article === article) {
+					storage.data[arr].splice(index, 1);
+				}
+			});
+			this.parentElement.remove();
+			generate.tasksCount();
+		},
+		getToProduction: function () {
+			console.log(this);
+			let parent = this.parentNode.parentNode;
+			let id = this.dataset.id;
+			let count = this.parentNode.querySelector(".item-input");
+			if (count.value == "") {
+				alert("Введіть кількість");
+				return;
+			}
+			if (count.value == "0") {
+				alert("Введіть кількість більше нуля");
+				return;
+			}
+			storage.data.production.push({
+				id: id,
+				count: count.value,
+				isProcesed: false,
+			});
+			count.disabled = true;
+			parent.classList.add("danger");
+			parent.parentNode.prepend(parent);
+			generate.tasksCount();
+		},
+		generateList: function () {
+			contentWraper.innerHTML = "";
+			contentWraper.appendChild(generate.list());
+		},
+		generateCompare: function () {
+			contentWraper.innerHTML = "";
+			contentWraper.appendChild(generate.compare());
+		},
+		procesed: function () {
+			let itemWraper = this.parentNode.parentNode;
+			let arr = this.dataset.arr;
+			let id = this.dataset.id;
+			this.textContent = "Оброблено";
+			this.parentNode.parentNode.style.backgroundColor = "#c2edc2";
+			storage.data[arr].forEach((item, index) => {
+				if (item.id === id) {
+					item.isProcesed = true;
+					storage.data[arr].push(item);
+					storage.data[arr].splice(index, 1);
+				}
+			});
 
+			itemWraper.parentNode.appendChild(itemWraper);
+			generate.tasksCount();
+		},
+		production: function () {
+			generate.preloader({ status: "start" });
+			load.production().then((data) => {
+				generate.preloader({ status: "end" });
+				contentWraper.appendChild(generate.production(data));
+			});
+		},
+		addToList: function () {
+			this.textContent = "Взято";
+			this.parentNode.classList.add("success");
+		},
+		showImage: function (e) {
+			e.preventDefault();
+			let imgURL = e.currentTarget.getAttribute("href");
+			let image = get.elements({
+				el: "div",
+				className: "img-wraper",
+				event: "click",
+				hendler: function (e) {
+					if (e.srcElement.classList.contains("img-wraper")) {
+						image.remove();
+					}
+				},
+				children: [
+					{
+						el: "img",
+						src: `https://baza.m-p.in.ua${imgURL}`,
+					},
+				],
+			});
+			contentWraper.appendChild(image);
+		},
+		sendQuestion: function () {
+			let area = this.parentNode.parentNode.querySelector("textarea");
+			if (area.value.length == 0) {
+				alert("Введи відповідь");
+				return;
+			}
+			load
+				.fetch({
+					url: url.addAnswer,
+					method: "POST",
+					body: area.value,
+				})
+				.then((result) => {
+					if (result == "ok") {
+						area.remove();
+						this.remove();
+					} else {
+						alert("Помилка Щсь пішло не так!!");
+					}
+				})
+				.catch((err) => {
+					connsole.log(err);
+				});
+		},
+		checkAnswer: function () {
+			let answer = this.value;
+			let count = Number(this.dataset.count);
+			console.log(answer, count, this);
+			if (get.num(answer) > count) {
+				this.parentNode.parentNode.classList.add("warn");
+				alert("Перевір ще раз,І не забудь вказати лишки в пересорт");
+			}
+			if (get.num(answer) < count) {
+				this.parentNode.parentNode.classList.add("danger");
+			}
+			if (get.num(answer) === count) {
+				this.parentNode.parentNode.classList.remove("warn");
+				this.parentNode.parentNode.classList.remove("danger");
+			}
+			if (answer == "") {
+				this.parentNode.parentNode.classList.remove("warn");
+				this.parentNode.parentNode.classList.remove("danger");
+			}
+		},
+		addElaborationAnswer: function () {
+			let order = this.dataset.order;
+			let elaborationInp = this.parentNode.querySelector("input");
+			let count = Number(elaborationInp.value);
+			if (elaborationInp.value === "") {
+				alert("Введи коректну відповідь!");
+				return;
+			}
+			if (count > Number(getNum(elaborationInp.value))) {
+				let isSend = confirm(
+					"Введена кількість менша від кількості в базі. ТОчно відправити данні?"
+				);
+				if (!isSend) return false;
+			}
+			load
+				.fetch({
+					url: url.addElaboration,
+					method: "POST",
+					body: { text: elaborationInp.value, id: order },
+				})
+				.then((result) => {
+					if (result === "ok") {
+						this.parentNode.parentNode.classList.add("success");
+						elaborationInp.remove();
+						this.remove();
+						generate.requestCount();
+					} else {
+						alert("Помилка Щсь пішло не так!!");
+					}
+				});
+		},
+		search: function () {
+			let input = this.parentNode.querySelector(".search-inp");
+			let wrapper = document.querySelector(".wraper");
+			if (input.value.length < 2) {
+				alert("Довжина пошукового запиту має бути 2-х символів");
+				return;
+			}
+			let isOrder = wrapper.querySelector(".orders-wraper");
+			let isProduction = wrapper.querySelector(".production-wraper");
+			generate.preloader({ status: "start" });
+			if (isOrder) {
+				load.orders({ text: input.value }).then((data) => {
+					wrapper.appendChild(generate.orders(data));
+				});
+				return;
+			}
+			if (isProduction) {
+				return;
+			}
+			let search_sell = 0;
+			let result = load.search({
+				search: String(input.value),
+				search_sell: search_sell,
+			});
+			result.then((data) => {
+				generate.search(data);
+			});
+		},
+		productionSearch: function () {
+			let input = this.parentNode.querySelector(".search-inp");
+			let wrapper = document.querySelector(".wraper");
+			let isProduction = wrapper.querySelector(".production-wraper");
+
+			if (isProduction) {
+				let productionsItems = Array.from(
+					isProduction.querySelectorAll(".production-item-wraper")
+				);
+				productionsItems.forEach((item) => {
+					let article = item.querySelector(".component-item-article");
+					if (!article.textContent.includes(input.value)) {
+						item.style.display = "none";
+					} else {
+						item.style.display = "block";
+					}
+				});
+			}
+		},
+	};
 	// creating and adding new elements to DOM
 	let contentWraper = get.elements({ el: "div", className: "wraper" });
 	let searchWraper = get.elements({
@@ -310,6 +528,8 @@ window.addEventListener("load", () => {
 						el: "input",
 						type: "text",
 						className: "search-inp",
+						event: "input",
+						hendler: hendlers.productionSearch,
 						placeholder: "Пошук",
 					},
 					{
@@ -336,25 +556,7 @@ window.addEventListener("load", () => {
 						value: "Пошук",
 						className: "search-send-btn",
 						event: "click",
-						hendler: function (e) {
-							let search_query =
-								e.currentTarget.parentElement.querySelector(
-									".search-inp"
-								).value;
-							if (search_query.length < 2) {
-								alert("Дожина пошукового запиту маєбути більше 2 символів!");
-								return;
-							}
-							generate.preloader({ status: "start" });
-							let search_sell = 0;
-							let result = load.search({
-								search: search_query,
-								search_sell: search_sell,
-							});
-							result.then((data) => {
-								generate.search(data);
-							});
-						},
+						hendler: hendlers.search,
 					},
 				],
 			},
@@ -372,10 +574,6 @@ window.addEventListener("load", () => {
 		],
 	});
 
-	let bazaURL = "https://baza.m-p.in.ua/ajax/magaz.php";
-
-	let addElaborationURL =
-		"https://baza.m-p.in.ua/ajax/addElaborationAnswer.php";
 	let questionURL = "https://baza.m-p.in.ua/ajax/loadQuestions.php";
 	let answerURL = "https://baza.m-p.in.ua/ajax/addAnswer.php";
 
@@ -423,6 +621,17 @@ window.addEventListener("load", () => {
 				let prodctionWraper = get.elements({
 					el: "div",
 					className: "production-wraper",
+				});
+				data.sort((a, b) => {
+					if (
+						!b.isProcesed &&
+						storage.data.production.find(
+							(item) => item.id === a.id && !item.isProcesed
+						)
+					) {
+						return -1;
+					}
+					return 0;
 				});
 				data.forEach((item) => {
 					console.log(item);
@@ -766,6 +975,7 @@ window.addEventListener("load", () => {
 			return generate.message("Немає Поставок.");
 		},
 		orders: function (data) {
+			generate.preloader({ status: "end" });
 			if (data.length > 0) {
 				let ordersWraper = get.elements({
 					el: "div",
@@ -777,6 +987,12 @@ window.addEventListener("load", () => {
 						className: "order-row",
 						event: "click",
 						hendler: function (e) {
+							let items = Array.from(
+								document.querySelectorAll(".row-footer .order-wraper")
+							);
+							items.forEach((item) => {
+								item.remove();
+							});
 							load.order({ id: item.id }).then((data) => {
 								let itemFooter = this.querySelector(".row-footer");
 								if (itemFooter.classList.contains("active")) {
@@ -943,7 +1159,7 @@ window.addEventListener("load", () => {
 								className: "item-image-link",
 								href: item.photoLG,
 								event: "click",
-								hendler: showImage,
+								hendler: hendlers.showImage,
 								children: [
 									{
 										el: "img",
@@ -1110,7 +1326,7 @@ window.addEventListener("load", () => {
 										className: "image-link",
 										href: item.photoLG,
 										event: "click",
-										hendler: showImage,
+										hendler: hendlers.showImage,
 										children: [
 											{
 												el: "img",
@@ -1151,14 +1367,17 @@ window.addEventListener("load", () => {
 										text: "Рознести",
 										event: "click",
 										hendler: function (e) {
-											item.isProcesed = false;
-											item.addingDate = get.date();
-											if (storage.data.listArray.includes(item)) {
+											if (
+												storage.data.listArray.some((obj) => obj.id === item.id)
+											) {
 												alert("Такий товар вже в списку");
 												return;
 											}
+											console.log(Object.values(storage.data.listArray));
+											item.isProcesed = false;
+											item.addingDate = get.date();
 											storage.data.listArray.unshift(item);
-											drawButtonsCount();
+											generate.tasksCount();
 										},
 									},
 									{
@@ -1199,7 +1418,11 @@ window.addEventListener("load", () => {
 															alert("Введи коректну відповідь");
 															return;
 														}
-														if (storage.data.compareArray.includes(item)) {
+														if (
+															storage.data.listArray.some(
+																(obj) => obj.id === item.id
+															)
+														) {
 															alert("Такий товар вже в списку");
 															return;
 														}
@@ -1215,7 +1438,7 @@ window.addEventListener("load", () => {
 														storage.data.compareArray.unshift(item);
 														wraper.style.backgroundColor = "#fbc8c8";
 
-														drawButtonsCount();
+														generate.tasksCount();
 													}
 													compareInp.classList.toggle("visible-inp");
 												},
@@ -1472,7 +1695,7 @@ window.addEventListener("load", () => {
 												className: "table-input",
 												data: [{ count: item.count.baseCount }],
 												event: "input",
-												hendler: checkAnswer,
+												hendler: hendlers.checkAnswer,
 												id: `elaborationInput${get.orderId(item.order)}`,
 											},
 											{
@@ -1480,7 +1703,7 @@ window.addEventListener("load", () => {
 												className: "send-btn",
 												event: "click",
 												data: [{ order: get.orderId(item.order) }],
-												hendler: addElaborationAnswer,
+												hendler: hendlers.addElaborationAnswer,
 												children: [
 													{
 														el: "img",
@@ -1505,7 +1728,7 @@ window.addEventListener("load", () => {
 											return {
 												el: "a",
 												event: "click",
-												hendler: showImage,
+												hendler: hendlers.showImage,
 												href: item.imageLink[index],
 												children: [{ el: "img", src: source }],
 											};
@@ -1552,10 +1775,169 @@ window.addEventListener("load", () => {
 			}
 			return generate.message("Зараз немає уточнень");
 		},
-	};
+		question: function (data) {
+			if (data.length > 0) {
+				let questionsWraper = get.elements({
+					el: "div",
+					className: "questions-wraper",
+				});
+				data.forEach((item) => {
+					questionsWraper.appendChild(
+						get.elements({
+							el: "div",
+							className: "table-wraper question",
+							children: [
+								{
+									el: "div",
+									className: "table-row",
+									children: [
+										{
+											el: "p",
+											className: "table-desc table-row",
+											text: "Товар",
+										},
+										{
+											el: "p",
+											className: "table-text question",
+											text: item.goodsDesc,
+										},
+									],
+								},
+								{
+									el: "div",
+									className: "table-row",
+									children: [
+										{
+											el: "p",
+											className: "table-desc question",
+											text: "Питання",
+										},
+										{
+											el: "p",
+											className: "table-desc",
+											text: item.question,
+										},
+									],
+								},
+								{
+									el: "div",
+									className: "table-row",
+									children: [
+										{
+											el: "p",
+											className: "table-desc",
+											text: "Додаткова інформація",
+										},
+										{
+											el: "p",
+											className: "table-text",
+											text: item.questionManager,
+										},
+									],
+								},
+								{
+									el: "div",
+									className: "table-row area-wraper",
+									children: [
+										{
+											el: "textarea",
+											className: "answer-area table-input",
+											placeholdrer: "Відповідь на питання",
+										},
+										{
+											el: "button",
+											className: "answer-btn",
+											event: "click",
+											hendler: hendlers.sendQuestion,
+											children: [
+												{
+													el: "img",
+													alt: "Відправити Відповідь.",
+													src: get.url(src.ico.send),
+												},
+											],
+										},
+									],
+								},
+							],
+						})
+					);
+				});
+			}
+			return this.message("Зараз немає питань");
+		},
+		requestCount: function () {
+			let countData = {};
+			load.requestCount().then((data) => {
+				let elaborationCounter = document.querySelector(".elabortion-count");
+				let questionCounter = document.querySelector(".question-count");
+				countData.questions = data[0].questionsCount;
+				countData.elaboration = data[0].elaborationsCount;
+				if (countData.elaboration !== null && countData.elaboration > 0) {
+					elaborationCounter.style.display = "block";
+					elaborationCounter.textContent = countData.elaboration;
+				}
+				if (countData.questions !== null && countData.questions > 0) {
+					questionCounter.style.display = "block";
+					questionCounter.textContent = countData.questions;
+				}
+			});
+		},
+		tasksCount: function () {
+			let listCount = 0,
+				compareCount = 0,
+				productionCount = 0;
 
-	let elaborationPattern = /Є уточнення: (\d+) шт\./;
-	let questionPattern = /Є питання: (\d+) шт\./;
+			if (storage.data.listArray.length > 0) {
+				storage.data.listArray.forEach((item) => {
+					console.log(item.isProcesed);
+					if (!item.isProcesed) {
+						listCount++;
+					}
+				});
+			}
+
+			if (storage.data.compareArray.length > 0) {
+				storage.data.compareArray.forEach((item) => {
+					console.log(item.isProcesed);
+					if (!item.isProcesed) {
+						compareCount++;
+					}
+				});
+			}
+
+			if (storage.data.production.length > 0) {
+				storage.data.production.forEach((item) => {
+					console.log(item.isProcesed);
+					if (!item.isProcessed) {
+						productionCount++;
+					}
+				});
+			}
+
+			if (listCount > 0) {
+				document.querySelector(".list-count").style.display = "block";
+				document.querySelector(".list-count").textContent = listCount;
+			} else {
+				document.querySelector(".list-count").style.display = "none";
+			}
+
+			if (compareCount > 0) {
+				document.querySelector(".compare-count").style.display = "block";
+				document.querySelector(".compare-count").textContent = compareCount;
+			} else {
+				document.querySelector(".compare-count").style.display = "none";
+			}
+
+			if (productionCount > 0) {
+				document.querySelector(".production-count").style.display = "block";
+				document.querySelector(".production-count").textContent =
+					productionCount;
+			} else {
+				document.querySelector(".production-count").style.display = "none";
+			}
+		},
+	};
 	let regexArticle = /\s(\d+\.\d+\.\d+)/;
 	let regexNumber = /№(\d+)/;
 	let regexCell = new RegExp("cell", "gi");
@@ -1566,59 +1948,6 @@ window.addEventListener("load", () => {
 		window.location.reload();
 	}
 
-	function showImage(e) {
-		e.preventDefault();
-		let imgURL = e.currentTarget.getAttribute("href");
-		let image = get.elements({
-			el: "div",
-			className: "img-wraper",
-			event: "click",
-			hendler: function (e) {
-				if (e.srcElement.classList.contains("img-wraper")) {
-					image.remove();
-				}
-			},
-			children: [
-				{
-					el: "img",
-					src: `https://baza.m-p.in.ua${imgURL}`,
-				},
-			],
-		});
-		contentWraper.appendChild(image);
-	}
-
-	function checkElaborations() {
-		fetch(bazaURL, {
-			method: "POST",
-		})
-			.then((res) => {
-				return res.text();
-			})
-			.then((responce) => {
-				let questionCountText = document.querySelector(".question-count");
-				let elabortionCount = document.querySelector(".elabortion-count");
-				let parserResponce = get.parser(responce);
-				let responceItems = Array.from(parserResponce.querySelectorAll("div"));
-				responceItems.forEach((item) => {
-					let elaborationResult = item.textContent.match(elaborationPattern);
-					let questionResult = item.textContent.match(questionPattern);
-					if (elaborationResult !== null) {
-						elabortionCount.innerText = elaborationResult[1];
-						elabortionCount.style.display = "block";
-					} else if (
-						elaborationResult == null ||
-						elaborationResult == undefined
-					) {
-						elabortionCount.style.display = "none";
-					}
-					if (questionResult !== null) {
-						questionCountText.innerText = questionResult[1];
-						questionCountText.style.display = "block";
-					}
-				});
-			});
-	}
 	function barcodeRecognition() {
 		let barCodeSearch = document.querySelector(".bar-code-search-btn");
 		let barcodeDisplayWraper = document.querySelector(
@@ -1654,52 +1983,11 @@ window.addEventListener("load", () => {
 		barcodeDisplayWraper.classList.remove("hide-barcode");
 		barCodeSearch.dataset.scaning = "true";
 	}
-	function addElaborationAnswer(e) {
-		let elaboration = new URLSearchParams();
-		let orderNumber = e.currentTarget.dataset.order;
-		let elaborationInp = document.getElementById(
-			`elaborationInput${orderNumber}`
-		);
-		let btn = e.currentTarget;
-		let count = Number(elaborationInp.dataset.count);
-		console.log(e, elaborationInp, orderNumber);
-		if (elaborationInp.value == "") {
-			alert("Введи коректну відповідь");
-			return false;
-		}
-		if (count > Number(getNum(elaborationInp.value))) {
-			let isSend = confirm(
-				"Введена кількість менша від кількості в базі. ТОчно відправити данні?"
-			);
-			if (!isSend) return false;
-		}
 
-		elaboration.append("text", elaborationInp.value);
-		elaboration.append("id", orderNumber);
-
-		fetch(addElaborationURL, {
-			method: "POST",
-			body: elaboration,
-		})
-			.then((res) => {
-				return res.text();
-			})
-			.then((responce) => {
-				if (responce == "ok") {
-					elaborationInp.parentNode.parentNode.classList.add("success");
-					elaborationInp.remove();
-					btn.remove();
-					checkElaborations();
-				} else alert("Помилка");
-			})
-			.catch((err) => {
-				alert("Помилка під час відправлення відповіді");
-				console.log(err);
-			});
-	}
 	let load = {
 		storage: [],
 		fetch: async function (data) {
+			console.log(data.url);
 			try {
 				const requestBody = data.body ? get.decode(data.body) : "";
 				const response = await fetch(data.url, {
@@ -1710,17 +1998,20 @@ window.addEventListener("load", () => {
 				if (!response.ok) {
 					throw new Error(`HTTP Error! Status: ${response.status}`);
 				}
-				response;
 
 				const res = await response.text();
-				const parse = get.parser(res);
-
-				return parse;
+				try {
+					return get.parser(res);
+				} catch (parseError) {
+					console.error("Parsing error:", parseError);
+					return res;
+				}
 			} catch (error) {
 				console.error("Fetch error:", error);
 				return [];
 			}
 		},
+
 		reserve: async function (data) {
 			this.storage = [];
 			const reserve = await this.fetch({
@@ -1822,11 +2113,13 @@ window.addEventListener("load", () => {
 
 			return this.storage;
 		},
-		orders: async function () {
+		orders: async function (data) {
+			console.log(data);
 			this.storage = [];
 			const orders = await this.fetch({
 				url: url.orders,
 				method: "POST",
+				body: data,
 			});
 			let rows = Array.from(orders.querySelectorAll("table tr"));
 
@@ -1944,6 +2237,30 @@ window.addEventListener("load", () => {
 			});
 			return this.storage;
 		},
+		requestCount: async function () {
+			this.storage = [];
+			let requests = { questionsCount: 0, elaborationsCount: 0 };
+			console.log(url.baza);
+			const requestCount = await this.fetch({
+				url: url.baza,
+				method: "POST",
+			});
+
+			let divs = Array.from(requestCount.querySelectorAll("div"));
+			divs.forEach((item) => {
+				let questionCount = item.textContent.match(regExp.question);
+				let elaborationsCount = item.textContent.match(regExp.elaboration);
+				if (questionCount !== null) {
+					requests.questionsCount = questionCount[1];
+				}
+				if (elaborationsCount !== null) {
+					requests.elaborationsCount = elaborationsCount[1];
+				}
+			});
+			this.storage.push(requests);
+			return this.storage;
+		},
+
 		elaborations: async function (data) {
 			this.storage = [];
 			const elaborations = await this.fetch({
@@ -2016,100 +2333,7 @@ window.addEventListener("load", () => {
 		},
 		question: async function (data) {},
 	};
-	let hendlers = {
-		check: function () {
-			let parentEl = this.parentElement;
-			parentEl.classList.toggle("success");
-			parentEl.parentNode.appendChild(parentEl);
-		},
-		removeItem: function () {
-			let article = this.dataset.article;
-			let arr = this.dataset.arr;
-			storage.data[arr].forEach((item, index) => {
-				console.log(item.article, article);
-				if (item.article === article) {
-					storage.data[arr].splice(index, 1);
-				}
-			});
-			this.parentElement.remove();
-			drawButtonsCount();
-		},
-		getToProduction: function () {
-			console.log(this);
-			let parent = this.parentNode.parentNode;
-			let id = this.dataset.id;
-			let count = this.parentNode.querySelector(".item-input");
-			if (count.value == "") {
-				alert("Введіть кількість");
-				return;
-			}
-			if (count.value == "0") {
-				alert("Введіть кількість більше нуля");
-				return;
-			}
-			storage.data.production.push({ id: id, count: count.value });
-			count.disabled = true;
-			parent.classList.add("danger");
-			parent.parentNode.prepend(parent);
-		},
-		generateList: function () {
-			contentWraper.innerHTML = "";
-			contentWraper.appendChild(generate.list());
-		},
-		generateCompare: function () {
-			contentWraper.innerHTML = "";
-			contentWraper.appendChild(generate.compare());
-		},
-		procesed: function () {
-			let itemWraper = this.parentNode.parentNode;
-			let arr = this.dataset.arr;
-			let id = this.dataset.id;
-			this.textContent = "Оброблено";
-			this.parentNode.parentNode.style.backgroundColor = "#c2edc2";
-			storage.data[arr].forEach((item, index) => {
-				if (item.id === id) {
-					item.isProcesed = true;
-					storage.data[arr].push(item);
-					storage.data[arr].splice(index, 1);
-				}
-			});
 
-			itemWraper.parentNode.appendChild(itemWraper);
-			drawButtonsCount();
-		},
-		production: function () {
-			generate.preloader({ status: "start" });
-			load.production().then((data) => {
-				generate.preloader({ status: "end" });
-				contentWraper.appendChild(generate.production(data));
-			});
-		},
-		addToList: function () {
-			this.textContent = "Взято";
-			this.parentNode.classList.add("success");
-		},
-	};
-	function checkAnswer(e) {
-		e.preventDefault();
-		let answer = e.target.value;
-		let count = Number(e.target.dataset.count);
-		console.log(answer, count, e);
-		if (getNum(answer) > count) {
-			e.target.parentNode.parentNode.classList.add("warn");
-			alert("Перевір ще раз,І не забудь вказати лишки в пересорт");
-		}
-		if (getNum(answer) < count) {
-			e.target.parentNode.parentNode.classList.add("danger");
-		}
-		if (getNum(answer) === count) {
-			e.target.parentNode.parentNode.classList.remove("warn");
-			e.target.parentNode.parentNode.classList.remove("danger");
-		}
-		if (answer == "") {
-			e.target.parentNode.parentNode.classList.remove("warn");
-			e.target.parentNode.parentNode.classList.remove("danger");
-		}
-	}
 	function getNum(inputString) {
 		const regex = /\d+/;
 		const matches = inputString.match(regex);
@@ -2267,40 +2491,10 @@ window.addEventListener("load", () => {
 			});
 	}
 
-	function drawButtonsCount() {
-		let listCount = 0;
-		let compareCount = 0;
-		let listBtnCount = document.querySelector(".list-count");
-		let compareBtnCount = document.querySelector(".compare-count");
-		if (storage.data == null) return;
-		if (storage.data.listArray.length === 0) return;
-		storage.data.listArray.forEach((item) => {
-			if (!item.isProcesed) {
-				listCount++;
-			}
-		});
-		if (storage.data.compareArray.length === 0) return;
-		storage.data.compareArray.forEach((item) => {
-			if (!item.isProcesed) {
-				compareCount++;
-			}
-		});
-		if (listCount > 0) {
-			listBtnCount.textContent = listCount;
-			listBtnCount.style.display = "block";
-		} else {
-			listBtnCount.style.display = "none";
-		}
-		if (compareCount > 0) {
-			compareBtnCount.textContent = compareCount;
-			compareBtnCount.style.display = "block";
-		} else {
-			compareBtnCount.style.display = "none";
-		}
-	}
-
 	// check elaborations count
-	setInterval(checkElaborations, intarval.elaboration * 1000);
+	setInterval(() => {
+		generate.requestCount();
+	}, intarval.elaboration * 1000);
 
 	// add content-wrapper
 
@@ -2405,6 +2599,10 @@ window.addEventListener("load", () => {
 				hendler: hendlers.production,
 				children: [
 					{
+						el: "span",
+						className: "production-count counter",
+					},
+					{
 						el: "img",
 						src: get.url(src.ico.production),
 						alt: "Виробництво",
@@ -2430,6 +2628,6 @@ window.addEventListener("load", () => {
 	document.body.appendChild(searchWraper);
 	document.body.appendChild(contentWraper);
 	document.body.appendChild(btnWraper);
-	checkElaborations();
-	drawButtonsCount();
+	generate.requestCount();
+	generate.tasksCount();
 });
