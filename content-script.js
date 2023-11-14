@@ -12,7 +12,7 @@ window.addEventListener("load", () => {
 	children.forEach((child) => {
 		child.remove();
 	});
-	// URL
+
 	let storage = {
 		data: {},
 		init: function () {
@@ -289,7 +289,7 @@ window.addEventListener("load", () => {
 			Object.values(data).forEach((item, index) => {
 				convertedData.append(Object.keys(data)[index], item);
 			});
-			console.log(data);
+
 			return convertedData || false;
 		},
 	};
@@ -404,6 +404,7 @@ window.addEventListener("load", () => {
 					body: area.value,
 				})
 				.then((result) => {
+					console.log(result);
 					if (result == "ok") {
 						area.remove();
 						this.remove();
@@ -418,7 +419,7 @@ window.addEventListener("load", () => {
 		checkAnswer: function () {
 			let answer = this.value;
 			let count = Number(this.dataset.count);
-			console.log(answer, count, this);
+
 			if (get.num(answer) > count) {
 				this.parentNode.parentNode.classList.add("warn");
 				alert("Перевір ще раз,І не забудь вказати лишки в пересорт");
@@ -456,7 +457,8 @@ window.addEventListener("load", () => {
 					body: { text: elaborationInp.value, id: order },
 				})
 				.then((result) => {
-					if (result === "ok") {
+					console.log(result.body.textContent);
+					if (result.body.textContent === "ok") {
 						this.parentNode.parentNode.classList.add("success");
 						elaborationInp.remove();
 						this.remove();
@@ -676,6 +678,11 @@ window.addEventListener("load", () => {
 												text: item.article,
 											},
 										],
+									},
+									{
+										el: "div",
+										className: "production-item-place danger",
+										text: `Місце:${item.place} | Cell: ${item.cell}`,
 									},
 									{
 										el: "div",
@@ -1308,18 +1315,31 @@ window.addEventListener("load", () => {
 							{
 								el: "div",
 								className: "item-header",
-								text: `ID: ${item.id} | Артикул: ${item.article} | Місце:${
-									storage.data.addresses[item.article].place ?? "Не збережено"
-								} | Cell: ${
-									storage.data.addresses[item.article].cell ?? "Не збережено"
-								}`,
+
+								children: [
+									{
+										el: "span",
+										className: "start",
+										text: `ID: ${item.id} | Артикул: ${item.article} `,
+									},
+									{
+										el: "input",
+										type: "checkbox",
+										className: "status-check",
+										event: "click",
+										hendler: hendlers.check,
+									},
+								],
 							},
 							{
-								el: "input",
-								type: "checkbox",
-								className: "status-check",
-								event: "click",
-								hendler: hendlers.check,
+								el: "div",
+								className: "item-place danger",
+								text: `Місце: ${
+									storage.data.addresses[item.article].place ??
+									"Ще не збережено"
+								} |  Cell: ${
+									storage.data.addresses[item.article].cell ?? "Ще не збережено"
+								}`,
 							},
 							{
 								el: "div",
@@ -1813,12 +1833,31 @@ window.addEventListener("load", () => {
 									children: [
 										{
 											el: "p",
+											className: "table-desc",
+											text: "Адрес:",
+										},
+										{
+											el: "p",
+											className: "table-text",
+											text:
+												storage.data.addresses[
+													get.elaborationArtice(item.goodsDesc)
+												].place ?? "Не збережено",
+										},
+									],
+								},
+								{
+									el: "div",
+									className: "table-row",
+									children: [
+										{
+											el: "p",
 											className: "table-desc question",
 											text: "Питання",
 										},
 										{
 											el: "p",
-											className: "table-desc",
+											className: "table-desc question",
 											text: item.question,
 										},
 									],
@@ -2219,6 +2258,9 @@ window.addEventListener("load", () => {
 					rowData.name = th[2].textContent;
 					rowData.place =
 						storage.data.addresses[th[3].textContent]?.place ??
+						"Ще не збережено";
+					rowData.cell =
+						storage.data.addresses[th[3].textContent]?.cell ??
 						"Ще не збережено";
 					rowData.article = th[3].textContent;
 					rowData.img = td[0].querySelector("img").src;
