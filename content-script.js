@@ -295,7 +295,7 @@ window.addEventListener("load", () => {
 	};
 	let hendlers = {
 		check: function () {
-			let parentEl = this.parentElement;
+			let parentEl = this.parentElement.parentElement;
 			parentEl.classList.toggle("success");
 			parentEl.parentNode.appendChild(parentEl);
 		},
@@ -391,6 +391,13 @@ window.addEventListener("load", () => {
 			});
 			contentWraper.appendChild(image);
 		},
+		questions: function () {
+			generate.preloader({ status: "start" });
+			load.questions().then((data) => {
+				generate.preloader({ status: "end" });
+				contentWraper.appendChild(generate.question(data));
+			});
+		},
 		sendQuestion: function () {
 			let area = this.parentNode.parentNode.querySelector("textarea");
 			if (area.value.length == 0) {
@@ -439,14 +446,15 @@ window.addEventListener("load", () => {
 		addElaborationAnswer: function () {
 			let order = this.dataset.order;
 			let elaborationInp = this.parentNode.querySelector("input");
-			let count = Number(elaborationInp.value);
+			let count = Number(getNum(elaborationInp.value));
+			let baseCount = this.dataset.count;
 			if (elaborationInp.value === "") {
 				alert("Введи коректну відповідь!");
 				return;
 			}
-			if (count > Number(getNum(elaborationInp.value))) {
+			if (baseCount > count) {
 				let isSend = confirm(
-					"Введена кількість менша від кількості в базі. ТОчно відправити данні?"
+					"Введена кількість менша від кількості в базі. Точно відправити данні?"
 				);
 				if (!isSend) return false;
 			}
@@ -575,9 +583,6 @@ window.addEventListener("load", () => {
 			},
 		],
 	});
-
-	let questionURL = "https://baza.m-p.in.ua/ajax/loadQuestions.php";
-	let answerURL = "https://baza.m-p.in.ua/ajax/addAnswer.php";
 
 	let generate = {
 		message: function (data) {
@@ -1726,7 +1731,10 @@ window.addEventListener("load", () => {
 												el: "button",
 												className: "send-btn",
 												event: "click",
-												data: [{ order: get.orderId(item.order) }],
+												data: [
+													{ order: get.orderId(item.order) },
+													{ count: item.count.baseCount },
+												],
 												hendler: hendlers.addElaborationAnswer,
 												children: [
 													{
@@ -1800,6 +1808,7 @@ window.addEventListener("load", () => {
 			return generate.message("Зараз немає уточнень");
 		},
 		question: function (data) {
+			console.log(data);
 			if (data.length > 0) {
 				let questionsWraper = get.elements({
 					el: "div",
@@ -1842,7 +1851,7 @@ window.addEventListener("load", () => {
 											text:
 												storage.data.addresses[
 													get.elaborationArtice(item.goodsDesc)
-												].place ?? "Не збережено",
+												]?.place || "Не збережено",
 										},
 									],
 								},
@@ -1906,6 +1915,7 @@ window.addEventListener("load", () => {
 						})
 					);
 				});
+				return questionsWraper;
 			}
 			return this.message("Зараз немає питань");
 		},
@@ -2377,7 +2387,30 @@ window.addEventListener("load", () => {
 			console.log(this.storage);
 			return this.storage;
 		},
-		question: async function (data) {},
+		questions: async function (data) {
+			this.storage = [];
+			const questions = await this.fetch({
+				url: url.getQuestion,
+				method: "POST",
+			});
+			let tr = Array.from(questions.querySelectorAll("table tr"));
+			tr.shift();
+			if (tr.length > 0) {
+				tr.forEach((row) => {
+					let data = {};
+					let item = row.querySelectorAll("td");
+					data.goodsDesc = item[0].textContent.trim();
+					data.questionManager = item[1].getAttribute("title").trim();
+					data.question = item[1].textContent.trim();
+					data.id = item[2]
+						.querySelector("input[type='text']")
+						.id.match(/(\d+)/)[1];
+					data.questionOrder = item[3].textContent.trim();
+					this.storage.push(data);
+				});
+			}
+			return this.storage;
+		},
 	};
 
 	function getNum(inputString) {
@@ -2389,152 +2422,6 @@ window.addEventListener("load", () => {
 		}
 
 		return null; // Повертаємо null, якщо число не знайдено в рядку
-	}
-
-	function generateQuestionTanble(data) {
-		generate.preloader({ status: "end" });
-		if (data.length > 0) {
-			data.forEach((item) => {
-				let questionWraper = document.createElement("div");
-				questionWraper.className = "table-wraper question";
-				// goods description
-				let goodsRow = document.createElement("div");
-				goodsRow.className = "table-row";
-				let goodsDesc = document.createElement("p");
-				goodsDesc.className = "table-desc question-row";
-				goodsDesc.textContent = "Товар";
-				let goodsData = document.createElement("p");
-				goodsData.className = "table-text question";
-				goodsData.textContent = item.goodsDesc;
-				goodsRow.appendChild(goodsDesc);
-				goodsRow.appendChild(goodsData);
-				// question
-				let questionRow = document.createElement("div");
-				questionRow.className = "table-row";
-				let questiondDesc = document.createElement("p");
-				questiondDesc.className = "table-desc question";
-				questiondDesc.textContent = "Питання";
-				let questionData = document.createElement("p");
-				questionData.className = "table-desc";
-				questionData.textContent = item.question;
-				questionRow.appendChild(questiondDesc);
-				questionRow.appendChild(questionData);
-				// main question data
-				let mainDataRow = document.createElement("div");
-				mainDataRow.className = "table-row";
-				let mainDataDesc = document.createElement("p");
-				mainDataDesc.className = "table-desc";
-				mainDataDesc.textContent = "Додаткова Інформація";
-				let mainData = document.createElement("p");
-				mainData.textContent = item.questionManager;
-				mainDataRow.appendChild(mainDataDesc);
-				mainDataRow.appendChild(mainData);
-				// question order
-				let orderRow = document.createElement("div");
-				orderRow.className = "table-row";
-				let orderDdesc = document.createElement("p");
-				orderDdesc.className = "table-desc";
-				orderDdesc.textContent = "Замовлення";
-				let orderNum = document.createElement("p");
-				orderNum.className = "table-desc";
-				orderNum.textContent = item.questionOrder;
-				orderRow.appendChild(orderDdesc);
-				orderRow.appendChild(orderNum);
-				// question answer
-				let answerRow = document.createElement("p");
-				answerRow.className = "table-row area-wraper";
-				let answerArea = document.createElement("textarea");
-				answerArea.className = "answer-area table-input";
-				answerArea.setAttribute("plaseholder", "Відповідь");
-				answerArea.setAttribute("rows", 5);
-				let answerBtn = document.createElement("button");
-				answerBtn.className = "answer-btn";
-				let sendIco = document.createElement("img");
-				sendIco.src = get.url(src.ico.send);
-				answerBtn.appendChild(sendIco);
-				answerRow.appendChild(answerArea);
-				answerRow.appendChild(answerBtn);
-				// appending elements for generate question table
-				questionWraper.appendChild(goodsRow);
-				questionWraper.appendChild(questionRow);
-				questionWraper.appendChild(mainDataRow);
-				questionWraper.appendChild(orderRow);
-				questionWraper.appendChild(answerRow);
-				contentWraper.appendChild(questionWraper);
-				// add listeners
-				answerBtn.addEventListener("click", () => {
-					if (answerArea.value.length == 0) {
-						alert("Дай коректну відповідь на питання!!!");
-						return;
-					}
-					let answerData = new URLSearchParams();
-					answerData.append("id", String(item.id));
-					answerData.append("text", String(answerArea.value));
-					fetch(answerURL, {
-						method: "POST",
-						body: answerData,
-					})
-						.then((responce) => {
-							return responce.text();
-						})
-						.then((responce) => {
-							if (responce == "ok") {
-								answerArea.remove();
-								answerBtn.remove();
-								answerArea.classList.add("success");
-							} else {
-								alert("Щось пішло не так!!");
-							}
-						})
-						.catch((err) => {
-							alert("Відбулася помилка!!!");
-							console.log(err);
-						});
-				});
-			});
-		} else {
-			let questiuonTitle = document.createElement("p");
-			questiuonTitle.className = "question-title content-title";
-			questiuonTitle.textContent = "Зараз немає Питань";
-			contentWraper.appendChild(questiuonTitle);
-		}
-	}
-	function getQuestions() {
-		let questionData = [];
-		generate.preloader({ status: "start" });
-		fetch(questionURL, {
-			method: "POST",
-		})
-			.then((responce) => {
-				return responce.text();
-			})
-			.then((responce) => {
-				generate.preloader({ status: "end" });
-				let questionParse = get.parser(responce);
-				let questionRow = Array.from(questionParse.querySelectorAll("tr"));
-				questionRow.shift();
-
-				if (questionRow.length > 0) {
-					questionRow.forEach((row) => {
-						let data = {};
-						let item = row.querySelectorAll("td");
-						data.goodsDesc = item[0].textContent.trim();
-						data.questionManager = item[1].getAttribute("title").trim();
-						data.question = item[1].textContent.trim();
-						data.id = item[2]
-							.querySelector("input[type='text']")
-							.id.match(/(\d+)/)[1];
-						data.questionOrder = item[3].textContent.trim();
-						questionData.push(data);
-					});
-				}
-
-				generateQuestionTanble(questionData);
-			})
-			.catch((err) => {
-				alert("Не Вдалося отримати питання!!!");
-				console.log(err);
-			});
 	}
 
 	// check elaborations count
@@ -2576,7 +2463,7 @@ window.addEventListener("load", () => {
 				el: "button",
 				className: "question-btn btn",
 				event: "click",
-				hendler: getQuestions,
+				hendler: hendlers.questions,
 				children: [
 					{
 						el: "span",
