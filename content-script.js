@@ -400,6 +400,7 @@ window.addEventListener("load", () => {
 		},
 		sendQuestion: function () {
 			let area = this.parentNode.parentNode.querySelector("textarea");
+			let id = this.dataset.id;
 			if (area.value.length == 0) {
 				alert("Введи відповідь");
 				return;
@@ -408,11 +409,11 @@ window.addEventListener("load", () => {
 				.fetch({
 					url: url.addAnswer,
 					method: "POST",
-					body: area.value,
+					body: { id: id, text: area.value },
 				})
 				.then((result) => {
 					console.log(result);
-					if (result == "ok") {
+					if (result.body.textContent == "ok") {
 						area.remove();
 						this.remove();
 					} else {
@@ -1900,6 +1901,7 @@ window.addEventListener("load", () => {
 											el: "button",
 											className: "answer-btn",
 											event: "click",
+											data: [{ id: item.id }],
 											hendler: hendlers.sendQuestion,
 											children: [
 												{
