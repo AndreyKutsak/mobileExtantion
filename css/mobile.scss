@@ -1,3 +1,4 @@
+@import "varibles.scss";
 * {
 	box-sizing: border-box;
 }
@@ -11,7 +12,7 @@ body {
 	padding: 40px 0 0;
 	margin: 0;
 	overflow-x: hidden;
-	background-color: #e7eef7;
+	background-color: $mainBg;
 }
 
 .warn {
@@ -680,6 +681,13 @@ body {
 				border: 2px solid #4c5769;
 				border-radius: 2px;
 			}
+			.procesed {
+				border: none;
+
+				border-radius: 2px;
+				outline: none;
+				background-color: $red;
+			}
 		}
 		.production-item-head {
 			display: flex;
@@ -708,6 +716,19 @@ body {
 			padding: 5px;
 			margin-bottom: 10px;
 			border-radius: 2px;
+		}
+		.product-btn {
+			display: block;
+			font-family: $descriptions;
+			font-weight: 600;
+			font-size: 14px;
+			padding: 10px;
+			text-align: center;
+			background-color: $actionBtnBg;
+			margin: 20px auto;
+			color: $white;
+			border: none;
+			border-radius: 5px;
 		}
 		.flex-container {
 			display: flex;

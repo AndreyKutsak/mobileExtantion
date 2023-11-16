@@ -366,6 +366,17 @@ window.addEventListener("load", () => {
 				contentWraper.appendChild(generate.production(data));
 			});
 		},
+		product: function () {
+			let parent = this.parentNode.parentNode;
+			let id = this.dataset.id;
+			storage.data.production.forEach((item, index) => {
+				if (item.id === id) {
+					storage.data.production.splice(index, 1);
+				}
+			});
+			parent.remove();
+			generate.tasksCount();
+		},
 		addToList: function () {
 			this.textContent = "Взято";
 			this.parentNode.classList.add("success");
@@ -626,6 +637,7 @@ window.addEventListener("load", () => {
 					"Наявність",
 					"Вистачає на",
 				];
+
 				let prodctionWraper = get.elements({
 					el: "div",
 					className: "production-wraper",
@@ -642,7 +654,16 @@ window.addEventListener("load", () => {
 					return 0;
 				});
 				data.forEach((item) => {
-					console.log(item);
+					let isProcesed = "";
+					let val;
+					storage.data.production.forEach((a) => {
+						if (a.id === item.id) {
+							isProcesed = "procesed";
+							val = a.count;
+							console.log(val, a.count);
+						}
+					});
+
 					let prodItem = get.elements({
 						el: "div",
 						className: "production-item-wraper",
@@ -663,7 +684,8 @@ window.addEventListener("load", () => {
 									{
 										el: "input",
 										type: "number",
-										className: "item-input",
+										value: val,
+										className: `item-input ${isProcesed}`,
 										placeholder: "Кількість",
 									},
 								],
@@ -709,7 +731,6 @@ window.addEventListener("load", () => {
 														className: "component-wraper",
 														children: Object.values(part)
 															.map((desc, index) => {
-																console.log(descNames[index], desc);
 																return {
 																	el: "p",
 																	className: "desc",
@@ -727,6 +748,14 @@ window.addEventListener("load", () => {
 												}),
 											},
 										],
+									},
+									{
+										el: "button",
+										className: "product-btn",
+										text: "Виготовити",
+										event: "click",
+										data: [{ id: item.id }],
+										hendler: hendlers.product,
 									},
 								],
 							},
@@ -1003,9 +1032,15 @@ window.addEventListener("load", () => {
 							let items = Array.from(
 								document.querySelectorAll(".row-footer .order-wraper")
 							);
+							let isLoaded = this.querySelector(".row-footer");
 							items.forEach((item) => {
 								item.remove();
 							});
+							if (isLoaded.classList.contains("active")) {
+								isLoaded.classList.remove("active");
+								return;
+							}
+
 							load.order({ id: item.id }).then((data) => {
 								let itemFooter = this.querySelector(".row-footer");
 								if (itemFooter.classList.contains("active")) {
@@ -1931,10 +1966,14 @@ window.addEventListener("load", () => {
 				if (countData.elaboration !== null && countData.elaboration > 0) {
 					elaborationCounter.style.display = "block";
 					elaborationCounter.textContent = countData.elaboration;
+				} else {
+					elaborationCounter.style.display = "none";
 				}
 				if (countData.questions !== null && countData.questions > 0) {
 					questionCounter.style.display = "block";
 					questionCounter.textContent = countData.questions;
+				} else {
+					questionCounter.style.display = "none";
 				}
 			});
 		},
@@ -2518,8 +2557,10 @@ window.addEventListener("load", () => {
 				className: "orders-btn btn",
 				event: "click",
 				hendler: function () {
+					generate.preloader({ status: "start" });
 					let orders = load.orders();
 					orders.then((data) => {
+						generate.preloader({ status: "end" });
 						let mainWraper = document.querySelector(".wraper");
 						mainWraper.innerHTML = "";
 						mainWraper.appendChild(generate.orders(data));
