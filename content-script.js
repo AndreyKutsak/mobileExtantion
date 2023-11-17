@@ -1229,9 +1229,8 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "item-count",
-										text: `Кількість по базі: ${
-											get.goodsCount(item.count).baseCount
-										} Резерв: ${get.goodsCount(item.count).orderCount}
+										text: `Кількість по базі: ${get.goodsCount(item.count).baseCount
+											} Резерв: ${get.goodsCount(item.count).orderCount}
 			Реальна кількість: ${item.realCount} Різниця: ${difference}`,
 									},
 									{
@@ -1375,12 +1374,10 @@ window.addEventListener("load", () => {
 							{
 								el: "div",
 								className: "item-place danger",
-								text: `Місце: ${
-									storage.data.addresses[item.article].place ??
+								text: `Місце: ${storage.data.addresses[item.article]?.place ??
 									"Ще не збережено"
-								} |  Cell: ${
-									storage.data.addresses[item.article].cell ?? "Ще не збережено"
-								}`,
+									} |  Cell: ${storage.data.addresses[item.article]?.cell ?? "Ще не збережено"
+									}`,
 							},
 							{
 								el: "div",
@@ -1813,21 +1810,21 @@ window.addEventListener("load", () => {
 										className: "reserve-btn btn",
 										event: "click",
 										text: "Резерв",
-										hendler: function (e) {},
+										hendler: function (e) { },
 									},
 									{
 										el: "button",
 										className: "arrival-btn btn",
 										text: "Приход",
 										event: "click",
-										hendler: function (e) {},
+										hendler: function (e) { },
 									},
 									{
 										el: "button",
 										className: "sales-btn btn",
 										text: "Продажі",
 										event: "click",
-										hendler: function (e) {},
+										hendler: function (e) { },
 									},
 								],
 							},
@@ -2398,7 +2395,7 @@ window.addEventListener("load", () => {
 							let images = Array.from(
 								search
 									.querySelectorAll(".detImg")
-									[index].querySelectorAll("img")
+								[index].querySelectorAll("img")
 							);
 
 							let imgSrc = [];
