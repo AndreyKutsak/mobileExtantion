@@ -455,6 +455,7 @@ window.addEventListener("load", () => {
 				this.parentNode.parentNode.classList.remove("danger");
 			}
 		},
+		// elaboration hendlers
 		addElaborationAnswer: function () {
 			let order = this.dataset.order;
 			let elaborationInp = this.parentNode.querySelector("input");
@@ -488,6 +489,75 @@ window.addEventListener("load", () => {
 					}
 				});
 		},
+		elaborationSearch: function () {
+			let inp = document.querySelector(".search-inp");
+			let searchBtn = document.querySelector(".search-send-btn");
+			inp.value = get.elaborationArtice(this.textContent);
+			searchBtn.click();
+			inp.value = "";
+		},
+		elaborationOrder: function () {
+			let orderId = get.orderId(this.textContent);
+			let elaborationFooter =
+				this.parentNode.parentNode.querySelector(".item-footer");
+			if (elaborationFooter.classList.contains("active")) {
+				elaborationFooter.classList.remove("active");
+				let footerChildren = Array.from(elaborationFooter.children);
+				footerChildren.forEach((element) => {
+					element.remove();
+				});
+				return;
+			}
+			elaborationFooter.classList.add("active");
+			load.order({ id: orderId }).then((data) => {
+				elaborationFooter.appendChild(generate.order(data));
+			});
+		},
+		elaborationReserve: function () {
+			let id = this.dataset.id;
+			let footer =
+				this.parentElement.parentElement.querySelector(".item-footer");
+			if (footer.classList.contains("active")) {
+				footer.innerHTML = "";
+				footer.classList.toggle("active");
+				return;
+			}
+			let reserve = load.reserve({ id: id });
+			footer.classList.toggle("active");
+			footer.innerHTML = "";
+			reserve.then((reserve) => {
+				footer.appendChild(generate.reserve(reserve));
+			});
+		},
+		elaborationSales: function () {
+			let id = this.dataset.id;
+			let elFooter =
+				this.parentElement.parentElement.querySelector(".item-footer");
+			if (elFooter.classList.contains("active")) {
+				elFooter.innerHTML = "";
+				elFooter.classList.toggle("active");
+				return;
+			}
+			elFooter.classList.toggle("active");
+			load.sales({ id: id }).then((data) => {
+				elFooter.appendChild(generate.sales(data));
+			});
+		},
+		elaborationArrival: function () {
+			let id = this.dataset.id;
+			let elFooter =
+				this.parentElement.parentElement.querySelector(".item-footer");
+			if (elFooter.classList.contains("active")) {
+				elFooter.innerHTML = "";
+				elFooter.classList.toggle("active");
+				return;
+			}
+			elFooter.classList.toggle("active");
+			load.deliveries({ id: id }).then((data) => {
+				elFooter.appendChild(generate.deliveries(data));
+			});
+		},
+
 		search: function () {
 			let input = this.parentNode.querySelector(".search-inp");
 			let wrapper = document.querySelector(".wraper");
@@ -1229,8 +1299,9 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "item-count",
-										text: `Кількість по базі: ${get.goodsCount(item.count).baseCount
-											} Резерв: ${get.goodsCount(item.count).orderCount}
+										text: `Кількість по базі: ${
+											get.goodsCount(item.count).baseCount
+										} Резерв: ${get.goodsCount(item.count).orderCount}
 			Реальна кількість: ${item.realCount} Різниця: ${difference}`,
 									},
 									{
@@ -1374,10 +1445,13 @@ window.addEventListener("load", () => {
 							{
 								el: "div",
 								className: "item-place danger",
-								text: `Місце: ${storage.data.addresses[item.article]?.place ??
+								text: `Місце: ${
+									storage.data.addresses[item.article]?.place ??
 									"Ще не збережено"
-									} |  Cell: ${storage.data.addresses[item.article]?.cell ?? "Ще не збережено"
-									}`,
+								} |  Cell: ${
+									storage.data.addresses[item.article]?.cell ??
+									"Ще не збережено"
+								}`,
 							},
 							{
 								el: "div",
@@ -1632,7 +1706,13 @@ window.addEventListener("load", () => {
 										className: "table-desc",
 										text: "Номер Замовлення",
 									},
-									{ el: "p", className: "table-text", text: item.order },
+									{
+										el: "p",
+										className: "table-text",
+										event: "click",
+										hendler: hendlers.elaborationOrder,
+										text: item.order,
+									},
 								],
 							},
 							{
@@ -1660,15 +1740,7 @@ window.addEventListener("load", () => {
 										el: "p",
 										className: "table-text",
 										event: "click",
-										hendler: function () {
-											let inp = document.querySelector(".search-inp");
-											let searchBtn =
-												document.querySelector(".search-send-btn");
-											inp.value = get.elaborationArtice(item.positionName);
-											searchBtn.click();
-											inp.value = "";
-										},
-
+										hendler: hendlers.elaborationSearch,
 										text: item.positionName,
 									},
 								],
@@ -1743,7 +1815,7 @@ window.addEventListener("load", () => {
 								children: [
 									{
 										el: "p",
-										className: "table-row",
+										className: "table-desc",
 										text: "Вкажи кількість:",
 									},
 									{
@@ -1810,21 +1882,26 @@ window.addEventListener("load", () => {
 										className: "reserve-btn btn",
 										event: "click",
 										text: "Резерв",
-										hendler: function (e) { },
+										data: [{ id: item.goodId }],
+										hendler: hendlers.elaborationReserve,
 									},
 									{
 										el: "button",
 										className: "arrival-btn btn",
 										text: "Приход",
 										event: "click",
-										hendler: function (e) { },
+
+										data: [{ id: item.goodId }],
+										hendler: hendlers.elaborationArrival,
 									},
 									{
 										el: "button",
 										className: "sales-btn btn",
 										text: "Продажі",
 										event: "click",
-										hendler: function (e) { },
+
+										data: [{ id: item.goodId }],
+										hendler: hendlers.elaborationSales,
 									},
 								],
 							},
@@ -2078,7 +2155,6 @@ window.addEventListener("load", () => {
 	let load = {
 		storage: [],
 		fetch: async function (data) {
-			console.log(data.url);
 			try {
 				const requestBody = data.body ? get.decode(data.body) : "";
 				const response = await fetch(data.url, {
@@ -2205,7 +2281,6 @@ window.addEventListener("load", () => {
 			return this.storage;
 		},
 		orders: async function (data) {
-			console.log(data);
 			this.storage = [];
 			const orders = await this.fetch({
 				url: url.orders,
@@ -2395,7 +2470,7 @@ window.addEventListener("load", () => {
 							let images = Array.from(
 								search
 									.querySelectorAll(".detImg")
-								[index].querySelectorAll("img")
+									[index].querySelectorAll("img")
 							);
 
 							let imgSrc = [];
@@ -2407,14 +2482,11 @@ window.addEventListener("load", () => {
 								imgSrc.push(img.getAttribute("rel"));
 								imgLink.push(img.alt);
 							});
+							elaborationData.goodId = get.article(item.textContent.trim()).id;
 							elaborationData.imagesSrc = imgSrc;
 							elaborationData.imageLink = imgLink;
 							elaborationData.count = get.goodsCount(
 								countData.textContent.trim()
-							);
-							console.log(
-								countData,
-								get.goodsCount(countData.textContent.trim())
 							);
 						}
 					});
