@@ -119,6 +119,7 @@ window.addEventListener("load", () => {
 			question: "img/question-ico.svg",
 			orders: "img/order-ico.svg",
 			production: "img/production-ico.svg",
+			history: "img/history-ico.svg",
 		},
 	};
 	let intarval = {
@@ -604,6 +605,47 @@ window.addEventListener("load", () => {
 					}
 				});
 			}
+		},
+		// orders hendlers
+		order: function () {
+			let itemFooter = this.querySelector(".row-footer");
+
+			let items = Array.from(
+				document.querySelectorAll(".row-footer .order-wraper")
+			);
+			let id = this.dataset.id;
+
+			items.forEach((item) => {
+				item.remove();
+			});
+			itemFooter.appendChild(
+				get.elements({
+					el: "div",
+					className: "item-preloader",
+					children: [
+						{
+							el: "img",
+							src: get.url(src.ico.spiner),
+						},
+					],
+				})
+			);
+			if (itemFooter.classList.contains("active")) {
+				itemFooter.classList.remove("active");
+				itemFooter.innerHTML = "";
+				return;
+			}
+
+			load.order({ id: id }).then((data) => {
+				itemFooter.innerHTML = "";
+				if (itemFooter.classList.contains("active")) {
+					itemFooter.classList.remove("active");
+					return;
+				}
+				itemFooter.classList.add("active");
+
+				itemFooter.appendChild(generate.order(data));
+			});
 		},
 	};
 	// creating and adding new elements to DOM
@@ -1098,31 +1140,8 @@ window.addEventListener("load", () => {
 						el: "div",
 						className: "order-row",
 						event: "click",
-						hendler: function (e) {
-							let items = Array.from(
-								document.querySelectorAll(".row-footer .order-wraper")
-							);
-							let isLoaded = this.querySelector(".row-footer");
-							items.forEach((item) => {
-								item.remove();
-							});
-							if (isLoaded.classList.contains("active")) {
-								isLoaded.classList.remove("active");
-								return;
-							}
-
-							load.order({ id: item.id }).then((data) => {
-								let itemFooter = this.querySelector(".row-footer");
-								if (itemFooter.classList.contains("active")) {
-									itemFooter.innerHTML = "";
-									itemFooter.classList.remove("active");
-									return;
-								}
-								itemFooter.classList.add("active");
-								itemFooter.innerHTML = "";
-								itemFooter.appendChild(generate.order(data));
-							});
-						},
+						data: [{ id: item.id }],
+						hendler: hendlers.order,
 						children: [
 							{
 								el: "div",
@@ -1473,7 +1492,7 @@ window.addEventListener("load", () => {
 									},
 									{
 										el: "div",
-										className: "item-text-raper",
+										className: "item-text-wraper",
 										children: [
 											{
 												el: "p",
@@ -1936,7 +1955,7 @@ window.addEventListener("load", () => {
 									children: [
 										{
 											el: "p",
-											className: "table-desc table-row",
+											className: "table-desc ",
 											text: "Товар",
 										},
 										{
@@ -1976,7 +1995,7 @@ window.addEventListener("load", () => {
 										},
 										{
 											el: "p",
-											className: "table-desc question",
+											className: "table-text question",
 											text: item.question,
 										},
 									],
@@ -2105,6 +2124,38 @@ window.addEventListener("load", () => {
 				document.querySelector(".production-count").style.display = "none";
 			}
 		},
+		history: function () {
+			contentWraper.innerHTML = "";
+			contentWraper.appendChild(
+				get.elements({
+					el: "div",
+					className: "history-wraper",
+					children: [
+						{
+							el: "div",
+							className: "history-item saved-articles",
+							text: `Збережено Артикулів: ${
+								Object.keys(storage.data.addresses).length
+							}`,
+						},
+						{
+							el: "div",
+							className: "history-item elaboration",
+							text: `Відбито Уточнень: ${
+								Object.keys(storage.data.elaborations).length
+							}`,
+						},
+						{
+							el: "div",
+							className: "history-item production",
+							text:
+								"Виготовлено продукції: " +
+								Object.keys(storage.data.production).length,
+						},
+					],
+				})
+			);
+		},
 	};
 	let regexArticle = /\s(\d+\.\d+\.\d+)/;
 	let regexNumber = /№(\d+)/;
@@ -2122,7 +2173,7 @@ window.addEventListener("load", () => {
 			".barcode-display-wraper"
 		);
 		let html5QrcodeScanner = new Html5QrcodeScanner("reader", {
-			fps: 10,
+			fps: 8,
 			qrbox: 250,
 		});
 		let lastResult,
@@ -2651,6 +2702,19 @@ window.addEventListener("load", () => {
 						el: "img",
 						src: get.url(src.ico.production),
 						alt: "Виробництво",
+					},
+				],
+			},
+			{
+				el: "button",
+				className: "history-btn btn",
+				event: "click",
+				hendler: generate.history,
+				children: [
+					{
+						el: "img",
+						src: get.url(src.ico.history),
+						alt: "Історія",
 					},
 				],
 			},
