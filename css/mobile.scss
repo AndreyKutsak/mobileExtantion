@@ -689,9 +689,9 @@ body {
 					border: 1px solid $blue;
 					border-radius: 2px;
 					padding: 5px;
+					max-width: 50px;
 					&::placeholder {
 						padding-left: 10px;
-						max-width: 50px;
 					}
 				}
 				.procesed {

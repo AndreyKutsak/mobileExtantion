@@ -698,14 +698,13 @@ body {
   border: 1px solid #a7c9e8;
   border-radius: 2px;
   padding: 5px;
+  max-width: 50px;
 }
 .wraper .production-wraper .production-item-wraper .item-head .item-input::-moz-placeholder {
   padding-left: 10px;
-  max-width: 50px;
 }
 .wraper .production-wraper .production-item-wraper .item-head .item-input::placeholder {
   padding-left: 10px;
-  max-width: 50px;
 }
 .wraper .production-wraper .production-item-wraper .item-head .procesed {
   border: none;
