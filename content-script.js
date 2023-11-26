@@ -2184,9 +2184,10 @@ window.addEventListener("load", () => {
 			fps: 8,
 			qrbox: 250,
 		});
+		console.log(html5QrcodeScanner);
 		let lastResult,
 			countResults = 0;
-		function onScanSuccess(decodedText, decodedResult) {
+		function onScanSuccess(decodedText) {
 			if (decodedText !== lastResult) {
 				++countResults;
 				lastResult = decodedText;

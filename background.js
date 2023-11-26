@@ -1,4 +1,4 @@
-const interval = 1000 * 60;
+const interval = 1000 * 180;
 const startHour = 9;
 const endHour = 18;
 let activeTabUrl;
