@@ -18,14 +18,31 @@ body {
 // preloader wraper
 .preloader-wraper {
 	position: fixed;
+	top: 0;
+	left: 0;
 	height: 100%;
 	width: 100%;
 	background-color: $preloaderBg;
 	.preloader-spiner {
-		position: fixed;
+		position: absolute;
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
+	}
+}
+.img-wraper {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	background-color: $preloaderBg;
+	img {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		aspect-ratio: 16/9;
 	}
 }
 // main search bar
@@ -128,17 +145,19 @@ body {
 			font-size: 14px;
 			font-weight: 500;
 			line-height: 18px;
-			height: 60px;
+			max-height: 60px;
 			overflow-y: hidden;
 			margin-bottom: 20px;
+			transition: height 0.4s;
 		}
 		.visible {
-			height: max-content;
+			max-height: 1000px;
 		}
 		.item-btn-wraper {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
+			margin-bottom: 20px;
 			.btn {
 				font-family: $headers;
 				font-size: 12px;
@@ -148,6 +167,7 @@ body {
 				width: 120px;
 				border-radius: 5px;
 				padding: 10px 15px;
+				transition: 0.4s;
 			}
 			.list-btn {
 				background-color: $actionBtnBg;
@@ -155,6 +175,10 @@ body {
 			.compare-wraper {
 				.compare-btn {
 					background-color: $red;
+				}
+				.clicked {
+					border-top-left-radius: 2px;
+					border-bottom-left-radius: 2px;
 				}
 				.compare-inp {
 					font-family: $headers;
@@ -164,8 +188,9 @@ body {
 					border: 1px solid $black;
 					border-top-right-radius: 2px;
 					border-bottom-left-radius: 2px;
-					height: 35px;
-					width: 35px;
+					border-right: none;
+					height: 31px;
+					width: 60px;
 					transform: scaleX(0);
 					transform-origin: right;
 					transition: 0.4s;
@@ -174,6 +199,94 @@ body {
 					transform: scaleX(1);
 				}
 			}
+		}
+		.item-data-btn-wraper {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			.btn {
+				font-family: "Trebuchet MS", sans-serif;
+				font-size: 16px;
+				font-weight: 600;
+				background-color: rgb(167, 201, 232);
+				border-radius: 5px;
+				padding: 10px 15px;
+			}
+		}
+		.item-footer {
+			.sales-item,
+			.deliveries-item,
+			.reserve-item {
+				padding: 10px;
+				border-radius: 5px;
+				background-color: $mainBg;
+				margin-bottom: 30px;
+			}
+			.sales-row,
+			.deliveries-row,
+			.reserve-row {
+				display: flex;
+				justify-content: space-between;
+				font-family: $descriptions;
+				font-size: 16px;
+				font-weight: 600;
+				border-bottom: 2px solid $mainBtnBg;
+				padding: 10px;
+			}
+			.order-wraper {
+				.order-item {
+					display: flex;
+					justify-content: flex-start;
+					align-items: center;
+					padding: 5px 10px;
+					.text-wraper {
+						font-family: $descriptions;
+						.position-name {
+							font-size: 16px;
+							font-weight: 800;
+							padding-left: 15px;
+							margin-bottom: 10px;
+						}
+						.order-article,
+						.position-quality {
+							padding: 5px 10px;
+							font-size: 16px;
+							font-weight: 600;
+							margin-bottom: 10px;
+							span {
+								padding: 0 5px;
+							}
+						}
+					}
+				}
+			}
+			.message-title {
+				position: static;
+				transform: none;
+				font-family: $headers;
+				font-size: 16px;
+				text-transform: uppercase;
+				font-weight: 800;
+				color: $mainBtnBg;
+				text-align: center;
+				margin: 20px auto;
+			}
+		}
+	}
+	.success {
+		background-color: $success;
+	}
+}
+.production-wraper {
+	.production-item-wraper {
+		padding: 10px 5px;
+		border-radius: 5px;
+		background-color: $white;
+		margin-bottom: 30px;
+		.item-head {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
 		}
 	}
 }
@@ -210,6 +323,22 @@ body {
 // wraper
 .wraper {
 	padding: 50px 5px;
+	.message-title {
+		font-family: $headers;
+		font-size: 26px;
+		text-transform: uppercase;
+		font-weight: 800;
+		color: $mainBtnBg;
+		text-align: center;
+		margin: 20px auto;
+		width: 100%;
+	}
+	.content-title {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+	}
 	// elaborations
 	.elaboration-wraper {
 		.table-wraper {
@@ -227,6 +356,7 @@ body {
 					font-size: 16px;
 					font-weight: 600;
 					color: $black;
+					padding: 0 5px;
 				}
 				.table-desc {
 					width: 20%;
@@ -330,9 +460,23 @@ body {
 								font-size: 16px;
 								font-weight: 600;
 								margin-bottom: 10px;
+								span {
+									padding: 0 5px;
+								}
 							}
 						}
 					}
+				}
+				.message-title {
+					position: static;
+					transform: none;
+					font-family: $headers;
+					font-size: 16px;
+					text-transform: uppercase;
+					font-weight: 800;
+					color: $mainBtnBg;
+					text-align: center;
+					margin: 20px auto;
 				}
 			}
 		}
@@ -487,6 +631,9 @@ body {
 								margin-bottom: 15px;
 								padding: 5px;
 								border-radius: 5px;
+								span {
+									padding: 0 5px;
+								}
 							}
 							.position-name {
 								font-family: $descriptions;
@@ -523,21 +670,119 @@ body {
 				font-size: 16px;
 				font-weight: 700;
 				margin-bottom: 15px;
-				background-color: $blue;
+
 				padding: 5px;
 				border-radius: 5px;
+				.get-to-production-btn {
+					font-family: $headers;
+					font-size: 14px;
+					color: $white;
+					padding: 5px 10px;
+					text-align: center;
+					background-color: $actionBtnBg;
+					border-radius: 5px;
+				}
 				.item-input {
 					font-family: $headers;
 					font-size: 14px;
 					font-weight: 500;
-					border: none;
+					border: 1px solid $blue;
 					border-radius: 2px;
+					padding: 5px;
 					&::placeholder {
 						padding-left: 10px;
 						max-width: 50px;
 					}
 				}
+				.procesed {
+					border: none;
+					background-color: $mainBg;
+					pointer-events: none;
+				}
 			}
+			.production-item-head {
+				font-family: $headers;
+				font-size: 14px;
+				font-weight: 14px;
+				font-weight: 600;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				margin-bottom: 20px;
+				.component-item-article {
+					background-color: $danger;
+					padding: 5px;
+					border-radius: 2px;
+					color: $white;
+					font-weight: 600;
+				}
+			}
+			.production-item-place {
+				font-family: $headers;
+				font-size: 16px;
+				font-weight: 600;
+				padding: 5px;
+				border-radius: 2px;
+				color: $white;
+				margin-bottom: 20px;
+			}
+		}
+		.flex-container {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			.component-wraper {
+				padding-left: 10px;
+				font-family: $descriptions;
+				font-size: 14px;
+
+				padding: 10px 5px;
+				border-bottom: 2px solid$mainBtnBg;
+				.desc {
+					font-weight: 600;
+					margin-bottom: 10px;
+				}
+				.add-btn {
+					font-family: $headers;
+					font-size: 14px;
+					color: $white;
+					padding: 5px 10px;
+					text-align: center;
+					background-color: $actionBtnBg;
+				}
+			}
+			.success {
+				background-color: $success;
+			}
+		}
+		.product-btn {
+			font-family: $headers;
+			font-size: 14px;
+			color: $white;
+			background-color: $actionBtnBg;
+			padding: 5px 10px;
+			width: 150px;
+			text-align: center;
+			display: block;
+			margin: 20px auto;
+			border-radius: 5px;
+		}
+		.danger {
+			background-color: $danger;
+		}
+		.procesed {
+			background-color: $procesed;
+		}
+	}
+	.history-wraper {
+		.history-item {
+			font-family: $headers;
+			font-size: 14px;
+			border-radius: 5px;
+			padding: 5px 10px;
+			text-align: center;
+			background-color: $white;
+			margin-bottom: 30px;
 		}
 	}
 }

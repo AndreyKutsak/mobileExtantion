@@ -102,7 +102,7 @@ window.addEventListener("load", () => {
 		num: /\d+/,
 		sentence: /[^\\n]+(?=\\n|$)/g,
 		cell: new RegExp("cell", "gi"),
-		orderPlace: /[A-Z]\d*-\d+\.\d+\.\d+/,
+		orderPlace: /[A-Z]\d*-\d+\.\d+\.\d+/gm,
 		goodsCount:
 			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.)/g,
 	};
@@ -123,7 +123,7 @@ window.addEventListener("load", () => {
 		},
 	};
 	let intarval = {
-		elaboration: 20,
+		elaboration: 30,
 	};
 	let get = {
 		url: function (data) {
@@ -147,8 +147,8 @@ window.addEventListener("load", () => {
 		},
 		article: function (data) {
 			let matchData = { id: null, article: null };
-			let matchNumber = data.match(regexNumber);
-			let matchArticle = data.match(regexArticle);
+			let matchNumber = data.match(regExp.number);
+			let matchArticle = data.match(regExp.article);
 			if (matchNumber && matchArticle) {
 				let numberPart = matchNumber[1];
 				let articlePart = matchArticle[1];
@@ -163,10 +163,14 @@ window.addEventListener("load", () => {
 				let matchData = { place: null, article: null };
 				let article = data.match(regExp.orderArticle);
 				let place = data.match(regExp.orderPlace);
+				console.log(place);
 				if (article !== null && place !== null) {
+					let placeStr = "";
 					matchData.article = article[0];
-					matchData.place = place[0];
-					storage.address(matchData);
+					place.forEach((str) => {
+						placeStr += ` ${str}`;
+					});
+					matchData.place = placeStr;
 				}
 				return matchData;
 			}
@@ -313,7 +317,10 @@ window.addEventListener("load", () => {
 			generate.tasksCount();
 		},
 		getToProduction: function () {
-			console.log(this);
+			if (storage.data.production.some((obj) => obj.id === this.dataset.id)) {
+				alert("Елемент вже є в списку!!!");
+				return;
+			}
 			let parent = this.parentNode.parentNode;
 			let id = this.dataset.id;
 			let count = this.parentNode.querySelector(".item-input");
@@ -335,6 +342,7 @@ window.addEventListener("load", () => {
 			parent.parentNode.prepend(parent);
 			generate.tasksCount();
 		},
+
 		generateList: function () {
 			contentWraper.innerHTML = "";
 			contentWraper.appendChild(generate.list());
@@ -373,9 +381,10 @@ window.addEventListener("load", () => {
 			storage.data.production.forEach((item, index) => {
 				if (item.id === id) {
 					storage.data.production.splice(index, 1);
+					parent.remove();
 				}
 			});
-			parent.remove();
+
 			generate.tasksCount();
 		},
 		addToList: function () {
@@ -460,7 +469,7 @@ window.addEventListener("load", () => {
 		addElaborationAnswer: function () {
 			let order = this.dataset.order;
 			let elaborationInp = this.parentNode.querySelector("input");
-			let count = Number(getNum(elaborationInp.value));
+			let count = Number(get.num(elaborationInp.value));
 			let baseCount = this.dataset.count;
 			if (elaborationInp.value === "") {
 				alert("Введи коректну відповідь!");
@@ -598,7 +607,11 @@ window.addEventListener("load", () => {
 				);
 				productionsItems.forEach((item) => {
 					let article = item.querySelector(".component-item-article");
-					if (!article.textContent.includes(input.value)) {
+					let id = item.querySelector(".get-to-production-btn");
+					if (
+						!article.textContent.includes(input.value) ||
+						id.dataset.id == input.value
+					) {
 						item.style.display = "none";
 					} else {
 						item.style.display = "block";
@@ -721,7 +734,7 @@ window.addEventListener("load", () => {
 			if (data.status == "start") {
 				let element = get.elements({
 					el: "div",
-					className: "preloader-wraper wraper",
+					className: "preloader-wraper",
 					children: [
 						{
 							el: "img",
@@ -778,7 +791,7 @@ window.addEventListener("load", () => {
 
 					let prodItem = get.elements({
 						el: "div",
-						className: "production-item-wraper",
+						className: `production-item-wraper ${isProcesed}`,
 						children: [
 							{
 								el: "div",
@@ -948,7 +961,7 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "row-desc",
-										text: "Час",
+										text: "Статус:",
 									},
 									{
 										el: "p",
@@ -1561,6 +1574,7 @@ window.addEventListener("load", () => {
 												text: "Пересорт",
 												event: "click",
 												hendler: function (e) {
+													this.classList.toggle("clicked");
 													let compareInp =
 														e.currentTarget.parentElement.querySelector(
 															".compare-inp"
@@ -1574,7 +1588,7 @@ window.addEventListener("load", () => {
 															return;
 														}
 														if (
-															storage.data.listArray.some(
+															storage.data.compareArray.some(
 																(obj) => obj.id === item.id
 															)
 														) {
@@ -1944,6 +1958,9 @@ window.addEventListener("load", () => {
 					className: "questions-wraper",
 				});
 				data.forEach((item) => {
+					if (item.id == undefined) {
+						return;
+					}
 					questionsWraper.appendChild(
 						get.elements({
 							el: "div",
@@ -2157,15 +2174,6 @@ window.addEventListener("load", () => {
 			);
 		},
 	};
-	let regexArticle = /\s(\d+\.\d+\.\d+)/;
-	let regexNumber = /№(\d+)/;
-	let regexCell = new RegExp("cell", "gi");
-
-	function logOut() {
-		document.cookie = "login=null";
-		document.cookie = "hash=null";
-		window.location.reload();
-	}
 
 	function barcodeRecognition() {
 		let barCodeSearch = document.querySelector(".bar-code-search-btn");
@@ -2185,7 +2193,7 @@ window.addEventListener("load", () => {
 				let searchInp = document.querySelector(".search-inp");
 				searchInp.value = decodedText;
 				let serarchBtn = document.querySelector(".search-send-btn");
-				if (decodedText.match(regexCell) !== null) {
+				if (decodedText.match(regExp.cell) !== null) {
 					serarchBtn.click();
 				}
 			}
@@ -2467,6 +2475,7 @@ window.addEventListener("load", () => {
 			});
 
 			let divs = Array.from(requestCount.querySelectorAll("div"));
+			let script = Array.from(requestCount.querySelectorAll("script"));
 			divs.forEach((item) => {
 				let questionCount = item.textContent.match(regExp.question);
 				let elaborationsCount = item.textContent.match(regExp.elaboration);
@@ -2477,6 +2486,13 @@ window.addEventListener("load", () => {
 					requests.elaborationsCount = elaborationsCount[1];
 				}
 			});
+
+			if (script.length > 0) {
+				console.log(script.length);
+				this.logOut();
+				return;
+			}
+
 			this.storage.push(requests);
 			return this.storage;
 		},
@@ -2560,37 +2576,41 @@ window.addEventListener("load", () => {
 				tr.forEach((row) => {
 					let data = {};
 					let item = row.querySelectorAll("td");
-					data.goodsDesc = item[0].textContent.trim();
-					data.questionManager = item[1].getAttribute("title").trim();
-					data.question = item[1].textContent.trim();
-					data.id = item[2]
-						.querySelector("input[type='text']")
-						.id.match(/(\d+)/)[1];
-					data.questionOrder = item[3].textContent.trim();
-					this.storage.push(data);
+
+					try {
+						data.goodsDesc = item[0].textContent.trim();
+						data.questionManager = item[1].getAttribute("title").trim();
+						data.question = item[1].textContent.trim();
+
+						let inputElement = item[2].querySelector("input[type='text']");
+						if (inputElement) {
+							data.id = inputElement.id.match(/(\d+)/)[1];
+						} else {
+							throw new Error("Елемент input[type='text'] не знайдено");
+						}
+
+						data.questionOrder = item[3].textContent.trim();
+						this.storage.push(data);
+					} catch (error) {
+						console.error("Помилка обробки рядка:", error.message);
+
+						return;
+					}
 				});
 			}
 			return this.storage;
 		},
+		logOut: function () {
+			document.cookie = "login=null";
+			document.cookie = "hash=null";
+			window.location.reload();
+		},
 	};
-
-	function getNum(inputString) {
-		const regex = /\d+/;
-		const matches = inputString.match(regex);
-
-		if (matches && matches.length > 0) {
-			return parseInt(matches[0], 10);
-		}
-
-		return null; // Повертаємо null, якщо число не знайдено в рядку
-	}
 
 	// check elaborations count
 	setInterval(() => {
 		generate.requestCount();
 	}, intarval.elaboration * 1000);
-
-	// add content-wrapper
 
 	let buttons = {
 		el: "div",
@@ -2722,7 +2742,7 @@ window.addEventListener("load", () => {
 				el: "button",
 				className: "log-out-btn btn",
 				event: "click",
-				hendler: logOut,
+				hendler: load.logOut,
 				children: [
 					{
 						el: "img",

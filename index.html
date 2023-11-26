@@ -1,4 +1,4 @@
-<!-- <table border="1" cellpadding="0" cellspacing="0" width="98%">
+ <table border="1" cellpadding="0" cellspacing="0" width="98%">
     <tr>
         <td align="center" style="padding: 5px;">Товар</td>
         <td align="center" style="padding: 5px;">Вопрос</td>
@@ -16,9 +16,9 @@
         <td align="center" style="padding: 5px; cursor: pointer;" onclick="Orders(1099533);">1099533</td>
     </tr>
 </table>
-id:3986 text: відповідь на питання -->
+id:3986 text: відповідь на питання 
 <!-- барабан -->
-<!-- <button onclick="clearElaboration();">Почистити</button>
+ <button onclick="clearElaboration();">Почистити</button>
 <select id="eleborationType" onchange="eleborationType()" style="float: right;">
     <option value="0">У цьому вікні</option>
     <option value="1">У новій вкладці</option>
@@ -1134,76 +1134,6 @@ order -->
 
 
 
-/*
-function IamLooking()
-{
-if(IamLooking_id>0){
-$.post("ajax/i_am_looking.php",{order: IamLooking_id},function(data){
-
-});
-
-setTimeout(IamLooking,10 * 1000);
-}
-}
-$(IamLooking());
-*/
-// function goodsSort() {
-// if ($.cookie('goods_sort') == 1) {
-// var newGoodsSort = 0;
-// var newGoodsSortClass = 'goods_sort1';
-// }
-// else {
-// var newGoodsSort = 1;
-// var newGoodsSortClass = 'goods_sort';
-// }
-
-// $.cookie('goods_sort', newGoodsSort);
-// $('#goods_sort').removeClass().addClass(newGoodsSortClass);
-// }
-
-// function deklarTypeSave() {
-// var opt = $('#deklarType').val();
-// $.cookie('deklarType', opt, { path: '/' });
-// }
-
-// function upakovochnayaSave() {
-// var opt = $('#upakovochnaya').val();
-// $.cookie('upakovochnaya', opt, { path: '/' });
-// }
-
-// function addGoodsToReserv(id, goods_id, basket_id, raznos) {
-// if (confirm('Зарезервувати для цього замовлення?')) {
-
-// var cuant = $('#cuant' + id + '_' + goods_id).val();
-// if (cuant < 1) {
-  // alert('Кількість не може бути меншою 1');
-  // return;
-  // }
-  // $('#loader').show();
-  // $.post("https://baza.m-p.in.ua/ajax/addGoodsToReserv.php", { basket_id: basket_id, raznos: raznos }, function (data) {
-  // if (data !='error' ) {
-  // $('#ststus_bask' + basket_id).html(data);
-  // $('#delBar' + goods_id + '_' + id).html('');
-  // }
-  // else alert('Виникла помилка');
-  // $('#loader').hide();
-  // });
-  // }
-  // }
-
-
-  // function dellGoodsFromReserv(id, goods_id, basket_id) {
-  // if (confirm('Снять резерв для этого заказа?')) {
-  // $('#loader').show();
-  // $.post("https://baza.m-p.in.ua/ajax/dellGoodsFromReserv.php", { basket_id: basket_id }, function (data) {
-  // if (data !='error' ) {
-  // $('#ststus_bask' + basket_id).html(data);
-  // }
-  // else alert('Виникла помилка');
-  // $('#loader').hide();
-  // });
-  // }
-  // }
 
   // </script>
     // <div id="estIliNet1121957" style="display: none;">_I12188I</div>
@@ -10029,3 +9959,7 @@ $(IamLooking());
         </tr>
     </table>
     <script src="app.js"></script>
+    <div style="float: left; margin: 0 20px 0;  cursor: pointer;" onclick="Orders(1);">Нові замовлення: 40 шт.</div>
+    <div style="float: left; margin: 0 20px; cursor: pointer;" onclick="Orders(4);">Замовлення чекають на відправку: 254 шт.</div>
+    <div style="float: left; margin: 0 20px; cursor: pointer;" onclick="coments(1);">Є питання: 4 шт.</div>
+    <div style="float: left; margin: 0 20px; cursor: pointer; font-weight: bold;" onclick="callback()">Є Уточнення: 1 шт.</div>
