@@ -1331,9 +1331,8 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "item-count",
-										text: `Кількість по базі: ${
-											get.goodsCount(item.count).baseCount
-										} Резерв: ${get.goodsCount(item.count).orderCount}
+										text: `Кількість по базі: ${get.goodsCount(item.count).baseCount
+											} Резерв: ${get.goodsCount(item.count).orderCount}
 			Реальна кількість: ${item.realCount} Різниця: ${difference}`,
 									},
 									{
@@ -1477,13 +1476,11 @@ window.addEventListener("load", () => {
 							{
 								el: "div",
 								className: "item-place danger",
-								text: `Місце: ${
-									storage.data.addresses[item.article]?.place ??
+								text: `Місце: ${storage.data.addresses[item.article]?.place ??
 									"Ще не збережено"
-								} |  Cell: ${
-									storage.data.addresses[item.article]?.cell ??
+									} |  Cell: ${storage.data.addresses[item.article]?.cell ??
 									"Ще не збережено"
-								}`,
+									}`,
 							},
 							{
 								el: "div",
@@ -2151,16 +2148,14 @@ window.addEventListener("load", () => {
 						{
 							el: "div",
 							className: "history-item saved-articles",
-							text: `Збережено Артикулів: ${
-								Object.keys(storage.data.addresses).length
-							}`,
+							text: `Збережено Артикулів: ${Object.keys(storage.data.addresses).length
+								}`,
 						},
 						{
 							el: "div",
 							className: "history-item elaboration",
-							text: `Відбито Уточнень: ${
-								Object.keys(storage.data.elaborations).length
-							}`,
+							text: `Відбито Уточнень: ${Object.keys(storage.data.elaborations).length
+								}`,
 						},
 						{
 							el: "div",
@@ -2476,7 +2471,7 @@ window.addEventListener("load", () => {
 			});
 
 			let divs = Array.from(requestCount.querySelectorAll("div"));
-			let script = Array.from(requestCount.querySelectorAll("script"));
+
 			divs.forEach((item) => {
 				let questionCount = item.textContent.match(regExp.question);
 				let elaborationsCount = item.textContent.match(regExp.elaboration);
@@ -2488,8 +2483,8 @@ window.addEventListener("load", () => {
 				}
 			});
 
-			if (script.length > 0) {
-				console.log(script.length);
+			if (divs.length == 0) {
+				console.log(divs.length);
 				this.logOut();
 				return;
 			}
@@ -2538,7 +2533,7 @@ window.addEventListener("load", () => {
 							let images = Array.from(
 								search
 									.querySelectorAll(".detImg")
-									[index].querySelectorAll("img")
+								[index].querySelectorAll("img")
 							);
 
 							let imgSrc = [];
