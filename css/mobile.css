@@ -98,6 +98,17 @@ body {
   border: none;
 }
 
+button.html5-qrcode-element {
+  font-family: "Roboto", "Helvetica Neue", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  width: 150px;
+  background-color: #1cc879;
+  padding: 10px 15px;
+}
+
 .search-result-wraper .item-wraper {
   padding: 10px 5px;
   border-radius: 5px;
@@ -351,18 +362,23 @@ body {
   margin-bottom: 30px;
 }
 .wraper .elaboration-wraper .table-wraper .table-row {
-  padding: 10px 5px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   border-bottom: 2px solid #d1d9e8;
 }
 .wraper .elaboration-wraper .table-wraper .table-row .table-desc,
-.wraper .elaboration-wraper .table-wraper .table-row .table-text {
+.wraper .elaboration-wraper .table-wraper .table-row .table-text,
+.wraper .elaboration-wraper .table-wraper .table-row .image-desc {
+  padding: 10px 5px;
   font-family: "Trebuchet MS", sans-serif;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   color: rgb(0, 0, 0);
-  padding: 0 5px;
+}
+.wraper .elaboration-wraper .table-wraper .table-row .image-desc {
+  width: 150px;
+  text-align: center;
 }
 .wraper .elaboration-wraper .table-wraper .table-row .table-desc {
   width: 20%;
@@ -374,13 +390,13 @@ body {
 .wraper .elaboration-wraper .table-wraper .table-row .table-input-wraper {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;
 }
 .wraper .elaboration-wraper .table-wraper .table-row .table-input-wraper .table-input {
   font-family: "Trebuchet MS", sans-serif;
   font-size: 16px;
   font-weight: 600;
-  width: 80%;
+  width: 70%;
   border-top-left-radius: 5px;
   border-bottom-left-radius: 5px;
   padding: 14px 10px;
@@ -449,18 +465,24 @@ body {
   align-items: center;
   padding: 5px 10px;
 }
+.wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .order-item img.goods-image {
+  width: 18%;
+}
 .wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .order-item .text-wraper {
   font-family: "Trebuchet MS", sans-serif;
+  padding-left: 15px;
+  min-width: 80%;
 }
 .wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .order-item .text-wraper .position-name {
   font-size: 16px;
   font-weight: 800;
-  padding-left: 15px;
   margin-bottom: 10px;
+  color: rgb(0, 0, 0);
 }
 .wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .order-item .text-wraper .order-article,
 .wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .order-item .text-wraper .position-quality {
   padding: 5px 10px;
+  color: #fff;
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 10px;
@@ -598,6 +620,10 @@ body {
   font-weight: 700;
   color: #fff;
   text-align: center;
+}
+.wraper .list-wraper .success,
+.wraper .compare-wraper .success {
+  background-color: #7effb9;
 }
 .wraper .orders-wraper .order-row {
   background-color: #fff;

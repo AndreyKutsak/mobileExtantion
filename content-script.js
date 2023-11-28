@@ -338,7 +338,7 @@ window.addEventListener("load", () => {
 				isProcesed: false,
 			});
 			count.disabled = true;
-			parent.classList.add("danger");
+			parent.classList.add("procesed");
 			parent.parentNode.prepend(parent);
 			generate.tasksCount();
 		},
@@ -1890,7 +1890,11 @@ window.addEventListener("load", () => {
 								el: "div",
 								className: "table-row image-row",
 								children: [
-									{ el: "p", className: "table-desc", text: "Фото товару." },
+									{
+										el: "p",
+										className: "image-desc ",
+										text: "Фото товару.",
+									},
 									{
 										el: "div",
 										className: "image-wraper",
@@ -2184,7 +2188,7 @@ window.addEventListener("load", () => {
 			fps: 8,
 			qrbox: 250,
 		});
-		console.log(html5QrcodeScanner);
+
 		let lastResult,
 			countResults = 0;
 		function onScanSuccess(decodedText) {
@@ -2506,7 +2510,13 @@ window.addEventListener("load", () => {
 			});
 
 			const rows = Array.from(elaborations.querySelectorAll("table tbody tr"));
-
+			let sortByPlace = (a, b) => {
+				let placeA = a.place.toUpperCase();
+				let placeB = b.place.toUpperCase();
+				if (placeA < placeB) return -1;
+				if (placeA > placeB) return 1;
+				return 0;
+			};
 			rows.shift();
 			const elaborationsList = await Promise.all(
 				rows.map(async (data) => {
@@ -2561,6 +2571,7 @@ window.addEventListener("load", () => {
 					return elaborationData;
 				})
 			);
+			elaborationsList.sort(sortByPlace);
 			this.storage = elaborationsList;
 			console.log(this.storage);
 			return this.storage;

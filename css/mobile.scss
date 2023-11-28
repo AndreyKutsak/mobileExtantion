@@ -88,6 +88,16 @@ body {
 		border: none;
 	}
 }
+button.html5-qrcode-element {
+	font-family: $headers;
+	font-size: 16px;
+	font-weight: 600;
+	color: $white;
+	text-align: center;
+	width: 150px;
+	background-color: $actionBtnBg;
+	padding: 10px 15px;
+}
 // search wrapper result
 .search-result-wraper {
 	.item-wraper {
@@ -349,17 +359,22 @@ body {
 			background-color: $white;
 			margin-bottom: 30px;
 			.table-row {
-				padding: 10px 5px;
 				display: flex;
 				justify-content: space-between;
+				align-items: center;
 				border-bottom: 2px solid $itemShadow;
 				.table-desc,
-				.table-text {
+				.table-text,
+				.image-desc {
+					padding: 10px 5px;
 					font-family: $descriptions;
-					font-size: 16px;
-					font-weight: 600;
+					font-size: 14px;
+					font-weight: 500;
 					color: $black;
-					padding: 0 5px;
+				}
+				.image-desc {
+					width: 150px;
+					text-align: center;
 				}
 				.table-desc {
 					width: 20%;
@@ -371,13 +386,12 @@ body {
 				.table-input-wraper {
 					display: flex;
 					align-items: center;
-					justify-content: flex-start;
+					justify-content: flex-end;
 					.table-input {
 						font-family: $descriptions;
 						font-size: 16px;
 						font-weight: 600;
-
-						width: 80%;
+						width: 70%;
 						border-top-left-radius: 5px;
 						border-bottom-left-radius: 5px;
 						padding: 14px 10px;
@@ -449,20 +463,27 @@ body {
 						justify-content: flex-start;
 						align-items: center;
 						padding: 5px 10px;
+						img.goods-image {
+							width: 18%;
+						}
 						.text-wraper {
 							font-family: $descriptions;
+							padding-left: 15px;
+							min-width: 80%;
 							.position-name {
 								font-size: 16px;
 								font-weight: 800;
-								padding-left: 15px;
 								margin-bottom: 10px;
+								color: $black;
 							}
 							.order-article,
 							.position-quality {
 								padding: 5px 10px;
+								color: $white;
 								font-size: 16px;
 								font-weight: 600;
 								margin-bottom: 10px;
+
 								span {
 									padding: 0 5px;
 								}
@@ -581,6 +602,9 @@ body {
 					text-align: center;
 				}
 			}
+		}
+		.success {
+			background-color: $success;
 		}
 	}
 	.orders-wraper {
