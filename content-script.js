@@ -123,7 +123,7 @@ window.addEventListener("load", () => {
 		},
 	};
 	let intarval = {
-		elaboration: 30,
+		elaboration: 15,
 	};
 	let get = {
 		url: function (data) {
@@ -510,15 +510,15 @@ window.addEventListener("load", () => {
 			let orderId = get.orderId(this.textContent);
 			let elaborationFooter =
 				this.parentNode.parentNode.querySelector(".item-footer");
-			if (elaborationFooter.classList.contains("active")) {
-				elaborationFooter.classList.remove("active");
+			if (elaborationFooter.classList.contains("active-order")) {
+				elaborationFooter.classList.remove("active-order");
 				let footerChildren = Array.from(elaborationFooter.children);
 				footerChildren.forEach((element) => {
 					element.remove();
 				});
 				return;
 			}
-			elaborationFooter.classList.add("active");
+			elaborationFooter.classList.add("active-order");
 			load.order({ id: orderId }).then((data) => {
 				elaborationFooter.appendChild(generate.order(data));
 			});
@@ -527,14 +527,15 @@ window.addEventListener("load", () => {
 			let id = this.dataset.id;
 			let footer =
 				this.parentElement.parentElement.querySelector(".item-footer");
-			if (footer.classList.contains("active")) {
+			footer.innerHTML = "";
+			if (footer.classList.contains("active-reserve")) {
 				footer.innerHTML = "";
-				footer.classList.toggle("active");
+				footer.classList.toggle("active-reserve");
 				return;
 			}
 			let reserve = load.reserve({ id: id });
-			footer.classList.toggle("active");
-			footer.innerHTML = "";
+			footer.classList.toggle("active-reserve");
+
 			reserve.then((reserve) => {
 				footer.appendChild(generate.reserve(reserve));
 			});
@@ -543,12 +544,12 @@ window.addEventListener("load", () => {
 			let id = this.dataset.id;
 			let elFooter =
 				this.parentElement.parentElement.querySelector(".item-footer");
-			if (elFooter.classList.contains("active")) {
-				elFooter.innerHTML = "";
-				elFooter.classList.toggle("active");
+			elFooter.innerHTML = "";
+			if (elFooter.classList.contains("active-sales")) {
+				elFooter.classList.toggle("active-sales");
 				return;
 			}
-			elFooter.classList.toggle("active");
+			elFooter.classList.toggle("active-sales");
 			load.sales({ id: id }).then((data) => {
 				elFooter.appendChild(generate.sales(data));
 			});
@@ -557,12 +558,12 @@ window.addEventListener("load", () => {
 			let id = this.dataset.id;
 			let elFooter =
 				this.parentElement.parentElement.querySelector(".item-footer");
-			if (elFooter.classList.contains("active")) {
-				elFooter.innerHTML = "";
-				elFooter.classList.toggle("active");
+			elFooter.innerHTML = "";
+			if (elFooter.classList.contains("active-arrival")) {
+				elFooter.classList.toggle("active-arrival");
 				return;
 			}
-			elFooter.classList.toggle("active");
+			elFooter.classList.toggle("active-arrival");
 			load.deliveries({ id: id }).then((data) => {
 				elFooter.appendChild(generate.deliveries(data));
 			});
@@ -576,7 +577,7 @@ window.addEventListener("load", () => {
 				return;
 			}
 			let isOrder = wrapper.querySelector(".orders-wraper");
-			let isProduction = wrapper.querySelector(".production-wraper");
+
 			generate.preloader({ status: "start" });
 			if (isOrder) {
 				load.orders({ text: input.value }).then((data) => {
@@ -584,9 +585,7 @@ window.addEventListener("load", () => {
 				});
 				return;
 			}
-			if (isProduction) {
-				return;
-			}
+
 			let search_sell = 0;
 			let result = load.search({
 				search: String(input.value),
@@ -1331,8 +1330,9 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "item-count",
-										text: `Кількість по базі: ${get.goodsCount(item.count).baseCount
-											} Резерв: ${get.goodsCount(item.count).orderCount}
+										text: `Кількість по базі: ${
+											get.goodsCount(item.count).baseCount
+										} Резерв: ${get.goodsCount(item.count).orderCount}
 			Реальна кількість: ${item.realCount} Різниця: ${difference}`,
 									},
 									{
@@ -1476,11 +1476,13 @@ window.addEventListener("load", () => {
 							{
 								el: "div",
 								className: "item-place danger",
-								text: `Місце: ${storage.data.addresses[item.article]?.place ??
+								text: `Місце: ${
+									storage.data.addresses[item.article]?.place ??
 									"Ще не збережено"
-									} |  Cell: ${storage.data.addresses[item.article]?.cell ??
+								} |  Cell: ${
+									storage.data.addresses[item.article]?.cell ??
 									"Ще не збережено"
-									}`,
+								}`,
 							},
 							{
 								el: "div",
@@ -1627,13 +1629,13 @@ window.addEventListener("load", () => {
 												e.currentTarget.parentElement.parentElement.querySelector(
 													".item-footer"
 												);
-											if (footer.classList.contains("active")) {
+											if (footer.classList.contains("active-reserve")) {
 												footer.innerHTML = "";
-												footer.classList.toggle("active");
+												footer.classList.toggle("active-reserve");
 												return;
 											}
 											let reserve = load.reserve({ id: item.id });
-											footer.classList.toggle("active");
+											footer.classList.toggle("active-reserve");
 											footer.innerHTML = "";
 											reserve.then((reserve) => {
 												console.log(reserve, generate.reserve(reserve));
@@ -1651,15 +1653,15 @@ window.addEventListener("load", () => {
 												e.currentTarget.parentElement.parentElement.querySelector(
 													".item-footer"
 												);
-											if (footer.classList.contains("active")) {
+											if (footer.classList.contains("active-sales")) {
 												footer.innerHTML = "";
-												footer.classList.toggle("active");
+												footer.classList.toggle("active-sales");
 												return;
 											}
 											let sales = load.sales({ id: item.id });
 
 											footer.innerHTML = "";
-											footer.classList.toggle("active");
+											footer.classList.toggle("active-sales");
 
 											sales.then((data) => {
 												footer.appendChild(generate.sales(data));
@@ -1676,13 +1678,13 @@ window.addEventListener("load", () => {
 												e.currentTarget.parentElement.parentElement.querySelector(
 													".item-footer"
 												);
-											if (footer.classList.contains("active")) {
+											if (footer.classList.contains("active-arrival")) {
 												footer.innerHTML = "";
-												footer.classList.toggle("active");
+												footer.classList.toggle("active-arrival");
 												return;
 											}
 											let deliveries = load.deliveries({ id: item.id });
-											footer.classList.toggle("active");
+											footer.classList.toggle("active-arrival");
 											footer.innerHTML = "";
 											deliveries.then((data) => {
 												footer.appendChild(generate.deliveries(data));
@@ -2152,14 +2154,16 @@ window.addEventListener("load", () => {
 						{
 							el: "div",
 							className: "history-item saved-articles",
-							text: `Збережено Артикулів: ${Object.keys(storage.data.addresses).length
-								}`,
+							text: `Збережено Артикулів: ${
+								Object.keys(storage.data.addresses).length
+							}`,
 						},
 						{
 							el: "div",
 							className: "history-item elaboration",
-							text: `Відбито Уточнень: ${Object.keys(storage.data.elaborations).length
-								}`,
+							text: `Відбито Уточнень: ${
+								Object.keys(storage.data.elaborations).length
+							}`,
 						},
 						{
 							el: "div",
@@ -2543,7 +2547,7 @@ window.addEventListener("load", () => {
 							let images = Array.from(
 								search
 									.querySelectorAll(".detImg")
-								[index].querySelectorAll("img")
+									[index].querySelectorAll("img")
 							);
 
 							let imgSrc = [];
