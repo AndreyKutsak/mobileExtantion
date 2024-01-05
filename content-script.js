@@ -90,6 +90,9 @@ window.addEventListener("load", () => {
 		deliveries: "https://baza.m-p.in.ua/ajax/prihod1.php",
 		sales: "https://baza.m-p.in.ua/ajax/podrSales.php",
 		production: "https://baza.m-p.in.ua/ajax/ourGoods.php",
+		stilages: "https://baza.m-p.in.ua/ajax/stillages.php",
+		stilagesZones: "https://baza.m-p.in.ua/ajax/stillagesZone.php",
+		stilage: "https://baza.m-p.in.ua/ajax/stillage.php",
 	};
 	//regulars expression
 	let regExp = {
@@ -623,7 +626,7 @@ window.addEventListener("load", () => {
 			let itemFooter = this.querySelector(".row-footer");
 
 			let items = Array.from(
-				document.querySelectorAll(".row-footer .order-wraper")
+				document.querySelectorAll(".row-footer .order-wraper,.item-preloader")
 			);
 			let id = this.dataset.id;
 
@@ -1445,7 +1448,12 @@ window.addEventListener("load", () => {
 			generate.preloader({ status: "end" });
 			if (data.length > 0) {
 				let searchInp = document.querySelector(".search-inp").value;
+				data.sort((a, b) => (a.article > b.article ? 1 : -1));
+				data.sort((a, b) =>
+					a.baseCount.baseCount > b.baseCount.baseCount ? -1 : 1
+				);
 				data.forEach((item) => {
+					console.log(get.goodsCount(item.count));
 					if (searchInp !== "" && searchInp.match(regExp.cell)) {
 						storage.address({ article: item.article, cell: searchInp });
 					}
@@ -2338,6 +2346,7 @@ window.addEventListener("load", () => {
 				data.head = goodsDesc[index].innerHTML.split("<br>")[0].trim();
 				data.desc = goodsDesc[index].textContent.trim();
 				data.count = goodsCount[index].textContent.trim();
+				data.baseCount = get.goodsCount(goodsCount[index].textContent.trim());
 				this.storage.push(data);
 			});
 
@@ -2611,6 +2620,60 @@ window.addEventListener("load", () => {
 			}
 			return this.storage;
 		},
+		getPlaces: async function () {
+			let places={};
+			let load_stilages_id = await this.fetch({
+				url: url.stilages,
+				method: "POST",
+			});
+			let id_tr = Array.from(load_stilages_id.querySelectorAll("table tr"));
+			id_tr.shift();
+			let places_id = [];
+			let stilages_data;
+			id_tr.forEach((item) => {
+				places_id.push(item.querySelector("td").textContent.trim());
+			});
+			if (places_id.length === 0) {
+				return;
+			}
+			stilages_data = places_id.map(async (item) => {
+				let stilages = await this.fetch({
+					url: url.stilagesZones,
+					method: "POST",
+					body: { zone: item },
+				});
+				let rows = Array.from(stilages.querySelectorAll("table tbody tr"));
+				rows.shift();
+				let stilage = rows.map((item) => {
+					let td = Array.from(item.querySelectorAll("td"));
+					return {
+						id: td[0].textContent,
+						number: td[1].textContent,
+						zone: td[3].textContent,
+					};
+				});
+				console.log(stilage);
+			});
+			stilages_data.forEach(async (item) => {
+				let stilage = await this.fetch({
+					url: url.stilage,
+					method: "POST",
+					body: { id: item },
+				});
+				let stilage_rows = Array.from(
+					stilage.querySelectorAll("table tbody tr")
+				);
+				places=stilage_rows.map((item)=>{
+					let cells={};
+					let td = Array.from(item.querySelectorAll("td"));
+					td.forEach((data)=>{
+						cells["zone"]:item.
+					})
+				})
+
+			});
+		},
+
 		logOut: function () {
 			document.cookie = "login=null";
 			document.cookie = "hash=null";
@@ -2770,4 +2833,5 @@ window.addEventListener("load", () => {
 	document.body.appendChild(btnWraper);
 	generate.requestCount();
 	generate.tasksCount();
+	
 });
