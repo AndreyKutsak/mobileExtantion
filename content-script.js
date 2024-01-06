@@ -2621,7 +2621,7 @@ window.addEventListener("load", () => {
 			return this.storage;
 		},
 		getPlaces: async function () {
-			let places={};
+			let places = {};
 			let load_stilages_id = await this.fetch({
 				url: url.stilages,
 				method: "POST",
@@ -2663,14 +2663,13 @@ window.addEventListener("load", () => {
 				let stilage_rows = Array.from(
 					stilage.querySelectorAll("table tbody tr")
 				);
-				places=stilage_rows.map((item)=>{
-					let cells={};
+				places = stilage_rows.map((item) => {
+					let cells = {};
 					let td = Array.from(item.querySelectorAll("td"));
-					td.forEach((data)=>{
-						cells["zone"]:item.
-					})
-				})
-
+					td.forEach((data) => {
+						console.log(item);
+					});
+				});
 			});
 		},
 
@@ -2833,5 +2832,4 @@ window.addEventListener("load", () => {
 	document.body.appendChild(btnWraper);
 	generate.requestCount();
 	generate.tasksCount();
-	
 });
