@@ -1,10 +1,14 @@
-let storage = [{ a: 1 }, { a: 2 }, { a: 3 }];
+const inputString =
+	"Замок (УБЛ) Whirlpool 481075043881(без ориг. упаковки) 1.23.0333
+Замок (УБЛ) Gorenje 579333 (без ориг. упаковки) 1.23.0341 
+Замок (УБЛ) Indesit C00307442 (без ориг. упаковки) 1.23.0342 потрібно з строки";
 
-storage.forEach((item, index) => {
-	console.log(item.a);
-	if (item.a == 1) {
-		storage.push(item);
-		storage.splice(index, 1);
-	}
-});
-console.log(storage);
+// Знаходимо всі числа, розділені точками та знаходяться в кінці речення
+const numbers = inputString.match(/\d+\.\d+\.\d+$/);
+
+// Виводимо результат
+if (numbers) {
+	console.log(numbers);
+} else {
+	console.log("Числа не знайдено");
+}

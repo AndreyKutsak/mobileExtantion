@@ -149,17 +149,24 @@ button.html5-qrcode-element {
 }
 .search-result-wraper .item-wraper .item-content-wraper .item-text-wraper {
   padding-left: 15px;
+  min-width: 100%;
 }
 .search-result-wraper .item-wraper .item-content-wraper .item-text-wraper .item-count {
   font-family: "Trebuchet MS", sans-serif;
   font-size: 16px;
   font-weight: 808;
   line-height: 20px;
-  background-color: rgba(255, 112, 112, 0.6784313725);
   -webkit-backdrop-filter: opacity(0.5);
           backdrop-filter: opacity(0.5);
+}
+.search-result-wraper .item-wraper .item-content-wraper .item-text-wraper .item-count p {
   border-radius: 5px;
   padding: 5px;
+  background-color: #a7c9e8;
+  margin-bottom: 10px;
+}
+.search-result-wraper .item-wraper .item-content-wraper .item-text-wraper .item-count .danger {
+  background-color: #ff7070;
 }
 .search-result-wraper .item-wraper .item-desc {
   font-family: "Trebuchet MS", sans-serif;
@@ -173,6 +180,48 @@ button.html5-qrcode-element {
 }
 .search-result-wraper .item-wraper .visible {
   max-height: 1000px;
+}
+.search-result-wraper .item-wraper .cell-capacity-wraper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.search-result-wraper .item-wraper .cell-capacity-wraper .cell-btn {
+  font-family: "Roboto", "Helvetica Neue", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  display: block;
+  max-width: 100px;
+  padding: 7px 15px;
+  border-radius: 5px;
+  color: #fff;
+}
+.search-result-wraper .item-wraper .cell-capacity-wraper .fill {
+  background-color: #1cc879;
+}
+.search-result-wraper .item-wraper .cell-capacity-wraper .ignore {
+  background-color: rgba(255, 112, 112, 0.6784313725);
+}
+.search-result-wraper .item-wraper .cell-capacity-wraper .cell-input {
+  display: block;
+  font-family: "Roboto", "Helvetica Neue", sans-serif;
+  font-size: 16px;
+  text-transform: uppercase;
+  font-weight: 600;
+  height: 40px;
+  max-width: 80px;
+  border: 2px solid #a7c9e8;
+  background-color: none;
+}
+.search-result-wraper .item-wraper .cell-capacity-wraper .cell-input::-moz-placeholder {
+  font-size: 10px;
+  font-weight: 400;
+}
+.search-result-wraper .item-wraper .cell-capacity-wraper .cell-input::placeholder {
+  font-size: 10px;
+  font-weight: 400;
 }
 .search-result-wraper .item-wraper .item-btn-wraper {
   display: flex;

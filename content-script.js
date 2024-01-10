@@ -44,20 +44,43 @@ window.addEventListener("load", () => {
 				);
 				return;
 			}
-			let savedArticle = JSON.parse(localStorage.getItem("storage"));
+
+			if (!this.data.addresses[data.article]) {
+				this.data.addresses[data.article] = this.observe({});
+			}
+
 			if (data.place) {
-				this.data.addresses[data.article] = this.observe({ place: data.place });
+				this.data.addresses[data.article].place = this.observe(data.place);
 			}
 			if (data.cell) {
-				this.data.addresses[data.article] = this.observe({ cell: data.cell });
+				this.data.addresses[data.article].cell = this.observe(data.cell);
 			}
+			if (data.cell_capacity) {
+				this.data.addresses[data.article].cell_capacity = this.observe(
+					data.cell_capacity
+				);
+			}
+			if (data.last_goods_count) {
+				this.data.addresses[data.article].last_goods_count = this.observe(
+					data.last_goods_count
+				);
+			}
+			if (data.is_ignored) {
+				this.data.addresses[data.article].is_ignored = this.observe(
+					data.is_ignored
+				);
+			}
+			if (data.real_goods_count) {
+				this.data.addresses[data.article].real_goods_count = this.observe(
+					data.real_goods_count
+				);
+			}
+
 			this.save();
-			if (savedArticle.addresses[data.article]) {
-				return savedArticle.addresses[data.article];
-			} else {
-				return false;
-			}
+
+			return this.data.addresses[data.article];
 		},
+
 		observe: function (obj) {
 			if (typeof obj !== "object" || obj === null) {
 				return obj;
@@ -661,6 +684,38 @@ window.addEventListener("load", () => {
 
 				itemFooter.appendChild(generate.order(data));
 			});
+		},
+		show_stilages: function () {
+			console.log("show_stilages");
+			load.get_stilages();
+		},
+		// cell capacity
+		set_cell_capacity: function () {
+			let article = this.dataset.article || false;
+			if (article) {
+				let capacity = this.value;
+				storage.data.addresses[article].cell_capacity = capacity;
+			}
+		},
+		ignore_article: function () {
+			let article = this.dataset.article || false;
+			if (article) {
+				storage.data.addresses[article].is_ignored = true;
+			}
+		},
+		fill_cell: function () {
+			let article = this.dataset.article || false;
+			if (article) {
+				storage.data.addresses[article].real_goods_count =
+					storage.data.addresses[article].cell_capacity;
+				if (
+					storage.data.addresses[article].cell_capacity >
+					storage.data.addresses[article].last_goods_count
+				) {
+					storage.data.addresses[article].real_goods_count =
+						storage.data.addresses[article].cell_capacity;
+				}
+			}
 		},
 	};
 	// creating and adding new elements to DOM
@@ -1453,7 +1508,14 @@ window.addEventListener("load", () => {
 					a.baseCount.baseCount > b.baseCount.baseCount ? -1 : 1
 				);
 				data.forEach((item) => {
-					console.log(get.goodsCount(item.count));
+					let reserve_count_class = "",
+						base_count_class = "";
+					if (item.baseCount.baseCount < 1) {
+						base_count_class = "danger";
+					}
+					if (item.baseCount.orderCount > 0) {
+						reserve_count_class = "danger";
+					}
 					if (searchInp !== "" && searchInp.match(regExp.cell)) {
 						storage.address({ article: item.article, cell: searchInp });
 					}
@@ -1515,9 +1577,20 @@ window.addEventListener("load", () => {
 										className: "item-text-wraper",
 										children: [
 											{
-												el: "p",
+												el: "div",
 												className: "item-count",
-												text: item.count,
+												children: [
+													{
+														el: "p",
+														className: `count base-count ${base_count_class}`,
+														text: `Кількість По Базі: ${item.baseCount.baseCount}`,
+													},
+													{
+														el: "p",
+														className: `count reserve-count ${reserve_count_class}`,
+														text: `Резерв: ${item.baseCount.orderCount}`,
+													},
+												],
 											},
 										],
 									},
@@ -1532,6 +1605,39 @@ window.addEventListener("load", () => {
 								},
 								text: item.desc,
 							},
+							{
+								el: "div",
+								className: "cell-capacity-wraper",
+								children: [
+									{
+										el: "button",
+										className: "cell-btn fill",
+										text: "Заповнити Комірку",
+										event: "click",
+										data: [{ article: item.article }],
+										hendler: hendlers.fill_cell,
+									},
+									{
+										el: "butoon",
+										className: "cell-btn ignore",
+										text: "Ігнорувати артикул",
+										event: "click",
+										data: [{ article: item.article }],
+										hendler: hendlers.ignore_article,
+									},
+									{
+										el: "input",
+										className: "cell-input",
+										placeholder: "Місткість комірки",
+										data: [{ article: item.article }],
+										type: "number",
+										value: storage.data.addresses[item.article]?.cell_capacity,
+										event: "input",
+										hendler: hendlers.set_cell_capacity,
+									},
+								],
+							},
+
 							{
 								el: "div",
 								className: "item-btn-wraper",
@@ -2180,6 +2286,13 @@ window.addEventListener("load", () => {
 								"Виготовлено продукції: " +
 								Object.keys(storage.data.production).length,
 						},
+						{
+							el: "div",
+							className: "history-item cells_list",
+							text: "Стелажі",
+							event: "click",
+							hendler: hendlers.show_stilages,
+						},
 					],
 				})
 			);
@@ -2620,8 +2733,8 @@ window.addEventListener("load", () => {
 			}
 			return this.storage;
 		},
-		getPlaces: async function () {
-			let places = {};
+		get_stilages: async function () {
+			let areas = {};
 			let load_stilages_id = await this.fetch({
 				url: url.stilages,
 				method: "POST",
@@ -2630,47 +2743,77 @@ window.addEventListener("load", () => {
 			id_tr.shift();
 			let places_id = [];
 			let stilages_data;
+
 			id_tr.forEach((item) => {
+				let area = item.querySelectorAll("td")[1].textContent.trim();
+				areas[area] = {};
 				places_id.push(item.querySelector("td").textContent.trim());
 			});
+
 			if (places_id.length === 0) {
 				return;
 			}
-			stilages_data = places_id.map(async (item) => {
-				let stilages = await this.fetch({
-					url: url.stilagesZones,
-					method: "POST",
-					body: { zone: item },
-				});
-				let rows = Array.from(stilages.querySelectorAll("table tbody tr"));
-				rows.shift();
-				let stilage = rows.map((item) => {
-					let td = Array.from(item.querySelectorAll("td"));
-					return {
-						id: td[0].textContent,
-						number: td[1].textContent,
-						zone: td[3].textContent,
-					};
-				});
-				console.log(stilage);
-			});
-			stilages_data.forEach(async (item) => {
-				let stilage = await this.fetch({
-					url: url.stilage,
-					method: "POST",
-					body: { id: item },
-				});
-				let stilage_rows = Array.from(
-					stilage.querySelectorAll("table tbody tr")
-				);
-				places = stilage_rows.map((item) => {
-					let cells = {};
-					let td = Array.from(item.querySelectorAll("td"));
-					td.forEach((data) => {
-						console.log(item);
+
+			stilages_data = await Promise.all(
+				places_id.map(async (item) => {
+					let stilages = await this.fetch({
+						url: url.stilagesZones,
+						method: "POST",
+						body: { zone: item },
 					});
-				});
-			});
+					let rows = Array.from(stilages.querySelectorAll("table tbody tr"));
+					rows.shift();
+					let stilage = rows.map((item) => {
+						let td = Array.from(item.querySelectorAll("td"));
+						// areas[td[3].textContent][td[1].textContent] = [];
+						return {
+							id: td[0].textContent,
+							number: td[1].textContent,
+							zone: td[3].textContent,
+						};
+					});
+					return stilage;
+				})
+			);
+
+			await Promise.all(
+				stilages_data.flat().map(async (stilage_item) => {
+					let stilage = await this.fetch({
+						url: url.stilage,
+						method: "POST",
+						body: { id: stilage_item.id },
+					});
+					let stilage_rows = Array.from(
+						stilage.querySelectorAll("table tbody tr")
+					);
+
+					stilage_rows.forEach((place_item) => {
+						let td = Array.from(place_item.querySelectorAll("td"));
+						let zoneKey = stilage_item.zone;
+						let numberKey = stilage_item.number;
+
+						td.forEach((data) => {
+							if (
+								typeof Number(data.textContent) == "number" &&
+								data.textContent.trim().includes(".")
+							) {
+								let cell_name = data.textContent.trim();
+								let str = data.getAttribute("title")?.trim() || null;
+								let articles;
+
+								if (str !== null) {
+									articles = str.match(regExp.article);
+								}
+
+								areas[zoneKey][numberKey] = { [cell_name]: articles };
+								console.log(cell_name, articles, str, areas);
+							}
+						});
+					});
+				})
+			);
+
+			console.log(areas);
 		},
 
 		logOut: function () {
