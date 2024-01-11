@@ -687,7 +687,7 @@ window.addEventListener("load", () => {
 		},
 		show_stilages: function () {
 			console.log("show_stilages");
-			load.get_stilages();
+			load.get_stilages().then((data) => {});
 		},
 		// cell capacity
 		set_cell_capacity: function () {
@@ -806,6 +806,7 @@ window.addEventListener("load", () => {
 				let element = contentWraper.querySelector(".preloader-wraper");
 				if (element) {
 					contentWraper.removeChild(element);
+					contentWraper.innerHTML = "";
 				}
 			}
 		},
@@ -2778,6 +2779,7 @@ window.addEventListener("load", () => {
 
 			await Promise.all(
 				stilages_data.flat().map(async (stilage_item) => {
+					let cells = [];
 					let stilage = await this.fetch({
 						url: url.stilage,
 						method: "POST",
@@ -2786,34 +2788,38 @@ window.addEventListener("load", () => {
 					let stilage_rows = Array.from(
 						stilage.querySelectorAll("table tbody tr")
 					);
-
+					let zoneKey = stilage_item.zone;
+					let stilageItem = stilage_item.number;
+					areas[zoneKey][stilageItem] = {};
 					stilage_rows.forEach((place_item) => {
 						let td = Array.from(place_item.querySelectorAll("td"));
-						let zoneKey = stilage_item.zone;
-						let numberKey = stilage_item.number;
-
-						td.forEach((data) => {
-							if (
-								typeof Number(data.textContent) == "number" &&
-								data.textContent.trim().includes(".")
-							) {
-								let cell_name = data.textContent.trim();
-								let str = data.getAttribute("title")?.trim() || null;
-								let articles;
-
-								if (str !== null) {
-									articles = str.match(regExp.article);
-								}
-
-								areas[zoneKey][numberKey] = { [cell_name]: articles };
-								console.log(cell_name, articles, str, areas);
-							}
+						td.forEach((item) => {
+							cells.push(item);
 						});
+					});
+
+					cells.forEach((data) => {
+						if (data.textContent.trim().includes(".")) {
+							let cell_name = data.textContent.trim();
+							let str = data.getAttribute("title")?.trim() || null;
+							let articles;
+							let place = `${zoneKey}-${stilageItem}.${cell_name}`;
+							if (str !== null) {
+								articles = str.match(new RegExp(regExp.article, "gim"));
+							}
+
+							if (articles !== null && articles !== undefined) {
+								articles.forEach((article) => {
+									storage.address({ article: article.trim(), place: place });
+								});
+							}
+
+							areas[zoneKey][stilageItem][cell_name] = articles;
+						}
 					});
 				})
 			);
-
-			console.log(areas);
+			return areas;
 		},
 
 		logOut: function () {
