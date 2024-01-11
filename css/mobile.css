@@ -149,7 +149,8 @@ button.html5-qrcode-element {
 }
 .search-result-wraper .item-wraper .item-content-wraper .item-text-wraper {
   padding-left: 15px;
-  min-width: 100%;
+  width: 100%;
+  max-width: 100%;
 }
 .search-result-wraper .item-wraper .item-content-wraper .item-text-wraper .item-count {
   font-family: "Trebuchet MS", sans-serif;

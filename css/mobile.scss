@@ -1,20 +1,25 @@
 @import "varibles.scss";
+
 * {
 	box-sizing: border-box;
 	padding: 0;
 	margin: 0;
 }
+
 button {
 	border: none;
 	background-color: transparent;
 }
+
 img {
 	height: auto;
 	max-width: 100%;
 }
+
 body {
 	background-color: $mainBg;
 }
+
 // preloader wraper
 .preloader-wraper {
 	position: fixed;
@@ -23,6 +28,7 @@ body {
 	height: 100%;
 	width: 100%;
 	background-color: $preloaderBg;
+
 	.preloader-spiner {
 		position: absolute;
 		top: 50%;
@@ -30,6 +36,7 @@ body {
 		transform: translate(-50%, -50%);
 	}
 }
+
 .img-wraper {
 	position: absolute;
 	top: 0;
@@ -37,6 +44,7 @@ body {
 	height: 100%;
 	width: 100%;
 	background-color: $preloaderBg;
+
 	img {
 		position: absolute;
 		top: 50%;
@@ -45,6 +53,7 @@ body {
 		aspect-ratio: 16/9;
 	}
 }
+
 // main search bar
 .search-wraper {
 	position: fixed;
@@ -55,6 +64,7 @@ body {
 	justify-content: center;
 	align-items: center;
 	z-index: 999;
+
 	.search-inp {
 		font-family: $descriptions;
 		font-size: 16px;
@@ -63,6 +73,7 @@ body {
 		height: 40px;
 		border: none;
 		padding-left: 10px;
+
 		&::placeholder {
 			font-family: $descriptions;
 			font-size: 16px;
@@ -70,12 +81,14 @@ body {
 			padding-left: 10px;
 		}
 	}
+
 	.bar-code-search-btn {
 		position: absolute;
 		top: 50%;
 		right: 30%;
 		transform: translate(75%, -50%);
 	}
+
 	.search-send-btn {
 		font-family: $descriptions;
 		font-size: 16px;
@@ -88,6 +101,7 @@ body {
 		border: none;
 	}
 }
+
 button.html5-qrcode-element {
 	font-family: $headers;
 	font-size: 16px;
@@ -98,6 +112,7 @@ button.html5-qrcode-element {
 	background-color: $actionBtnBg;
 	padding: 10px 15px;
 }
+
 // search wrapper result
 .search-result-wraper {
 	.item-wraper {
@@ -105,6 +120,7 @@ button.html5-qrcode-element {
 		border-radius: 5px;
 		background-color: $white;
 		margin-bottom: 30px;
+
 		.item-header {
 			display: flex;
 			align-items: center;
@@ -117,6 +133,7 @@ button.html5-qrcode-element {
 			font-weight: 700;
 			text-transform: uppercase;
 		}
+
 		.item-place {
 			font-family: $descriptions;
 			font-size: 14px;
@@ -126,37 +143,45 @@ button.html5-qrcode-element {
 			background-color: $red;
 			color: $black;
 		}
+
 		.item-content-wraper {
 			display: flex;
 			justify-content: space-between;
 			align-items: flex-start;
 			margin-bottom: 15px;
+
 			img {
 				height: 60px;
 				min-width: 85px;
 				aspect-ratio: 16/9;
 			}
+
 			.item-text-wraper {
 				padding-left: 15px;
-				min-width: 100%;
+				width: 100%;
+				max-width: 100%;
+
 				.item-count {
 					font-family: $descriptions;
 					font-size: 16px;
 					font-weight: 808;
 					line-height: 20px;
 					backdrop-filter: opacity(0.5);
+
 					p {
 						border-radius: 5px;
 						padding: 5px;
 						background-color: $blue;
 						margin-bottom: 10px;
 					}
+
 					.danger {
 						background-color: $danger;
 					}
 				}
 			}
 		}
+
 		.item-desc {
 			font-family: $descriptions;
 			font-size: 14px;
@@ -167,14 +192,17 @@ button.html5-qrcode-element {
 			margin-bottom: 20px;
 			transition: height 0.4s;
 		}
+
 		.visible {
 			max-height: 1000px;
 		}
+
 		.cell-capacity-wraper {
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
 			margin-bottom: 10px;
+
 			.cell-btn {
 				font-family: $headers;
 				font-size: 12px;
@@ -186,12 +214,15 @@ button.html5-qrcode-element {
 				border-radius: 5px;
 				color: $white;
 			}
+
 			.fill {
 				background-color: $actionBtnBg;
 			}
+
 			.ignore {
 				background-color: $red;
 			}
+
 			.cell-input {
 				display: block;
 				font-family: $headers;
@@ -202,17 +233,20 @@ button.html5-qrcode-element {
 				max-width: 80px;
 				border: 2px solid $blue;
 				background-color: none;
+
 				&::placeholder {
 					font-size: 10px;
 					font-weight: 400;
 				}
 			}
 		}
+
 		.item-btn-wraper {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
 			margin-bottom: 20px;
+
 			.btn {
 				font-family: $headers;
 				font-size: 12px;
@@ -224,17 +258,21 @@ button.html5-qrcode-element {
 				padding: 10px 15px;
 				transition: 0.4s;
 			}
+
 			.list-btn {
 				background-color: $actionBtnBg;
 			}
+
 			.compare-wraper {
 				.compare-btn {
 					background-color: $red;
 				}
+
 				.clicked {
 					border-top-left-radius: 2px;
 					border-bottom-left-radius: 2px;
 				}
+
 				.compare-inp {
 					font-family: $headers;
 					font-size: 14px;
@@ -250,15 +288,18 @@ button.html5-qrcode-element {
 					transform-origin: right;
 					transition: 0.4s;
 				}
+
 				.visible-inp {
 					transform: scaleX(1);
 				}
 			}
 		}
+
 		.item-data-btn-wraper {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
+
 			.btn {
 				font-family: "Trebuchet MS", sans-serif;
 				font-size: 16px;
@@ -268,7 +309,9 @@ button.html5-qrcode-element {
 				padding: 10px 15px;
 			}
 		}
+
 		.item-footer {
+
 			.sales-item,
 			.deliveries-item,
 			.reserve-item {
@@ -277,6 +320,7 @@ button.html5-qrcode-element {
 				background-color: $mainBg;
 				margin-bottom: 30px;
 			}
+
 			.sales-row,
 			.deliveries-row,
 			.reserve-row {
@@ -288,26 +332,31 @@ button.html5-qrcode-element {
 				border-bottom: 2px solid $mainBtnBg;
 				padding: 10px;
 			}
+
 			.order-wraper {
 				.order-item {
 					display: flex;
 					justify-content: flex-start;
 					align-items: center;
 					padding: 5px 10px;
+
 					.text-wraper {
 						font-family: $descriptions;
+
 						.position-name {
 							font-size: 16px;
 							font-weight: 800;
 							padding-left: 15px;
 							margin-bottom: 10px;
 						}
+
 						.order-article,
 						.position-quality {
 							padding: 5px 10px;
 							font-size: 16px;
 							font-weight: 600;
 							margin-bottom: 10px;
+
 							span {
 								padding: 0 5px;
 							}
@@ -315,6 +364,7 @@ button.html5-qrcode-element {
 					}
 				}
 			}
+
 			.message-title {
 				position: static;
 				transform: none;
@@ -328,16 +378,19 @@ button.html5-qrcode-element {
 			}
 		}
 	}
+
 	.success {
 		background-color: $success;
 	}
 }
+
 .production-wraper {
 	.production-item-wraper {
 		padding: 10px 5px;
 		border-radius: 5px;
 		background-color: $white;
 		margin-bottom: 30px;
+
 		.item-head {
 			display: flex;
 			justify-content: space-between;
@@ -345,6 +398,7 @@ button.html5-qrcode-element {
 		}
 	}
 }
+
 // buttons wraper
 .btn-wraper {
 	display: flex;
@@ -354,12 +408,14 @@ button.html5-qrcode-element {
 	bottom: 0;
 	left: 0;
 	width: 100%;
+
 	.btn {
 		padding: 5px;
 		position: relative;
 		border: 2px solid $white;
 		background-color: $mainBtnBg;
 		width: 50px;
+
 		.counter {
 			font-family: $headers;
 			font-size: 14px;
@@ -378,9 +434,11 @@ button.html5-qrcode-element {
 		}
 	}
 }
+
 // wraper
 .wraper {
 	padding: 50px 5px;
+
 	.message-title {
 		font-family: $headers;
 		font-size: 26px;
@@ -391,23 +449,27 @@ button.html5-qrcode-element {
 		margin: 20px auto;
 		width: 100%;
 	}
+
 	.content-title {
 		position: absolute;
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
 	}
+
 	// elaborations
 	.elaboration-wraper {
 		.table-wraper {
 			border-radius: 5px;
 			background-color: $white;
 			margin-bottom: 30px;
+
 			.table-row {
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
 				border-bottom: 2px solid $itemShadow;
+
 				.table-desc,
 				.table-text,
 				.image-desc {
@@ -417,21 +479,26 @@ button.html5-qrcode-element {
 					font-weight: 500;
 					color: $black;
 				}
+
 				.image-desc {
 					width: 150px;
 					text-align: center;
 				}
+
 				.table-desc {
 					width: 20%;
 				}
+
 				.table-text {
 					text-align: center;
 					width: 80%;
 				}
+
 				.table-input-wraper {
 					display: flex;
 					align-items: center;
 					justify-content: flex-end;
+
 					.table-input {
 						font-family: $descriptions;
 						font-size: 16px;
@@ -441,6 +508,7 @@ button.html5-qrcode-element {
 						border-bottom-left-radius: 5px;
 						padding: 14px 10px;
 					}
+
 					.send-btn {
 						padding: 10px;
 						border-top-right-radius: 5px;
@@ -449,30 +517,37 @@ button.html5-qrcode-element {
 					}
 				}
 			}
+
 			.warn {
 				background-color: $warn;
 			}
+
 			.success {
 				background-color: $success;
 			}
+
 			.danger {
 				background-color: $danger;
 			}
+
 			.image-row {
 				display: flex;
 				flex-direction: column;
 				justify-content: center;
+
 				.image-wraper {
 					display: flex;
 					justify-content: center;
 					align-items: center;
 				}
 			}
+
 			.elaboration-btn-wraper {
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
 				padding: 10px;
+
 				.btn {
 					font-family: $descriptions;
 					font-size: 16px;
@@ -482,7 +557,9 @@ button.html5-qrcode-element {
 					padding: 10px 15px;
 				}
 			}
+
 			.item-footer {
+
 				.sales-item,
 				.deliveries-item,
 				.reserve-item {
@@ -491,6 +568,7 @@ button.html5-qrcode-element {
 					background-color: $mainBg;
 					margin-bottom: 30px;
 				}
+
 				.sales-row,
 				.deliveries-row,
 				.reserve-row {
@@ -502,25 +580,30 @@ button.html5-qrcode-element {
 					border-bottom: 2px solid $mainBtnBg;
 					padding: 10px;
 				}
+
 				.order-wraper {
 					.order-item {
 						display: flex;
 						justify-content: flex-start;
 						align-items: center;
 						padding: 5px 10px;
+
 						img.goods-image {
 							width: 18%;
 						}
+
 						.text-wraper {
 							font-family: $descriptions;
 							padding-left: 15px;
 							min-width: 80%;
+
 							.position-name {
 								font-size: 16px;
 								font-weight: 800;
 								margin-bottom: 10px;
 								color: $black;
 							}
+
 							.order-article,
 							.position-quality {
 								padding: 5px 10px;
@@ -536,6 +619,7 @@ button.html5-qrcode-element {
 						}
 					}
 				}
+
 				.message-title {
 					position: static;
 					transform: none;
@@ -550,16 +634,19 @@ button.html5-qrcode-element {
 			}
 		}
 	}
+
 	.questions-wraper {
 		.table-wraper {
 			margin-bottom: 30px;
 			background-color: $white;
 			border-radius: 5px;
+
 			.table-row {
 				padding: 10px 5px;
 				display: flex;
 				justify-content: space-between;
 				border-bottom: 2px solid $itemShadow;
+
 				.table-desc,
 				.table-text {
 					font-family: $descriptions;
@@ -568,8 +655,10 @@ button.html5-qrcode-element {
 					color: $black;
 				}
 			}
+
 			.area-wraper {
 				position: relative;
+
 				textarea {
 					width: 100%;
 					min-height: 120px;
@@ -578,6 +667,7 @@ button.html5-qrcode-element {
 					border: 2px solid $itemShadow;
 					border-radius: 2px;
 				}
+
 				.answer-btn {
 					position: absolute;
 					bottom: 25px;
@@ -589,8 +679,10 @@ button.html5-qrcode-element {
 			}
 		}
 	}
+
 	.list-wraper,
 	.compare-wraper {
+
 		.list-item,
 		.compare-item {
 			display: flex;
@@ -601,14 +693,17 @@ button.html5-qrcode-element {
 			background-color: $white;
 			margin-bottom: 30px;
 			padding: 5px 10px;
+
 			.del-btn {
 				position: absolute;
 				top: 10px;
 				right: 15px;
 			}
+
 			.item-text-wraper {
 				width: 80%;
 				padding: 40px 15px;
+
 				.compare-time,
 				.date-desc {
 					padding: 5px 10px;
@@ -619,6 +714,7 @@ button.html5-qrcode-element {
 					border-radius: 5px;
 					margin-bottom: 15px;
 				}
+
 				.item-article {
 					font-family: $headers;
 					font-size: 16px;
@@ -629,6 +725,7 @@ button.html5-qrcode-element {
 					border-radius: 5px;
 					padding: 5px;
 				}
+
 				.item-count,
 				.item-head {
 					font-family: $headers;
@@ -636,6 +733,7 @@ button.html5-qrcode-element {
 					font-weight: 700;
 					margin-bottom: 15px;
 				}
+
 				.procesed-btn {
 					padding: 10px 15px;
 					border-radius: 5px;
@@ -648,10 +746,12 @@ button.html5-qrcode-element {
 				}
 			}
 		}
+
 		.success {
 			background-color: $success;
 		}
 	}
+
 	.orders-wraper {
 		.order-row {
 			background-color: $white;
@@ -661,17 +761,20 @@ button.html5-qrcode-element {
 			font-family: $descriptions;
 			font-size: 14px;
 			font-weight: 500;
+
 			.row-body {
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
 				padding: 10px;
 			}
+
 			.row-footer {
 				.item-preloader {
 					position: relative;
 					width: 100%;
 					height: 80px;
+
 					img {
 						position: absolute;
 						top: 50%;
@@ -681,16 +784,19 @@ button.html5-qrcode-element {
 						transform: translate(-50%, -50%);
 					}
 				}
+
 				.order-wraper {
 					.order-item {
 						display: flex;
 						justify-content: flex-start;
 						align-items: center;
 						margin-bottom: 30px;
+
 						.text-wraper {
 							padding: 0 5px 0 15px;
 							margin-bottom: 10px;
 							width: 80%;
+
 							.order-article {
 								display: flex;
 								align-items: center;
@@ -703,16 +809,19 @@ button.html5-qrcode-element {
 								margin-bottom: 15px;
 								padding: 5px;
 								border-radius: 5px;
+
 								span {
 									padding: 0 5px;
 								}
 							}
+
 							.position-name {
 								font-family: $descriptions;
 								font-size: 14px;
 								font-weight: 600;
 								margin-bottom: 15px;
 							}
+
 							.position-quality {
 								font-family: $descriptions;
 								font-size: 14px;
@@ -728,12 +837,14 @@ button.html5-qrcode-element {
 			}
 		}
 	}
+
 	.production-wraper {
 		.production-item-wraper {
 			border-radius: 5px;
 			background-color: $white;
 			padding: 15px 5px;
 			margin-bottom: 30px;
+
 			.item-head {
 				display: flex;
 				justify-content: space-between;
@@ -745,6 +856,7 @@ button.html5-qrcode-element {
 
 				padding: 5px;
 				border-radius: 5px;
+
 				.get-to-production-btn {
 					font-family: $headers;
 					font-size: 14px;
@@ -754,6 +866,7 @@ button.html5-qrcode-element {
 					background-color: $actionBtnBg;
 					border-radius: 5px;
 				}
+
 				.item-input {
 					font-family: $headers;
 					font-size: 14px;
@@ -762,16 +875,19 @@ button.html5-qrcode-element {
 					border-radius: 2px;
 					padding: 5px;
 					max-width: 50px;
+
 					&::placeholder {
 						padding-left: 10px;
 					}
 				}
+
 				.procesed {
 					border: none;
 					background-color: $mainBg;
 					pointer-events: none;
 				}
 			}
+
 			.production-item-head {
 				font-family: $headers;
 				font-size: 14px;
@@ -781,6 +897,7 @@ button.html5-qrcode-element {
 				align-items: center;
 				justify-content: space-between;
 				margin-bottom: 20px;
+
 				.component-item-article {
 					background-color: $danger;
 					padding: 5px;
@@ -789,6 +906,7 @@ button.html5-qrcode-element {
 					font-weight: 600;
 				}
 			}
+
 			.production-item-place {
 				font-family: $headers;
 				font-size: 16px;
@@ -799,10 +917,12 @@ button.html5-qrcode-element {
 				margin-bottom: 20px;
 			}
 		}
+
 		.flex-container {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
+
 			.component-wraper {
 				padding-left: 10px;
 				font-family: $descriptions;
@@ -810,10 +930,12 @@ button.html5-qrcode-element {
 
 				padding: 10px 5px;
 				border-bottom: 2px solid$mainBtnBg;
+
 				.desc {
 					font-weight: 600;
 					margin-bottom: 10px;
 				}
+
 				.add-btn {
 					font-family: $headers;
 					font-size: 14px;
@@ -823,10 +945,12 @@ button.html5-qrcode-element {
 					background-color: $actionBtnBg;
 				}
 			}
+
 			.success {
 				background-color: $success;
 			}
 		}
+
 		.product-btn {
 			font-family: $headers;
 			font-size: 14px;
@@ -839,13 +963,16 @@ button.html5-qrcode-element {
 			margin: 20px auto;
 			border-radius: 5px;
 		}
+
 		.danger {
 			background-color: $danger;
 		}
+
 		.procesed {
 			background-color: $procesed;
 		}
 	}
+
 	.history-wraper {
 		.history-item {
 			font-family: $headers;
