@@ -1409,12 +1409,34 @@ window.addEventListener("load", () => {
 										text: `${item.addingDate.day}.${item.addingDate.month}.${item.addingDate.year}   ${item.addingDate.hours}:${item.addingDate.minutes}:${item.addingDate.seconds}`,
 									},
 									{
-										el: "p",
+										el: "div",
 										className: "item-count",
-										text: `Кількість по базі: ${
-											get.goodsCount(item.count).baseCount
-										} Резерв: ${get.goodsCount(item.count).orderCount}
-			Реальна кількість: ${item.realCount} Різниця: ${difference}`,
+										children: [
+											{
+												el: "p",
+												className: "item-count",
+												text: `По базі: ${
+													get.goodsCount(item.count).baseCount
+												}`,
+											},
+											{
+												el: "p",
+												className: "item-count",
+												text: `Резерв: ${
+													get.goodsCount(item.count).orderCount
+												}`,
+											},
+											{
+												el: "p",
+												className: "item-count",
+												text: `Всього: ${item.realCount}`,
+											},
+											{
+												el: "p",
+												className: "item-count",
+												text: `Різниця: ${difference}`,
+											},
+										],
 									},
 									{
 										el: "p",

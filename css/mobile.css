@@ -182,6 +182,22 @@ button.html5-qrcode-element {
 .search-result-wraper .item-wraper .visible {
   max-height: 1000px;
 }
+.search-result-wraper .item-wraper .cell-capacity-display {
+  padding: 15px 10px;
+}
+.search-result-wraper .item-wraper .cell-capacity-display .cell-capacity-desc {
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.search-result-wraper .item-wraper .cell-capacity-display .cell-capacity-bar-wraper {
+  width: 100%;
+}
+.search-result-wraper .item-wraper .cell-capacity-display .cell-capacity-bar-wraper .cell-capacity-bar {
+  height: 10px;
+  background-color: #1cc879;
+}
 .search-result-wraper .item-wraper .cell-capacity-wraper {
   display: flex;
   align-items: center;

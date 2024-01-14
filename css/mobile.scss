@@ -196,7 +196,22 @@ button.html5-qrcode-element {
 		.visible {
 			max-height: 1000px;
 		}
-
+		.cell-capacity-display {
+			padding: 15px 10px;
+			.cell-capacity-desc {
+				font-family: $descriptions;
+				font-size: 14px;
+				font-weight: 600;
+				margin-bottom: 10px;
+			}
+			.cell-capacity-bar-wraper {
+				width: 100%;
+				.cell-capacity-bar {
+					height: 10px;
+					background-color: $actionBtnBg;
+				}
+			}
+		}
 		.cell-capacity-wraper {
 			display: flex;
 			align-items: center;
