@@ -719,6 +719,12 @@ window.addEventListener("load", () => {
 				) {
 					storage.data.addresses[article].real_goods_count =
 						storage.data.addresses[article].cell_capacity;
+				} else if (
+					storage.data.addresses[article].last_goods_count <
+					storage.data.addresses[article].cell_capacity
+				) {
+					storage.data.addresses[article].real_goods_count =
+						storage.data.addresses[article].last_goods_count;
 				}
 			}
 		},
@@ -2688,16 +2694,21 @@ window.addEventListener("load", () => {
 					}
 
 					let rowData = {};
+					let base_quality = td[2]
+						.querySelectorAll("div")[4]
+						.textContent.trim();
 					rowData.imgSrc = td[1].querySelector("img").src;
 					Array.from(td[2].children).forEach((child) => {
 						child.textContent = "";
 					});
+					rowData.base_quality = base_quality;
 					rowData.positionName = td[2].textContent.trim();
 					rowData.articleAndPlace = get.articleAndPlacement(
 						td[3].textContent.trim()
 					);
 					rowData.quality = quality.trim();
 					rowData.price = td[5].textContent.trim();
+					console.log(rowData);
 					this.storage.push(rowData);
 				}
 			});
@@ -3042,7 +3053,8 @@ window.addEventListener("load", () => {
 						}
 						let article = item.articleAndPlace.article.trim();
 						let quality = item.quality.match(regExp.num)[0];
-
+						storage.data.addresses[article].last_goods_count =
+							item.base_quality;
 						if (storage.data.addresses[article].real_goods_count) {
 							storage.data.addresses[article].real_goods_count =
 								Number(storage.data.addresses[article].real_goods_count) -
