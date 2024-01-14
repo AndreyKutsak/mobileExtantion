@@ -34,7 +34,7 @@ body {
 }
 
 .img-wraper {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   height: 100%;
@@ -869,4 +869,31 @@ button.html5-qrcode-element {
   text-align: center;
   background-color: #fff;
   margin-bottom: 30px;
+}
+.wraper .empty-cells-wraper {
+  padding: 20px 5px 0;
+}
+.wraper .empty-cells-wraper .empty-items-wraper .empty-cell-item {
+  font-family: "Roboto", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  background-color: #fff;
+}
+.wraper .empty-cells-wraper .empty-items-wraper .empty-cell-item .empty-cell-description span {
+  display: inline-block;
+  padding: 0 15px;
+}
+.wraper .empty-cells-wraper .empty-items-wraper .add-btn {
+  font-size: 16px;
+  text-align: center;
+  padding: 10px 15px;
+  border-radius: 5px;
+  background-color: #1cc879;
+  color: #fff;
 }/*# sourceMappingURL=mobile.css.map */

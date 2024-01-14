@@ -1,7 +1,7 @@
 {
 	"name": "baza Mobile",
 	"short_name": "baza",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "mobile version baza",
 	"permissions": ["activeTab", "tabs", "alarms", "notifications"],
 	"background": {

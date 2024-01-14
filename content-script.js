@@ -26,6 +26,7 @@ window.addEventListener("load", () => {
 					questions: [],
 					elaborations: [],
 					addresses: {},
+					orders: {},
 					history: [],
 					production: [],
 					settings: {},
@@ -148,8 +149,9 @@ window.addEventListener("load", () => {
 			history: "img/history-ico.svg",
 		},
 	};
-	let intarval = {
-		elaboration: 15,
+	let interval = {
+		elaboration: 15 * 1000,
+		cell_goods_count: 1000 * 30 * 60,
 	};
 	let get = {
 		url: function (data) {
@@ -159,6 +161,9 @@ window.addEventListener("load", () => {
 			let domParser = new DOMParser();
 			let doc = domParser.parseFromString(data, "text/html");
 			return doc;
+		},
+		percent: function (data) {
+			return (100 * data.num) / data.main;
 		},
 		elaborationArtice: function (data) {
 			if (data == undefined) {
@@ -189,7 +194,7 @@ window.addEventListener("load", () => {
 				let matchData = { place: null, article: null };
 				let article = data.match(regExp.orderArticle);
 				let place = data.match(regExp.orderPlace);
-				console.log(place);
+
 				if (article !== null && place !== null) {
 					let placeStr = "";
 					matchData.article = article[0];
@@ -716,6 +721,23 @@ window.addEventListener("load", () => {
 						storage.data.addresses[article].cell_capacity;
 				}
 			}
+		},
+		show_empty_cells: function () {
+			let empty_cells = [];
+			Object.keys(storage.data.addresses).forEach((item) => {
+				if (
+					storage.data.addresses[item].is_ignored ||
+					storage.data.addresses[item].cell_capacity == undefined
+				)
+					return;
+				if (
+					storage.data.addresses[item].real_goods_count == 0 ||
+					storage.data.addresses[item].real_goods_count <
+						storage.data.addresses[item].cell_capacity / 2
+				)
+					empty_cells.push(item);
+			});
+			generate.empty_cells(empty_cells);
 		},
 	};
 	// creating and adding new elements to DOM
@@ -1509,6 +1531,12 @@ window.addEventListener("load", () => {
 					a.baseCount.baseCount > b.baseCount.baseCount ? -1 : 1
 				);
 				data.forEach((item) => {
+					console.log({
+						width: `${get.percent({
+							main: storage.data.addresses[item.article]?.cell_capacity || 0,
+							num: storage.data.addresses[item.article]?.real_goods_count || 0,
+						})}%`,
+					});
 					let reserve_count_class = "",
 						base_count_class = "";
 					if (item.baseCount.baseCount < 1) {
@@ -1605,6 +1633,43 @@ window.addEventListener("load", () => {
 									e.currentTarget.classList.toggle("visible");
 								},
 								text: item.desc,
+							},
+
+							{
+								el: "div",
+								className: "cell-capacity-display",
+								children: [
+									{
+										el: "p",
+										className: "cell-capacity-desc",
+										text: `Кількість товару в комірці ${
+											storage.data.addresses[item.article]?.real_goods_count ||
+											0
+										} шт. з можливих ${
+											storage.data.addresses[item.article]?.cell_capacity || 0
+										} шт.`,
+									},
+									{
+										el: "p",
+										className: "cell-capacity-bar-wraper",
+										children: [
+											{
+												el: "div",
+												className: "cell-capacity-bar",
+												style: {
+													width: `${get.percent({
+														main:
+															storage.data.addresses[item.article]
+																?.cell_capacity || 0,
+														num:
+															storage.data.addresses[item.article]
+																?.real_goods_count || 0,
+													})}%`,
+												},
+											},
+										],
+									},
+								],
 							},
 							{
 								el: "div",
@@ -2294,6 +2359,82 @@ window.addEventListener("load", () => {
 							event: "click",
 							hendler: hendlers.show_stilages,
 						},
+						{
+							el: "div",
+							className: "history-item empty-cells",
+							text: "Пусті комірки",
+							event: "click",
+							hendler: hendlers.show_empty_cells,
+						},
+					],
+				})
+			);
+		},
+		empty_cells: function (data) {
+			contentWraper.innerHTML = "";
+			if (data.length === 0) {
+				contentWraper.appendChild(
+					get.elements({
+						el: "div",
+						className: "message-title content-title",
+						text: "Пусті комірки не знайдені!!!",
+					})
+				);
+			}
+			contentWraper.appendChild(
+				get.elements({
+					el: "div",
+					className: "empty-cells-wraper",
+					children: [
+						{
+							el: "ul",
+							className: "empty-items-wraper",
+							children: data.map((item) => {
+								let real_count = storage.data.addresses[item].real_goods_count;
+								let cell_capacity = storage.data.addresses[item].cell_capacity;
+								let percent = get.percent({
+									num: real_count,
+									main: cell_capacity,
+								});
+								return {
+									el: "li",
+									className: "empty-cell-item",
+									children: [
+										{
+											el: "p",
+											className: "empty-cell-description",
+											children: [
+												{
+													el: "span",
+													className: "empty-cell-article",
+													text: item,
+												},
+												{
+													el: "span",
+													className: "empty-cell-place",
+													text: storage.data.addresses[item].place,
+												},
+												{
+													el: "span",
+													className: "empty-cell-data",
+													text: `Ємність комірки:${real_count} Реальна кількість: ${cell_capacity} Заповнено на: (${percent.toFixed(
+														1
+													)}%)`,
+												},
+											],
+										},
+										{
+											el: "button",
+											className: "add-btn",
+											text: "Заповнити комірку",
+											event: "click",
+											data: [{ article: item }],
+											hendler: hendlers.fill_cell,
+										},
+									],
+								};
+							}),
+						},
 					],
 				})
 			);
@@ -2513,7 +2654,6 @@ window.addEventListener("load", () => {
 				}
 
 				if (td.length > 5) {
-					console.log(td[5]);
 					if (td[4].querySelector("input")) {
 						quality = td[4].querySelector("input[type='text']").value;
 					} else {
@@ -2539,7 +2679,7 @@ window.addEventListener("load", () => {
 					this.storage.push(rowData);
 				}
 			});
-			console.log(this.storage);
+
 			return this.storage;
 		},
 		production: async function () {
@@ -2595,7 +2735,7 @@ window.addEventListener("load", () => {
 		requestCount: async function () {
 			this.storage = [];
 			let requests = { questionsCount: 0, elaborationsCount: 0 };
-			console.log(url.baza);
+
 			const requestCount = await this.fetch({
 				url: url.baza,
 				method: "POST",
@@ -2735,6 +2875,8 @@ window.addEventListener("load", () => {
 			return this.storage;
 		},
 		get_stilages: async function () {
+			let places = {};
+			let count = 0;
 			let areas = {};
 			let load_stilages_id = await this.fetch({
 				url: url.stilages,
@@ -2766,7 +2908,6 @@ window.addEventListener("load", () => {
 					rows.shift();
 					let stilage = rows.map((item) => {
 						let td = Array.from(item.querySelectorAll("td"));
-						// areas[td[3].textContent][td[1].textContent] = [];
 						return {
 							id: td[0].textContent,
 							number: td[1].textContent,
@@ -2803,15 +2944,13 @@ window.addEventListener("load", () => {
 							let cell_name = data.textContent.trim();
 							let str = data.getAttribute("title")?.trim() || null;
 							let articles;
-							let place = `${zoneKey}-${stilageItem}.${cell_name}`;
+							let place = `${zoneKey}-${stilageItem}.${cell_name}`.trim();
 							if (str !== null) {
 								articles = str.match(new RegExp(regExp.article, "gim"));
 							}
 
 							if (articles !== null && articles !== undefined) {
-								articles.forEach((article) => {
-									storage.address({ article: article.trim(), place: place });
-								});
+								places[place] = articles;
 							}
 
 							areas[zoneKey][stilageItem][cell_name] = articles;
@@ -2819,7 +2958,89 @@ window.addEventListener("load", () => {
 					});
 				})
 			);
+
+			let int = setInterval(() => {
+				let key = Object.keys(places)[count];
+				places[key].forEach((item) => {
+					storage.address({
+						article: item.trim(),
+						place: Object.keys(places)[count],
+					});
+				});
+
+				if (count === Object.keys(places).length - 1) {
+					count = 0;
+					alert("Завершено");
+					clearInterval(int);
+				} else {
+					count++;
+				}
+			}, 2);
+
+			console.log(places);
 			return areas;
+		},
+		get_goods_count: async function () {
+			let orders = await this.fetch({
+				url: url.orders,
+				method: "POST",
+				body: { status: 4 },
+			});
+
+			let tr = Array.from(orders.querySelectorAll("table tbody tr"));
+			tr.shift();
+			tr.forEach((item) => {
+				let td = Array.from(item.querySelectorAll("td"));
+				if (td.length < 5) {
+					return;
+				}
+				if (
+					td[3].textContent === "чекає відправки" &&
+					td[2].textContent !== "****** (***** *****)" &&
+					td[4].textContent !== "******"
+				) {
+					let order_id = td[0].textContent.trim();
+					if (!storage.data.orders[order_id]) {
+						storage.data.orders[order_id] = {
+							is_new: true,
+							order_date: get.date(),
+						};
+						storage.save();
+					}
+				}
+			});
+
+			for (const order_id of Object.keys(storage.data.orders)) {
+				if (storage.data.orders[order_id].is_new) {
+					let response = await this.order({ id: order_id });
+					console.log(response);
+					response.forEach((item) => {
+						if (item.questionsCount >= 0) {
+							return;
+						}
+						let article = item.articleAndPlace.article.trim();
+						let quality = item.quality.match(regExp.num)[0];
+
+						if (storage.data.addresses[article].real_goods_count) {
+							storage.data.addresses[article].real_goods_count =
+								Number(storage.data.addresses[article].real_goods_count) -
+								Number(quality);
+							console.log(
+								storage.data.addresses[article].real_goods_count -
+									Number(quality)
+							);
+						}
+					});
+					storage.data.orders[order_id].is_new = false;
+
+					await new Promise((resolve) => setTimeout(resolve, 150));
+				}
+			}
+			storage.data.settings = {
+				last_check: get.date(),
+			};
+			storage.save();
+			alert("Розпочато пошук пустих комірок");
 		},
 
 		logOut: function () {
@@ -2832,8 +3053,18 @@ window.addEventListener("load", () => {
 	// check elaborations count
 	setInterval(() => {
 		generate.requestCount();
-	}, intarval.elaboration * 1000);
-
+	}, interval.elaboration);
+	// checking empty cells
+	setInterval(() => {
+		let current_date = get.date();
+		Object.keys(storage.data.orders).forEach((item) => {
+			console.log(storage.data.orders[item].order_date);
+			if (storage.data.orders[item].order_date.day !== current_date.day) {
+				delete storage.data.orders[item];
+			}
+		});
+		load.get_goods_count();
+	}, interval.cell_goods_count);
 	let buttons = {
 		el: "div",
 		className: "btn-wraper",
@@ -2975,6 +3206,26 @@ window.addEventListener("load", () => {
 			},
 		],
 	};
+	function check_last_check() {
+		let last_check_time = storage.data.settings.last_check;
+
+		if (last_check_time) {
+			let current_date = get.date();
+
+			let hours_difference = current_date.hours - last_check_time.hours;
+			let minutes_difference = current_date.minutes - last_check_time.minutes;
+
+			let time_difference =
+				(hours_difference * 60 + minutes_difference + 1440) % 1440;
+
+			if (time_difference > 30) {
+				load.get_goods_count();
+			}
+		}
+	}
+
+	check_last_check();
+
 	let btnWraper = get.elements(buttons);
 	document.body.appendChild(searchWraper);
 	document.body.appendChild(contentWraper);

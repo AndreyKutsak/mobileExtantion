@@ -38,7 +38,7 @@ body {
 }
 
 .img-wraper {
-	position: absolute;
+	position: fixed;
 	top: 0;
 	left: 0;
 	height: 100%;
@@ -311,7 +311,6 @@ button.html5-qrcode-element {
 		}
 
 		.item-footer {
-
 			.sales-item,
 			.deliveries-item,
 			.reserve-item {
@@ -559,7 +558,6 @@ button.html5-qrcode-element {
 			}
 
 			.item-footer {
-
 				.sales-item,
 				.deliveries-item,
 				.reserve-item {
@@ -682,7 +680,6 @@ button.html5-qrcode-element {
 
 	.list-wraper,
 	.compare-wraper {
-
 		.list-item,
 		.compare-item {
 			display: flex;
@@ -982,6 +979,38 @@ button.html5-qrcode-element {
 			text-align: center;
 			background-color: $white;
 			margin-bottom: 30px;
+		}
+	}
+	// empty cells wraper
+	.empty-cells-wraper {
+		padding: 20px 5px 0;
+		.empty-items-wraper {
+			.empty-cell-item {
+				font-family: $headers;
+				font-size: 14px;
+				font-weight: 500;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 5px 10px;
+				margin-bottom: 15px;
+				border-radius: 5px;
+				background-color: $white;
+				.empty-cell-description {
+					span {
+						display: inline-block;
+						padding: 0 15px;
+					}
+				}
+			}
+			.add-btn {
+				font-size: 16px;
+				text-align: center;
+				padding: 10px 15px;
+				border-radius: 5px;
+				background-color: $actionBtnBg;
+				color: $white;
+			}
 		}
 	}
 }
