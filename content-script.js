@@ -2694,9 +2694,12 @@ window.addEventListener("load", () => {
 					}
 
 					let rowData = {};
-					let base_quality = td[2]
-						.querySelectorAll("div")[4]
-						.textContent.trim();
+					let base_quality_div = td[2].querySelectorAll("div")[4];
+					let base_quality;
+					if (base_quality_div != undefined) {
+						base_quality = base_quality_div.textContent.trim();
+					}
+
 					rowData.imgSrc = td[1].querySelector("img").src;
 					Array.from(td[2].children).forEach((child) => {
 						child.textContent = "";
