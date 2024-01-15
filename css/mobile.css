@@ -889,6 +889,12 @@ button.html5-qrcode-element {
 .wraper .empty-cells-wraper {
   padding: 20px 5px 0;
 }
+.wraper .empty-cells-wraper .empty-cells-description {
+  font-family: "Roboto", "Helvetica Neue", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
 .wraper .empty-cells-wraper .empty-items-wraper .empty-cell-item {
   font-family: "Roboto", "Helvetica Neue", sans-serif;
   font-size: 14px;
@@ -912,4 +918,15 @@ button.html5-qrcode-element {
   border-radius: 5px;
   background-color: #1cc879;
   color: #fff;
+}
+.wraper .search-empty_cells {
+  display: block;
+  font-family: "Roboto", "Helvetica Neue", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  padding: 15px 20px;
+  margin: 30px auto;
+  border-radius: 5px;
+  background-color: #1cc879;
 }/*# sourceMappingURL=mobile.css.map */

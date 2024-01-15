@@ -999,6 +999,12 @@ button.html5-qrcode-element {
 	// empty cells wraper
 	.empty-cells-wraper {
 		padding: 20px 5px 0;
+		.empty-cells-description {
+			font-family: $headers;
+			font-size: 16px;
+			font-weight: 600;
+			margin-bottom: 20px;
+		}
 		.empty-items-wraper {
 			.empty-cell-item {
 				font-family: $headers;
@@ -1027,5 +1033,17 @@ button.html5-qrcode-element {
 				color: $white;
 			}
 		}
+	}
+	.search-empty_cells {
+		display: block;
+
+		font-family: $headers;
+		font-size: 16px;
+		font-weight: 600;
+		color: $white;
+		padding: 15px 20px;
+		margin: 30px auto;
+		border-radius: 5px;
+		background-color: $actionBtnBg;
 	}
 }

@@ -724,6 +724,9 @@ window.addEventListener("load", () => {
 				}
 			}
 		},
+		find_empty_cells: function () {
+			load.get_goods_count.call(load);
+		},
 		show_empty_cells: function () {
 			let empty_cells = [];
 			Object.keys(storage.data.addresses).forEach((item) => {
@@ -1548,6 +1551,7 @@ window.addEventListener("load", () => {
 		},
 		search: function (data) {
 			generate.preloader({ status: "end" });
+			contentWraper.innerHTML = "";
 			if (data.length > 0) {
 				let searchInp = document.querySelector(".search-inp").value;
 				data.sort((a, b) => (a.article > b.article ? 1 : -1));
@@ -2407,17 +2411,30 @@ window.addEventListener("load", () => {
 					})
 				);
 			}
+			let orders = { main_orders: 0, checked_orders: 0 };
+			orders.main_orders = Object.keys(storage.data.orders).length;
+			Object.keys(storage.data.orders).forEach((item) => {
+				if (!storage.data.orders[item].is_new) {
+					orders.checked_orders++;
+				}
+			});
 			contentWraper.appendChild(
 				get.elements({
 					el: "div",
 					className: "empty-cells-wraper",
 					children: [
 						{
+							el: "p",
+							className: "empty-cells-description",
+							text: `Перевірено Замовлень: ${orders.checked_orders} / ${orders.main_orders} | Остання перевірка була о ${storage.data.settings.last_check.hours}:${storage.data.settings.last_check.minutes}`,
+						},
+						{
 							el: "ul",
 							className: "empty-items-wraper",
 							children: data.map((item) => {
 								let real_count = storage.data.addresses[item].real_goods_count;
 								let cell_capacity = storage.data.addresses[item].cell_capacity;
+
 								let percent = get.percent({
 									num: real_count,
 									main: cell_capacity,
@@ -2443,7 +2460,7 @@ window.addEventListener("load", () => {
 												{
 													el: "span",
 													className: "empty-cell-data",
-													text: `Ємність комірки:${real_count} Реальна кількість: ${cell_capacity} Заповнено на: (${percent.toFixed(
+													text: `Ємність комірки:${cell_capacity} Реальна кількість: ${real_count} Заповнено на: (${percent.toFixed(
 														1
 													)}%)`,
 												},
@@ -2460,6 +2477,13 @@ window.addEventListener("load", () => {
 									],
 								};
 							}),
+						},
+						{
+							el: "button",
+							className: "search-empty_cells btn",
+							text: "Пошук пустих комірок",
+							event: "click",
+							hendler: hendlers.find_empty_cells,
 						},
 					],
 				})
