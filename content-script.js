@@ -710,21 +710,17 @@ window.addEventListener("load", () => {
 		},
 		fill_cell: function () {
 			let article = this.dataset.article || false;
+			this.textContent = "Заповнено";
 			if (article) {
-				storage.data.addresses[article].real_goods_count =
-					storage.data.addresses[article].cell_capacity;
 				if (
 					storage.data.addresses[article].cell_capacity >
 					storage.data.addresses[article].last_goods_count
 				) {
 					storage.data.addresses[article].real_goods_count =
-						storage.data.addresses[article].cell_capacity;
-				} else if (
-					storage.data.addresses[article].last_goods_count <
-					storage.data.addresses[article].cell_capacity
-				) {
-					storage.data.addresses[article].real_goods_count =
 						storage.data.addresses[article].last_goods_count;
+				} else {
+					storage.data.addresses[article].real_goods_count =
+						storage.data.addresses[article].cell_capacity;
 				}
 			}
 		},
