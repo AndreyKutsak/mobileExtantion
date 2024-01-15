@@ -3054,7 +3054,7 @@ window.addEventListener("load", () => {
 						if (item.questionsCount >= 0) {
 							return;
 						}
-						let article = item.articleAndPlace.article.trim();
+						let article = item.articleAndPlace.article;
 						let quality = item.quality.match(regExp.num)[0];
 						storage.data.addresses[article].last_goods_count =
 							item.base_quality;
