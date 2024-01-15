@@ -1555,6 +1555,8 @@ window.addEventListener("load", () => {
 					a.baseCount.baseCount > b.baseCount.baseCount ? -1 : 1
 				);
 				data.forEach((item) => {
+					storage.data.addresses[item.article].last_goods_count =
+						item.baseCount.baseCount;
 					console.log({
 						width: `${get.percent({
 							main: storage.data.addresses[item.article]?.cell_capacity || 0,
