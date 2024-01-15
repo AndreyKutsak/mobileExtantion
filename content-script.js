@@ -3054,6 +3054,12 @@ window.addEventListener("load", () => {
 						}
 						let article = item.articleAndPlace.article;
 						let quality = item.quality.match(regExp.num)[0];
+						if (
+							storage.data.addresses[article] == null ||
+							storage.data.addresses[article] == undefined
+						) {
+							return;
+						}
 						storage.data.addresses[article].last_goods_count =
 							item.base_quality;
 						if (storage.data.addresses[article].real_goods_count) {
