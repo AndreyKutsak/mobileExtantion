@@ -2696,7 +2696,7 @@ window.addEventListener("load", () => {
 					let rowData = {};
 					let base_quality_div = td[2].querySelectorAll("div")[4];
 					let base_quality = 0;
-					if (base_quality_div != undefined) {
+					if (base_quality_div != undefined && base_quality_div !== null) {
 						base_quality = base_quality_div.textContent.trim();
 					}
 
