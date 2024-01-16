@@ -732,7 +732,9 @@ window.addEventListener("load", () => {
 			Object.keys(storage.data.addresses).forEach((item) => {
 				if (
 					storage.data.addresses[item].is_ignored ||
-					storage.data.addresses[item].cell_capacity == undefined
+					storage.data.addresses[item].cell_capacity == undefined ||
+					storage.data.addresses[item].real_goods_count ==
+						storage.data.addresses[item].last_goods_count
 				)
 					return;
 				if (
@@ -3039,6 +3041,22 @@ window.addEventListener("load", () => {
 			return areas;
 		},
 		get_goods_count: async function () {
+			let preloader_indicator = get.elements({
+				el: "div",
+				className: "checking-indicator",
+				children: [
+					{
+						el: "p",
+						className: "indecator-desc",
+						text: "Триває Перевірка замовлень",
+					},
+					{
+						el: "img",
+						src: get.url(src.ico.spiner),
+					},
+				],
+			});
+			contentWraper.appendChild(preloader_indicator);
 			let orders = await this.fetch({
 				url: url.orders,
 				method: "POST",
@@ -3098,14 +3116,14 @@ window.addEventListener("load", () => {
 					});
 					storage.data.orders[order_id].is_new = false;
 
-					await new Promise((resolve) => setTimeout(resolve, 150));
+					await new Promise((resolve) => setTimeout(resolve, 250));
 				}
 			}
 			storage.data.settings = {
 				last_check: get.date(),
 			};
 			storage.save();
-			alert("Розпочато пошук пустих комірок");
+			preloader_indicator.remove();
 		},
 
 		logOut: function () {
