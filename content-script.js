@@ -738,8 +738,8 @@ window.addEventListener("load", () => {
 				if (
 					storage.data.addresses[item].real_goods_count <
 						storage.data.addresses[item].cell_capacity / 2 &&
-					storage.data.addresses[item].cell_capacity <
-						storage.data.addresses[item].last_goods_count
+					+storage.data.addresses[item].cell_capacity <
+						+storage.data.addresses[item].last_goods_count
 				)
 					empty_cells.push(item);
 			});
