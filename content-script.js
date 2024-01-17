@@ -733,7 +733,7 @@ window.addEventListener("load", () => {
 				if (
 					storage.data.addresses[item].is_ignored ||
 					storage.data.addresses[item].cell_capacity == undefined ||
-					storage.data.addresses[item].real_goods_count >=
+					storage.data.addresses[item].cell_capacity >=
 					storage.data.addresses[item].last_goods_count
 				)
 					return;
