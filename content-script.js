@@ -3122,8 +3122,8 @@ window.addEventListener("load", () => {
 			storage.data.settings = {
 				last_check: get.date(),
 			};
-			storage.save();
 			preloader_indicator.remove();
+			storage.save();
 		},
 
 		logOut: function () {
