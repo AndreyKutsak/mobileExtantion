@@ -1396,7 +1396,7 @@ window.addEventListener("load", () => {
 				className: "compare-wraper",
 			});
 			if (Object.keys(storage.data.compareArray).length > 0) {
-				Object.keys(storage.data.compareArray).forEach((item, index) => {
+				Object.keys(storage.data.compareArray).forEach((item) => {
 					let difference =
 						storage.data.compareArray[item].count.realCount -
 						(storage.data.compareArray[item].count.baseCount +
@@ -1455,7 +1455,15 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "compare-time",
-										text: `${storage.data.compareArray[item].addingDate.day}.${storage.data.compareArray[item].addingDate.month}.${storage.data.compareArray[item].addingDate.year}   ${storage.data.compareArray[item].addingDate.hours}:${storage.data.compareArray[item].addingDate.minutes}:${storage.data.compareArray[item].addingDate.seconds}`,
+										text: `${storage.data.compareArray[item].addingDate.day}.${
+											storage.data.compareArray[item].addingDate.month
+										}.${storage.data.compareArray[item].addingDate.year}   ${
+											storage.data.compareArray[item].addingDate.hours
+										}:${storage.data.compareArray[item].addingDate.minutes}:${
+											storage.data.compareArray[item].addingDate.seconds
+										}| ${
+											storage.data.addresses[item]?.place ?? "Ще не Збережено"
+										}`,
 									},
 									{
 										el: "div",
@@ -1560,12 +1568,25 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "desc date-desc",
-										text: `${storage.data.listArray[item].addingDate.day}.${storage.data.listArray[item].addingDate.month}.${storage.data.listArray[item].addingDate.year}  ${storage.data.listArray[item].addingDate.hours}:${storage.data.listArray[item].addingDate.minutes}:${storage.data.listArray[item].addingDate.seconds} `,
+										text: `${storage.data.listArray[item].addingDate.day}.${
+											storage.data.listArray[item].addingDate.month
+										}.${storage.data.listArray[item].addingDate.year}  ${
+											storage.data.listArray[item].addingDate.hours
+										}:${storage.data.listArray[item].addingDate.minutes}:${
+											storage.data.listArray[item].addingDate.seconds
+										}|${
+											storage.data.addresses[item]?.place ?? "Ще не Збережено"
+										} `,
 									},
 									{
 										el: "p",
 										className: "item-article",
 										text: item,
+									},
+									{
+										el: "p",
+										className: "item-head",
+										text: `Кількість по базі: ${storage.data.listArray[item].count.baseCount}`,
 									},
 									{
 										el: "p",
