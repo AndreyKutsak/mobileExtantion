@@ -3148,13 +3148,6 @@ window.addEventListener("load", () => {
 	}, interval.elaboration);
 	// checking empty cells
 	setInterval(() => {
-		let current_date = get.date();
-		Object.keys(storage.data.orders).forEach((item) => {
-			console.log(storage.data.orders[item].order_date);
-			if (storage.data.orders[item].order_date.day !== current_date.day) {
-				delete storage.data.orders[item];
-			}
-		});
 		load.get_goods_count();
 	}, interval.cell_goods_count);
 	let buttons = {
@@ -3300,10 +3293,14 @@ window.addEventListener("load", () => {
 	};
 	function check_last_check() {
 		let last_check_time = storage.data.settings.last_check;
-
+		let current_date = get.date();
+		Object.keys(storage.data.orders).forEach((item) => {
+			console.log(storage.data.orders[item].order_date);
+			if (storage.data.orders[item].order_date.day !== current_date.day) {
+				delete storage.data.orders[item];
+			}
+		});
 		if (last_check_time) {
-			let current_date = get.date();
-
 			let hours_difference = current_date.hours - last_check_time.hours;
 			let minutes_difference = current_date.minutes - last_check_time.minutes;
 
