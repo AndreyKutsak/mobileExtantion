@@ -692,7 +692,7 @@ window.addEventListener("load", () => {
 		},
 		show_stilages: function () {
 			console.log("show_stilages");
-			load.get_stilages().then((data) => { });
+			load.get_stilages().then((data) => {});
 		},
 		// cell capacity
 		set_cell_capacity: function () {
@@ -732,15 +732,14 @@ window.addEventListener("load", () => {
 			Object.keys(storage.data.addresses).forEach((item) => {
 				if (
 					storage.data.addresses[item].is_ignored ||
-					storage.data.addresses[item].cell_capacity == undefined ||
-					storage.data.addresses[item].cell_capacity >=
-					storage.data.addresses[item].last_goods_count
+					storage.data.addresses[item].cell_capacity === undefined
 				)
 					return;
 				if (
-					storage.data.addresses[item].real_goods_count == 0 ||
 					storage.data.addresses[item].real_goods_count <
-					storage.data.addresses[item].cell_capacity / 2
+						storage.data.addresses[item].cell_capacity / 2 &&
+					storage.data.addresses[item].cell_capacity >
+						storage.data.addresses[item].last_goods_count
 				)
 					empty_cells.push(item);
 			});
@@ -1422,14 +1421,16 @@ window.addEventListener("load", () => {
 											{
 												el: "p",
 												className: "item-count",
-												text: `По базі: ${get.goodsCount(item.count).baseCount
-													}`,
+												text: `По базі: ${
+													get.goodsCount(item.count).baseCount
+												}`,
 											},
 											{
 												el: "p",
 												className: "item-count",
-												text: `Резерв: ${get.goodsCount(item.count).orderCount
-													}`,
+												text: `Резерв: ${
+													get.goodsCount(item.count).orderCount
+												}`,
 											},
 											{
 												el: "p",
@@ -1605,11 +1606,13 @@ window.addEventListener("load", () => {
 							{
 								el: "div",
 								className: "item-place danger",
-								text: `Місце: ${storage.data.addresses[item.article]?.place ??
+								text: `Місце: ${
+									storage.data.addresses[item.article]?.place ??
 									"Ще не збережено"
-									} |  Cell: ${storage.data.addresses[item.article]?.cell ??
+								} |  Cell: ${
+									storage.data.addresses[item.article]?.cell ??
 									"Ще не збережено"
-									}`,
+								}`,
 							},
 							{
 								el: "div",
@@ -1670,10 +1673,12 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "cell-capacity-desc",
-										text: `Кількість товару в комірці ${storage.data.addresses[item.article]?.real_goods_count ||
+										text: `Кількість товару в комірці ${
+											storage.data.addresses[item.article]?.real_goods_count ||
 											0
-											} шт. з можливих ${storage.data.addresses[item.article]?.cell_capacity || 0
-											} шт.`,
+										} шт. з можливих ${
+											storage.data.addresses[item.article]?.cell_capacity || 0
+										} шт.`,
 									},
 									{
 										el: "p",
@@ -2360,14 +2365,16 @@ window.addEventListener("load", () => {
 						{
 							el: "div",
 							className: "history-item saved-articles",
-							text: `Збережено Артикулів: ${Object.keys(storage.data.addresses).length
-								}`,
+							text: `Збережено Артикулів: ${
+								Object.keys(storage.data.addresses).length
+							}`,
 						},
 						{
 							el: "div",
 							className: "history-item elaboration",
-							text: `Відбито Уточнень: ${Object.keys(storage.data.elaborations).length
-								}`,
+							text: `Відбито Уточнень: ${
+								Object.keys(storage.data.elaborations).length
+							}`,
 						},
 						{
 							el: "div",
@@ -2862,7 +2869,7 @@ window.addEventListener("load", () => {
 							let images = Array.from(
 								search
 									.querySelectorAll(".detImg")
-								[index].querySelectorAll("img")
+									[index].querySelectorAll("img")
 							);
 
 							let imgSrc = [];
@@ -3100,10 +3107,6 @@ window.addEventListener("load", () => {
 							storage.data.addresses[article].real_goods_count =
 								Number(storage.data.addresses[article].real_goods_count) -
 								Number(quality);
-							console.log(
-								storage.data.addresses[article].real_goods_count -
-								Number(quality)
-							);
 						}
 					});
 					storage.data.orders[order_id].is_new = false;
