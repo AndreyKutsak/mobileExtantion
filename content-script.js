@@ -692,7 +692,8 @@ window.addEventListener("load", () => {
 		},
 		show_stilages: function () {
 			console.log("show_stilages");
-			load.get_stilages().then((data) => { });
+			load.get_stilages();
+
 		},
 		// cell capacity
 		set_cell_capacity: function () {
@@ -707,6 +708,11 @@ window.addEventListener("load", () => {
 			if (article) {
 				storage.data.addresses[article].is_ignored = true;
 			}
+
+			else {
+				storage.data.addresses[article] = false;
+			}
+
 		},
 		fill_cell: function () {
 			let article = this.dataset.article || false;
@@ -3090,7 +3096,7 @@ window.addEventListener("load", () => {
 						let quality = item.quality.match(regExp.num)[0];
 						if (
 							storage.data.addresses[article] == null ||
-							storage.data.addresses[article] == undefined
+							storage.data.addresses[article] == undefined || quality >= storage.data.addresses[article].cell_capacity
 						) {
 							return;
 						}
