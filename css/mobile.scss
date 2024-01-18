@@ -1060,6 +1060,7 @@ button.html5-qrcode-element {
 	border-radius: 5px;
 	background-color: $actionBtnBg;
 	z-index: 1000;
+	min-width: 300px;
 
 	.indecator-desc {
 		font-family: $headers;
