@@ -1616,7 +1616,7 @@ window.addEventListener("load", () => {
 			contentWraper.innerHTML = "";
 			if (data.length > 0) {
 				let searchInp = document.querySelector(".search-inp").value;
-				data.sort((a, b) => (a.article > b.article ? 1 : -1));
+
 				data.sort((a, b) =>
 					a.baseCount.baseCount > b.baseCount.baseCount ? -1 : 1
 				);
