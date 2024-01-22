@@ -736,7 +736,12 @@ window.addEventListener("load", () => {
 		},
 		show_stilages: function () {
 			console.log("show_stilages");
+<<<<<<< HEAD
+			load.get_stilages();
+
+=======
 			load.get_stilages().then((data) => {});
+>>>>>>> b9db5b5fb099d53cd65c825f00db3827ec2aac3c
 		},
 		// cell capacity
 		set_cell_capacity: function () {
@@ -751,6 +756,11 @@ window.addEventListener("load", () => {
 			if (article) {
 				storage.data.addresses[article].is_ignored = true;
 			}
+
+			else {
+				storage.data.addresses[article] = false;
+			}
+
 		},
 		fill_cell: function () {
 			let article = this.dataset.article || false;
@@ -3111,7 +3121,7 @@ window.addEventListener("load", () => {
 						let quality = item.quality.match(regExp.num)[0];
 						if (
 							storage.data.addresses[article] == null ||
-							storage.data.addresses[article] == undefined
+							storage.data.addresses[article] == undefined || quality >= storage.data.addresses[article].cell_capacity
 						) {
 							return;
 						}
