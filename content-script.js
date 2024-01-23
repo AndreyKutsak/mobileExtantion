@@ -157,6 +157,39 @@ window.addEventListener("load", () => {
 		url: function (data) {
 			return chrome.runtime.getURL(String(data));
 		},
+		mergeSort: function (arr) {
+			console.time("get.mergeSort");
+			if (arr.length <= 1) {
+				return arr;
+			}
+
+			const middle = Math.floor(arr.length / 2);
+			const left = arr.slice(0, middle);
+			const right = arr.slice(middle);
+			function merge(left, right) {
+				let result = [];
+				let leftIndex = 0;
+				let rightIndex = 0;
+
+				while (leftIndex < left.length && rightIndex < right.length) {
+					if (
+						left[leftIndex].baseCount.baseCount <
+						right[rightIndex].baseCount.baseCount
+					) {
+						result.push(left[leftIndex]);
+						leftIndex++;
+					} else {
+						result.push(right[rightIndex]);
+						rightIndex++;
+					}
+				}
+
+				return result.concat(left.slice(leftIndex), right.slice(rightIndex));
+			}
+
+			console.timeEnd("get.mergeSort");
+			return merge(get.mergeSort(left), get.mergeSort(right));
+		},
 		parser: function (data) {
 			let domParser = new DOMParser();
 			let doc = domParser.parseFromString(data, "text/html");
@@ -1619,10 +1652,8 @@ window.addEventListener("load", () => {
 			contentWraper.innerHTML = "";
 			if (data.length > 0) {
 				let searchInp = document.querySelector(".search-inp").value;
+				data = get.mergeSort(data);
 
-				data.sort((a, b) =>
-					a.baseCount.baseCount > b.baseCount.baseCount ? -1 : 1
-				);
 				data.forEach((item) => {
 					storage.data.addresses[item.article].last_goods_count =
 						item.baseCount.baseCount;
