@@ -158,6 +158,7 @@ window.addEventListener("load", () => {
 			return chrome.runtime.getURL(String(data));
 		},
 		mergeSort: function (arr) {
+			//console.log(arr);
 			console.time("get.mergeSort");
 			if (arr.length <= 1) {
 				return arr;
@@ -172,10 +173,7 @@ window.addEventListener("load", () => {
 				let rightIndex = 0;
 
 				while (leftIndex < left.length && rightIndex < right.length) {
-					if (
-						left[leftIndex].baseCount.baseCount <
-						right[rightIndex].baseCount.baseCount
-					) {
+					if (left[leftIndex].count > right[rightIndex].count) {
 						result.push(left[leftIndex]);
 						leftIndex++;
 					} else {
@@ -1652,8 +1650,8 @@ window.addEventListener("load", () => {
 			contentWraper.innerHTML = "";
 			if (data.length > 0) {
 				let searchInp = document.querySelector(".search-inp").value;
-				data = get.mergeSort(data);
 
+				console.log(data);
 				data.forEach((item) => {
 					storage.data.addresses[item.article].last_goods_count =
 						item.baseCount.baseCount;
@@ -2699,12 +2697,14 @@ window.addEventListener("load", () => {
 				data.photoLG = goodsPhoto.parentNode.getAttribute("href");
 				data.head = goodsDesc[index].innerHTML.split("<br>")[0].trim();
 				data.desc = goodsDesc[index].textContent.trim();
-				data.count = goodsCount[index].textContent.trim();
+				data.count = get.goodsCount(
+					goodsCount[index].textContent.trim()
+				).baseCount;
 				data.baseCount = get.goodsCount(goodsCount[index].textContent.trim());
 				this.storage.push(data);
 			});
 
-			return this.storage;
+			return get.mergeSort(this.storage);
 		},
 		orders: async function (data) {
 			this.storage = [];
