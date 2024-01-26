@@ -1453,125 +1453,129 @@ window.addEventListener("load", () => {
 				className: "compare-wraper",
 			});
 			if (Object.keys(storage.data.compareArray).length > 0) {
-				Object.keys(storage.data.compareArray).forEach((item) => {
-					let difference =
-						storage.data.compareArray[item].count.realCount -
-						(storage.data.compareArray[item].count.baseCount +
-							storage.data.compareArray[item].count.orderCount);
-					let isProcesed = { text: "Обробити" };
-					if (storage.data.compareArray[item].isProcesed) {
-						isProcesed.class = "success";
-						isProcesed.text = "Оброблено";
-					}
-					function drawDifference() {
-						if (difference <= 0) {
-							return { backgroundColor: "rgb(253, 184, 184)" };
+				Object.keys(storage.data.compareArray)
+					.reverse()
+					.forEach((item) => {
+						let difference =
+							storage.data.compareArray[item].count.realCount -
+							(storage.data.compareArray[item].count.baseCount +
+								storage.data.compareArray[item].count.orderCount);
+						let isProcesed = { text: "Обробити" };
+						if (storage.data.compareArray[item].isProcesed) {
+							isProcesed.class = "success";
+							isProcesed.text = "Оброблено";
 						}
-						if (item.isProcesed) {
-							return { backgroundColor: "#c2edc2" };
+						function drawDifference() {
+							if (difference <= 0) {
+								return { backgroundColor: "rgb(253, 184, 184)" };
+							}
+							if (item.isProcesed) {
+								return { backgroundColor: "#c2edc2" };
+							}
 						}
-					}
-					let compareItem = get.elements({
-						el: "div",
-						className: `compare-item ${isProcesed.class}`,
-						style: drawDifference(),
-						children: [
-							{
-								el: "button",
-								className: "del-btn btn",
-								event: "click",
-								hendler: hendlers.removeItem,
-								data: [{ article: item }, { arr: "compareArray" }],
-								children: [
-									{
-										el: "img",
-										src: get.url(src.ico.recycle),
-										alt: "Видалити Елемент",
-									},
-								],
-							},
-							{
-								el: "a",
-								className: "item-image-link",
-								href: storage.data.compareArray[item].photoLG,
-								event: "click",
-								hendler: hendlers.showImage,
-								children: [
-									{
-										el: "img",
-										className: "item-image",
-										src: storage.data.compareArray[item].photo,
-									},
-								],
-							},
-							{
-								el: "div",
-								className: "item-text-wraper",
-								style: drawDifference(),
-								children: [
-									{
-										el: "p",
-										className: "compare-time",
-										text: `${storage.data.compareArray[item].addingDate.day}.${
-											storage.data.compareArray[item].addingDate.month
-										}.${storage.data.compareArray[item].addingDate.year}   ${
-											storage.data.compareArray[item].addingDate.hours
-										}:${storage.data.compareArray[item].addingDate.minutes}:${
-											storage.data.compareArray[item].addingDate.seconds
-										}| ${
-											storage.data.addresses[item]?.place ?? "Ще не Збережено"
-										}`,
-									},
-									{
-										el: "div",
-										className: "item-count",
-										children: [
-											{
-												el: "p",
-												className: "item-count",
-												text: `По базі: ${storage.data.compareArray[item].count.baseCount}`,
-											},
-											{
-												el: "p",
-												className: "item-count",
-												text: `Резерв: ${storage.data.compareArray[item].count.orderCount}`,
-											},
-											{
-												el: "p",
-												className: "item-count",
-												text: `Всього: ${storage.data.compareArray[item].count.realCount}`,
-											},
-											{
-												el: "p",
-												className: "item-count",
-												text: `Різниця: ${difference}`,
-											},
-										],
-									},
-									{
-										el: "p",
-										className: "item-article",
-										text: item,
-									},
-									{
-										el: "p",
-										className: "item-head",
-										text: storage.data.compareArray[item].head,
-									},
-									{
-										el: "button",
-										className: "procesed-btn",
-										text: isProcesed.text,
-										data: [{ article: item }, { arr: "compareArray" }],
-										event: "click",
-										hendler: hendlers.procesed,
-									},
-								],
-							},
-						],
+						let compareItem = get.elements({
+							el: "div",
+							className: `compare-item ${isProcesed.class}`,
+							style: drawDifference(),
+							children: [
+								{
+									el: "button",
+									className: "del-btn btn",
+									event: "click",
+									hendler: hendlers.removeItem,
+									data: [{ article: item }, { arr: "compareArray" }],
+									children: [
+										{
+											el: "img",
+											src: get.url(src.ico.recycle),
+											alt: "Видалити Елемент",
+										},
+									],
+								},
+								{
+									el: "a",
+									className: "item-image-link",
+									href: storage.data.compareArray[item].photoLG,
+									event: "click",
+									hendler: hendlers.showImage,
+									children: [
+										{
+											el: "img",
+											className: "item-image",
+											src: storage.data.compareArray[item].photo,
+										},
+									],
+								},
+								{
+									el: "div",
+									className: "item-text-wraper",
+									style: drawDifference(),
+									children: [
+										{
+											el: "p",
+											className: "compare-time",
+											text: `${
+												storage.data.compareArray[item].addingDate.day
+											}.${storage.data.compareArray[item].addingDate.month}.${
+												storage.data.compareArray[item].addingDate.year
+											}   ${storage.data.compareArray[item].addingDate.hours}:${
+												storage.data.compareArray[item].addingDate.minutes
+											}:${
+												storage.data.compareArray[item].addingDate.seconds
+											}| ${
+												storage.data.addresses[item]?.place ?? "Ще не Збережено"
+											}`,
+										},
+										{
+											el: "div",
+											className: "item-count",
+											children: [
+												{
+													el: "p",
+													className: "item-count",
+													text: `По базі: ${storage.data.compareArray[item].count.baseCount}`,
+												},
+												{
+													el: "p",
+													className: "item-count",
+													text: `Резерв: ${storage.data.compareArray[item].count.orderCount}`,
+												},
+												{
+													el: "p",
+													className: "item-count",
+													text: `Всього: ${storage.data.compareArray[item].count.realCount}`,
+												},
+												{
+													el: "p",
+													className: "item-count",
+													text: `Різниця: ${difference}`,
+												},
+											],
+										},
+										{
+											el: "p",
+											className: "item-article",
+											text: item,
+										},
+										{
+											el: "p",
+											className: "item-head",
+											text: storage.data.compareArray[item].head,
+										},
+										{
+											el: "button",
+											className: "procesed-btn",
+											text: isProcesed.text,
+											data: [{ article: item }, { arr: "compareArray" }],
+											event: "click",
+											hendler: hendlers.procesed,
+										},
+									],
+								},
+							],
+						});
+						compareWraper.appendChild(compareItem);
 					});
-					compareWraper.appendChild(compareItem);
-				});
 				return compareWraper;
 			}
 
@@ -1580,90 +1584,92 @@ window.addEventListener("load", () => {
 		list: function () {
 			if (Object.keys(storage.data.listArray).length > 0) {
 				let listWraper = get.elements({ el: "div", className: "list-wraper" });
-				Object.keys(storage.data.listArray).forEach((item, index) => {
-					console.log(storage.data.listArray[item].addingDate);
-					let isProcesedText = "Обробити",
-						isProcesedClass = ``;
-					if (storage.data.listArray[item].isProcesed) {
-						isProcesedText = "Оброблено";
-						isProcesedClass = "success";
-					}
-					let listItem = get.elements({
-						el: "div",
-						className: `list-item ${isProcesedClass}`,
-						children: [
-							{
-								el: "button",
-								className: "del-btn btn",
-								event: "click",
-								data: [{ article: item }, { arr: "listArray" }],
-								hendler: hendlers.removeItem,
-								children: [
-									{
-										el: "img",
-										src: get.url(src.ico.recycle),
-										alt: "Видалити елемент",
-									},
-								],
-							},
-							{
-								el: "a",
-								className: "item-image-link",
-								href: storage.data.listArray[item].photoLG,
-								children: [
-									{
-										el: "img",
-										className: "item-image",
-										src: storage.data.listArray[item].photo,
-									},
-								],
-							},
-							{
-								el: "div",
-								className: "item-text-wraper",
-								children: [
-									{
-										el: "p",
-										className: "desc date-desc",
-										text: `${storage.data.listArray[item].addingDate.day}.${
-											storage.data.listArray[item].addingDate.month
-										}.${storage.data.listArray[item].addingDate.year}  ${
-											storage.data.listArray[item].addingDate.hours
-										}:${storage.data.listArray[item].addingDate.minutes}:${
-											storage.data.listArray[item].addingDate.seconds
-										}|${
-											storage.data.addresses[item]?.place ?? "Ще не Збережено"
-										} `,
-									},
-									{
-										el: "p",
-										className: "item-article",
-										text: item,
-									},
-									{
-										el: "p",
-										className: "item-head",
-										text: `Кількість по базі: ${storage.data.listArray[item].count.baseCount}`,
-									},
-									{
-										el: "p",
-										className: "item-head",
-										text: storage.data.listArray[item].head,
-									},
-									{
-										el: "button",
-										className: "procesed-btn",
-										text: isProcesedText,
-										data: [{ article: item }, { arr: "listArray" }],
-										event: "click",
-										hendler: hendlers.procesed,
-									},
-								],
-							},
-						],
+				Object.keys(storage.data.listArray)
+					.reverse()
+					.forEach((item) => {
+						console.log(storage.data.listArray[item].addingDate);
+						let isProcesedText = "Обробити",
+							isProcesedClass = ``;
+						if (storage.data.listArray[item].isProcesed) {
+							isProcesedText = "Оброблено";
+							isProcesedClass = "success";
+						}
+						let listItem = get.elements({
+							el: "div",
+							className: `list-item ${isProcesedClass}`,
+							children: [
+								{
+									el: "button",
+									className: "del-btn btn",
+									event: "click",
+									data: [{ article: item }, { arr: "listArray" }],
+									hendler: hendlers.removeItem,
+									children: [
+										{
+											el: "img",
+											src: get.url(src.ico.recycle),
+											alt: "Видалити елемент",
+										},
+									],
+								},
+								{
+									el: "a",
+									className: "item-image-link",
+									href: storage.data.listArray[item].photoLG,
+									children: [
+										{
+											el: "img",
+											className: "item-image",
+											src: storage.data.listArray[item].photo,
+										},
+									],
+								},
+								{
+									el: "div",
+									className: "item-text-wraper",
+									children: [
+										{
+											el: "p",
+											className: "desc date-desc",
+											text: `${storage.data.listArray[item].addingDate.day}.${
+												storage.data.listArray[item].addingDate.month
+											}.${storage.data.listArray[item].addingDate.year}  ${
+												storage.data.listArray[item].addingDate.hours
+											}:${storage.data.listArray[item].addingDate.minutes}:${
+												storage.data.listArray[item].addingDate.seconds
+											}|${
+												storage.data.addresses[item]?.place ?? "Ще не Збережено"
+											} `,
+										},
+										{
+											el: "p",
+											className: "item-article",
+											text: item,
+										},
+										{
+											el: "p",
+											className: "item-head",
+											text: `Кількість по базі: ${storage.data.listArray[item].count.baseCount}`,
+										},
+										{
+											el: "p",
+											className: "item-head",
+											text: storage.data.listArray[item].head,
+										},
+										{
+											el: "button",
+											className: "procesed-btn",
+											text: isProcesedText,
+											data: [{ article: item }, { arr: "listArray" }],
+											event: "click",
+											hendler: hendlers.procesed,
+										},
+									],
+								},
+							],
+						});
+						listWraper.appendChild(listItem);
 					});
-					listWraper.appendChild(listItem);
-				});
 				return listWraper;
 			}
 			return generate.message("Список товару на розноску пустий!!!");
@@ -3354,7 +3360,7 @@ window.addEventListener("load", () => {
 		let current_date = get.date();
 		if (
 			storage.data.orders !== undefined &&
-			Object.keys(storage.data.orders).length == 0
+			Object.keys(storage.data.orders).length !== 0
 		) {
 			Object.keys(storage.data.orders).forEach((item) => {
 				console.log(storage.data.orders[item].order_date);
