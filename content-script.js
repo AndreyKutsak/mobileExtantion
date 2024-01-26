@@ -45,6 +45,8 @@ window.addEventListener("load", () => {
 			}
 		},
 		address: function (data) {
+			console.time("adres");
+			console.log(data);
 			let article = data.article;
 			if (!article) {
 				console.error(
@@ -102,7 +104,7 @@ window.addEventListener("load", () => {
 				this.changed = true;
 				this.save();
 			}
-
+			console.timeEnd("adres");
 			return this.data.addresses[article];
 		},
 		observe: function (obj) {
@@ -830,20 +832,22 @@ window.addEventListener("load", () => {
 		},
 		show_empty_cells: function () {
 			let empty_cells = [];
-			Object.keys(storage.data.addresses).forEach((item) => {
-				if (
-					storage.data.addresses[item].is_ignored ||
-					storage.data.addresses[item].cell_capacity === undefined
-				)
+			let articles_list = Object.keys(storage.data.addresses);
+			articles_list.forEach((item) => {
+				let address = storage.data.addresses[item];
+
+				if (address.is_ignored || address.cell_capacity === undefined) {
 					return;
+				}
+
 				if (
-					storage.data.addresses[item].real_goods_count <
-						storage.data.addresses[item].cell_capacity / 2 &&
-					+storage.data.addresses[item].cell_capacity <
-						+storage.data.addresses[item].last_goods_count
-				)
+					address.real_goods_count < address.cell_capacity / 2 &&
+					+address.cell_capacity < +address.last_goods_count
+				) {
 					empty_cells.push(item);
+				}
 			});
+
 			generate.empty_cells(empty_cells);
 		},
 	};
@@ -1679,8 +1683,6 @@ window.addEventListener("load", () => {
 			contentWraper.innerHTML = "";
 			if (data.length > 0) {
 				let searchInp = document.querySelector(".search-inp").value;
-
-				console.log(data);
 				data.forEach((item) => {
 					let storage_item_data = storage.data.addresses[item.article];
 					console.log(storage_item_data);
@@ -3161,24 +3163,23 @@ window.addEventListener("load", () => {
 							return;
 						}
 						let article = item.articleAndPlace.article;
+						let storage_article = storage.data.addresses[article];
 						let quality = item.quality.match(regExp.num)[0];
+
 						if (
-							storage.data.addresses[article] == null ||
-							storage.data.addresses[article] == undefined ||
-							quality >= storage.data.addresses[article].cell_capacity
+							storage_article == null ||
+							storage_article == undefined ||
+							quality >= storage_article.cell_capacity
 						) {
 							return;
 						}
-						storage.data.addresses[article].last_goods_count =
-							item.base_quality;
-						if (storage.data.addresses[article].real_goods_count) {
-							storage.data.addresses[article].real_goods_count =
-								Number(storage.data.addresses[article].real_goods_count) -
-								Number(quality);
+						storage_article.last_goods_count = item.base_quality;
+						if (storage_article.real_goods_count) {
+							storage_article.real_goods_count =
+								Number(storage_article.real_goods_count) - Number(quality);
 						}
 					});
 					storage.data.orders[order_id].is_new = false;
-
 					await new Promise((resolve) => setTimeout(resolve, 250));
 				}
 			}
@@ -3363,7 +3364,6 @@ window.addEventListener("load", () => {
 			Object.keys(storage.data.orders).length !== 0
 		) {
 			Object.keys(storage.data.orders).forEach((item) => {
-				console.log(storage.data.orders[item].order_date);
 				if (storage.data.orders[item].order_date.day !== current_date.day) {
 					delete storage.data.orders[item];
 				}
