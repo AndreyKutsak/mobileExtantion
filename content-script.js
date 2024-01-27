@@ -157,6 +157,36 @@ window.addEventListener("load", () => {
 		url: function (data) {
 			return chrome.runtime.getURL(String(data));
 		},
+		mergeSort: function (arr) {
+
+			if (arr.length <= 1) {
+				return arr;
+			}
+
+			const middle = Math.floor(arr.length / 2);
+			const left = arr.slice(0, middle);
+			const right = arr.slice(middle);
+			function merge(left, right) {
+				let result = [];
+				let leftIndex = 0;
+				let rightIndex = 0;
+
+				while (leftIndex < left.length && rightIndex < right.length) {
+					if (left[leftIndex].count > right[rightIndex].count) {
+						result.push(left[leftIndex]);
+						leftIndex++;
+					} else {
+						result.push(right[rightIndex]);
+						rightIndex++;
+					}
+				}
+
+				return result.concat(left.slice(leftIndex), right.slice(rightIndex));
+			}
+
+
+			return merge(get.mergeSort(left), get.mergeSort(right));
+		},
 		parser: function (data) {
 			let domParser = new DOMParser();
 			let doc = domParser.parseFromString(data, "text/html");
@@ -753,12 +783,9 @@ window.addEventListener("load", () => {
 			let article = this.dataset.article || false;
 			if (article) {
 				storage.data.addresses[article].is_ignored = true;
-			}
-
-			else {
+			} else {
 				storage.data.addresses[article] = false;
 			}
-
 		},
 		fill_cell: function () {
 			let article = this.dataset.article || false;
@@ -1616,10 +1643,8 @@ window.addEventListener("load", () => {
 			contentWraper.innerHTML = "";
 			if (data.length > 0) {
 				let searchInp = document.querySelector(".search-inp").value;
-				data.sort((a, b) => (a.article > b.article ? 1 : -1));
-				data.sort((a, b) =>
-					a.baseCount.baseCount > b.baseCount.baseCount ? -1 : 1
-				);
+
+				console.log(data);
 				data.forEach((item) => {
 					storage.data.addresses[item.article].last_goods_count =
 						item.baseCount.baseCount;
@@ -2659,11 +2684,15 @@ window.addEventListener("load", () => {
 				data.photoLG = goodsPhoto.parentNode.getAttribute("href");
 				data.head = goodsDesc[index].innerHTML.split("<br>")[0].trim();
 				data.desc = goodsDesc[index].textContent.trim();
-				data.count = goodsCount[index].textContent.trim();
+				data.count = get.goodsCount(
+					goodsCount[index].textContent.trim()
+				).baseCount;
 				data.baseCount = get.goodsCount(goodsCount[index].textContent.trim());
 				this.storage.push(data);
 			});
-
+			console.time("merge")
+			get.mergeSort(this.storage);
+			console.timeEnd("merge")
 			return this.storage;
 		},
 		orders: async function (data) {
@@ -3105,7 +3134,8 @@ window.addEventListener("load", () => {
 						let quality = item.quality.match(regExp.num)[0];
 						if (
 							storage.data.addresses[article] == null ||
-							storage.data.addresses[article] == undefined || quality >= storage.data.addresses[article].cell_capacity
+							storage.data.addresses[article] == undefined ||
+							quality >= storage.data.addresses[article].cell_capacity
 						) {
 							return;
 						}
