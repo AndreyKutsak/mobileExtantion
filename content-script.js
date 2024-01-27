@@ -13,14 +13,14 @@ window.addEventListener("load", () => {
 		child.remove();
 	});
 
-	let storage = {
+	const storage = {
 		data: {},
+		changed: false,
 		init: function () {
-			let storedData = JSON.parse(localStorage.getItem("storage"));
-			if (storedData) {
-				this.data = this.observe(storedData);
-			} else {
-				this.data = {
+			const storedData = JSON.parse(localStorage.getItem("storage"));
+			this.data =
+				this.observe(storedData) ||
+				this.observe({
 					listArray: {},
 					compareArray: {},
 					questions: [],
@@ -30,77 +30,103 @@ window.addEventListener("load", () => {
 					history: [],
 					production: [],
 					settings: {},
-				};
-				this.data = this.observe(this.data);
+				});
+			console.log(this.data, storedData);
+			if (!storedData) {
+				this.changed = true;
 				this.save();
 			}
 		},
 		save: function () {
-			localStorage.setItem("storage", JSON.stringify(this.data));
+			if (this.changed) {
+				console.log("Сохранено");
+				localStorage.setItem("storage", JSON.stringify(this.data));
+				this.changed = false;
+			}
 		},
 		address: function (data) {
-			if (!data.article) {
+			let article = data.article;
+			if (!article) {
 				console.error(
 					"Артикул є обов'язковим для отримання чи збереження даних"
 				);
 				return;
 			}
-
-			if (!this.data.addresses[data.article]) {
-				this.data.addresses[data.article] = this.observe({});
+			if (!this.data.addresses[article]) {
+				this.data.addresses[article] = this.observe({});
 			}
 
-			if (data.place) {
-				this.data.addresses[data.article].place = this.observe(data.place);
+			if (data.place && data.place !== this.data.addresses[article].place) {
+				console.log("place");
+				this.data.addresses[article].place = this.observe(data.place);
+				this.changed = true;
+				this.save();
 			}
-			if (data.cell) {
-				this.data.addresses[data.article].cell = this.observe(data.cell);
+			if (data.cell && data.cell !== this.data.addresses[article].cell) {
+				console.log("cell");
+				this.data.addresses[article].cell = this.observe(data.cell);
+				this.changed = true;
+				this.save();
 			}
-			if (data.cell_capacity) {
-				this.data.addresses[data.article].cell_capacity = this.observe(
-					data.cell_capacity
+			if (
+				data.cell_capacity &&
+				data.cell_capacity !== this.data.addresses[article].cell_capacity
+			) {
+				console.log("capacity");
+				this.data.addresses[article].cell_capacity = this.observe(
+					this.data.cell_capacity
 				);
+				this.changed = true;
+				this.save();
 			}
-			if (data.last_goods_count) {
-				this.data.addresses[data.article].last_goods_count = this.observe(
-					data.last_goods_count
+			if (
+				this.data.last_goods_count &&
+				this.data.last_goods_count !==
+				this.data.addresses[article].last_goods_count
+			) {
+				console.log("good scount");
+				this.data.addresses[article].last_goods_count = this.observe(
+					this.data.last_goods_count
 				);
+				this.changed = true;
+				this.save();
 			}
-			if (data.is_ignored) {
-				this.data.addresses[data.article].is_ignored = this.observe(
-					data.is_ignored
+			if (
+				this.data.is_ignored &&
+				this.data.is_ignored !== data.addresses[article].is_ignored
+			) {
+				console.log("is ignored");
+				this.data.addresses[article].is_ignored = this.observe(
+					this.data.is_ignored
 				);
-			}
-			if (data.real_goods_count) {
-				this.data.addresses[data.article].real_goods_count = this.observe(
-					data.real_goods_count
-				);
+				this.changed = true;
+				this.save();
 			}
 
-			this.save();
-
-			return this.data.addresses[data.article];
+			return this.data.addresses[article];
 		},
-
 		observe: function (obj) {
 			if (typeof obj !== "object" || obj === null) {
 				return obj;
 			}
 
-			for (let key in obj) {
+			for (const key in obj) {
 				obj[key] = this.observe(obj[key]);
 			}
 
 			return new Proxy(obj, {
-				set: function (target, key, value) {
+				set: (target, key, value) => {
 					target[key] = value;
-					storage.save();
+					this.changed = true;
+					this.save();
 					return true;
 				},
 			});
 		},
 	};
+
 	storage.init();
+
 	let url = {
 		baza: "https://baza.m-p.in.ua/ajax/magaz.php",
 		elaborations: "https://baza.m-p.in.ua/ajax/loadElaboration.php",
@@ -184,7 +210,10 @@ window.addEventListener("load", () => {
 				return result.concat(left.slice(leftIndex), right.slice(rightIndex));
 			}
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 45f9becaa7b173e6d0916517766cba3b7d2f0621
 			return merge(get.mergeSort(left), get.mergeSort(right));
 		},
 		parser: function (data) {
@@ -1646,14 +1675,8 @@ window.addEventListener("load", () => {
 
 				console.log(data);
 				data.forEach((item) => {
-					storage.data.addresses[item.article].last_goods_count =
-						item.baseCount.baseCount;
-					console.log({
-						width: `${get.percent({
-							main: storage.data.addresses[item.article]?.cell_capacity || 0,
-							num: storage.data.addresses[item.article]?.real_goods_count || 0,
-						})}%`,
-					});
+					let storage_item_data = storage.data.addresses[item.article];
+					console.log(storage_item_data);
 					let reserve_count_class = "",
 						base_count_class = "";
 					if (item.baseCount.baseCount < 1) {
@@ -1662,7 +1685,12 @@ window.addEventListener("load", () => {
 					if (item.baseCount.orderCount > 0) {
 						reserve_count_class = "danger";
 					}
-					if (searchInp !== "" && searchInp.match(regExp.cell)) {
+					if (
+						searchInp !== "" &&
+						searchInp.match(regExp.cell) &&
+						storage_item_data?.cell !== searchInp
+					) {
+						console.log(storage_item_data?.cell !== searchInp);
 						storage.address({ article: item.article, cell: searchInp });
 					}
 					let searchItem = get.elements({
@@ -1692,11 +1720,17 @@ window.addEventListener("load", () => {
 							{
 								el: "div",
 								className: "item-place danger",
+<<<<<<< HEAD
 								text: `Місце: ${storage.data.addresses[item.article]?.place ??
 									"Ще не збережено"
 									} |  Cell: ${storage.data.addresses[item.article]?.cell ??
 									"Ще не збережено"
 									}`,
+=======
+								text: `Місце: ${
+									storage_item_data?.place ?? "Ще не збережено"
+								} |  Cell: ${storage_item_data?.cell ?? "Ще не збережено"}`,
+>>>>>>> 45f9becaa7b173e6d0916517766cba3b7d2f0621
 							},
 							{
 								el: "div",
@@ -1757,10 +1791,18 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "cell-capacity-desc",
+<<<<<<< HEAD
 										text: `Кількість товару в комірці ${storage.data.addresses[item.article]?.real_goods_count ||
 											0
 											} шт. з можливих ${storage.data.addresses[item.article]?.cell_capacity || 0
 											} шт.`,
+=======
+										text: `Кількість товару в комірці ${
+											storage_item_data?.real_goods_count || 0
+										} шт. з можливих ${
+											storage_item_data?.cell_capacity || 0
+										} шт.`,
+>>>>>>> 45f9becaa7b173e6d0916517766cba3b7d2f0621
 									},
 									{
 										el: "p",
@@ -1771,12 +1813,8 @@ window.addEventListener("load", () => {
 												className: "cell-capacity-bar",
 												style: {
 													width: `${get.percent({
-														main:
-															storage.data.addresses[item.article]
-																?.cell_capacity || 0,
-														num:
-															storage.data.addresses[item.article]
-																?.real_goods_count || 0,
+														main: storage_item_data?.cell_capacity || 0,
+														num: storage_item_data?.real_goods_count || 0,
 													})}%`,
 												},
 											},
@@ -1810,7 +1848,7 @@ window.addEventListener("load", () => {
 										placeholder: "Місткість комірки",
 										data: [{ article: item.article }],
 										type: "number",
-										value: storage.data.addresses[item.article]?.cell_capacity,
+										value: storage_item_data?.cell_capacity,
 										event: "input",
 										hendler: hendlers.set_cell_capacity,
 									},
@@ -3317,13 +3355,29 @@ window.addEventListener("load", () => {
 	};
 	function check_last_check() {
 		let last_check_time = storage.data.settings.last_check;
+		if (last_check_time == undefined) {
+			storage.data.settings.last_check = {
+				year: 0,
+				month: 0,
+				day: 0,
+				hours: 0,
+				minutes: 0,
+			};
+			last_check_time = storage.data.settings.last_check;
+		}
 		let current_date = get.date();
-		Object.keys(storage.data.orders).forEach((item) => {
-			console.log(storage.data.orders[item].order_date);
-			if (storage.data.orders[item].order_date.day !== current_date.day) {
-				delete storage.data.orders[item];
-			}
-		});
+		if (
+			storage.data.orders !== undefined &&
+			Object.keys(storage.data.orders).length == 0
+		) {
+			Object.keys(storage.data.orders).forEach((item) => {
+				console.log(storage.data.orders[item].order_date);
+				if (storage.data.orders[item].order_date.day !== current_date.day) {
+					delete storage.data.orders[item];
+				}
+			});
+		}
+
 		if (last_check_time) {
 			let hours_difference = current_date.hours - last_check_time.hours;
 			let minutes_difference = current_date.minutes - last_check_time.minutes;
