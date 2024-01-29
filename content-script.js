@@ -84,7 +84,7 @@ window.addEventListener("load", () => {
 			if (
 				this.data.last_goods_count &&
 				this.data.last_goods_count !==
-					this.data.addresses[article].last_goods_count
+				this.data.addresses[article].last_goods_count
 			) {
 				console.log("good scount");
 				this.data.addresses[article].last_goods_count = this.observe(
@@ -1518,17 +1518,12 @@ window.addEventListener("load", () => {
 										{
 											el: "p",
 											className: "compare-time",
-											text: `${
-												storage.data.compareArray[item].addingDate.day
-											}.${storage.data.compareArray[item].addingDate.month}.${
-												storage.data.compareArray[item].addingDate.year
-											}   ${storage.data.compareArray[item].addingDate.hours}:${
-												storage.data.compareArray[item].addingDate.minutes
-											}:${
-												storage.data.compareArray[item].addingDate.seconds
-											}| ${
-												storage.data.addresses[item]?.place ?? "Ще не Збережено"
-											}`,
+											text: `${storage.data.compareArray[item].addingDate.day
+												}.${storage.data.compareArray[item].addingDate.month}.${storage.data.compareArray[item].addingDate.year
+												}   ${storage.data.compareArray[item].addingDate.hours}:${storage.data.compareArray[item].addingDate.minutes
+												}:${storage.data.compareArray[item].addingDate.seconds
+												}| ${storage.data.addresses[item]?.place ?? "Ще не Збережено"
+												}`,
 										},
 										{
 											el: "div",
@@ -1635,15 +1630,11 @@ window.addEventListener("load", () => {
 										{
 											el: "p",
 											className: "desc date-desc",
-											text: `${storage.data.listArray[item].addingDate.day}.${
-												storage.data.listArray[item].addingDate.month
-											}.${storage.data.listArray[item].addingDate.year}  ${
-												storage.data.listArray[item].addingDate.hours
-											}:${storage.data.listArray[item].addingDate.minutes}:${
-												storage.data.listArray[item].addingDate.seconds
-											}|${
-												storage.data.addresses[item]?.place ?? "Ще не Збережено"
-											} `,
+											text: `${storage.data.listArray[item].addingDate.day}.${storage.data.listArray[item].addingDate.month
+												}.${storage.data.listArray[item].addingDate.year}  ${storage.data.listArray[item].addingDate.hours
+												}:${storage.data.listArray[item].addingDate.minutes}:${storage.data.listArray[item].addingDate.seconds
+												}|${storage.data.addresses[item]?.place ?? "Ще не Збережено"
+												} `,
 										},
 										{
 											el: "p",
@@ -1702,6 +1693,7 @@ window.addEventListener("load", () => {
 						console.log(storage_item_data?.cell !== searchInp);
 						storage.address({ article: item.article, cell: searchInp });
 					}
+					storage_item_data.real_goods_count = item.baseCount.baseCount;
 					let searchItem = get.elements({
 						el: "div",
 						className: "item-wraper",
@@ -1729,9 +1721,8 @@ window.addEventListener("load", () => {
 							{
 								el: "div",
 								className: "item-place danger",
-								text: `Місце: ${
-									storage_item_data?.place ?? "Ще не збережено"
-								} |  Cell: ${storage_item_data?.cell ?? "Ще не збережено"}`,
+								text: `Місце: ${storage_item_data?.place ?? "Ще не збережено"
+									} |  Cell: ${storage_item_data?.cell ?? "Ще не збережено"}`,
 							},
 							{
 								el: "div",
@@ -1792,11 +1783,9 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "cell-capacity-desc",
-										text: `Кількість товару в комірці ${
-											storage_item_data?.real_goods_count || 0
-										} шт. з можливих ${
-											storage_item_data?.cell_capacity || 0
-										} шт.`,
+										text: `Кількість товару в комірці ${storage_item_data?.real_goods_count || 0
+											} шт. з можливих ${storage_item_data?.cell_capacity || 0
+											} шт.`,
 									},
 									{
 										el: "p",
@@ -2432,16 +2421,14 @@ window.addEventListener("load", () => {
 						{
 							el: "div",
 							className: "history-item saved-articles",
-							text: `Збережено Артикулів: ${
-								Object.keys(storage.data.addresses).length
-							}`,
+							text: `Збережено Артикулів: ${Object.keys(storage.data.addresses).length
+								}`,
 						},
 						{
 							el: "div",
 							className: "history-item elaboration",
-							text: `Відбито Уточнень: ${
-								Object.keys(storage.data.elaborations).length
-							}`,
+							text: `Відбито Уточнень: ${Object.keys(storage.data.elaborations).length
+								}`,
 						},
 						{
 							el: "div",
@@ -2938,7 +2925,7 @@ window.addEventListener("load", () => {
 							let images = Array.from(
 								search
 									.querySelectorAll(".detImg")
-									[index].querySelectorAll("img")
+								[index].querySelectorAll("img")
 							);
 
 							let imgSrc = [];
