@@ -1693,7 +1693,7 @@ window.addEventListener("load", () => {
 						console.log(storage_item_data?.cell !== searchInp);
 						storage.address({ article: item.article, cell: searchInp });
 					}
-					storage_item_data.real_goods_count = item.baseCount.baseCount;
+					storage_item_data.last_goods_count = item.baseCount.baseCount;
 					let searchItem = get.elements({
 						el: "div",
 						className: "item-wraper",
