@@ -3179,7 +3179,6 @@ window.addEventListener("load", () => {
 								Number(storage_article.real_goods_count) - Number(quality);
 						}
 					});
-					storage.data.orders[order_id].is_new = false;
 					await new Promise((resolve) => setTimeout(resolve, 250));
 				}
 			}
