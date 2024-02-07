@@ -45,8 +45,7 @@ window.addEventListener("load", () => {
 			}
 		},
 		address: function (data) {
-			console.time("adres");
-			console.log(data);
+			let storage = this.data.addresses;
 			let article = data.article;
 			if (!article) {
 				console.error(
@@ -54,17 +53,22 @@ window.addEventListener("load", () => {
 				);
 				return;
 			}
-			if (!this.data.addresses[article]) {
-				this.data.addresses[article] = this.observe({});
+			if (!storage[article]) {
+				storage[article] = this.observe({});
 			}
 
 			if (data.place && data.place !== this.data.addresses[article].place) {
-				console.log("place");
-				this.data.addresses[article].place = this.observe(data.place);
+				if (storage[article].place == undefined) {
+					storage[article].place = this.observe(data.place);
+				}
+				if (storage[article].place.includes(data.place)) {
+					return;
+				}
+				this.data.addresses[article].place += this.observe(data.place);
 				this.changed = true;
 				this.save();
 			}
-			if (data.cell && data.cell !== this.data.addresses[article].cell) {
+			if (data.cell && data.cell !== storage[article].cell) {
 				console.log("cell");
 				this.data.addresses[article].cell = this.observe(data.cell);
 				this.changed = true;
@@ -2761,7 +2765,7 @@ window.addEventListener("load", () => {
 				}
 
 				if (td.length > 5) {
-					if (td[4].querySelector("input")) {
+					if (td[4].querySelector("input[type='text']")) {
 						quality = td[4].querySelector("input[type='text']").value;
 					} else {
 						quality = td[4].textContent;
@@ -3074,8 +3078,8 @@ window.addEventListener("load", () => {
 				})
 			);
 
-			let int = setInterval(() => {
-				let key = Object.keys(places)[count];
+
+			Object.keys(places).forEach((key) => {
 				places[key].forEach((item) => {
 					storage.address({
 						article: item.trim(),
@@ -3086,11 +3090,13 @@ window.addEventListener("load", () => {
 				if (count === Object.keys(places).length - 1) {
 					count = 0;
 					alert("Завершено");
-					clearInterval(int);
+
 				} else {
 					count++;
 				}
-			}, 2);
+			})
+
+
 
 			console.log(places);
 			return areas;
@@ -3111,6 +3117,10 @@ window.addEventListener("load", () => {
 					},
 				],
 			});
+			if (Object.keys(storage.data.addresses).length == 0) {
+				alert("Адреса товару ще не збережені!!!");
+				return
+			}
 			contentWraper.appendChild(preloader_indicator);
 			let orders = await this.fetch({
 				url: url.orders,
