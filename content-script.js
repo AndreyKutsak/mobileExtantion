@@ -36,7 +36,6 @@ window.addEventListener("load", () => {
 			console.log("saved");
 		},
 		address: function (data) {
-			console.log(data);
 			let article = data.article;
 			let storage = this.data.addresses;
 			if (!article) {
@@ -53,6 +52,14 @@ window.addEventListener("load", () => {
 				if (storage[article].place == undefined) {
 					storage[article].place = data.place;
 					return;
+				}
+
+				storage[article] = this.observe({});
+			}
+
+			if (data.place && data.place !== this.data.addresses[article].place) {
+				if (storage[article].place == undefined) {
+					storage[article].place = this.observe(data.place);
 				}
 				if (storage[article].place.includes(data.place)) {
 					return;
@@ -2769,7 +2776,7 @@ window.addEventListener("load", () => {
 				}
 
 				if (td.length > 5) {
-					if (td[4].querySelector("input")) {
+					if (td[4].querySelector("input[type='text']")) {
 						quality = td[4].querySelector("input[type='text']").value;
 					} else {
 						quality = td[4].textContent;
@@ -3084,7 +3091,6 @@ window.addEventListener("load", () => {
 			);
 
 			Object.keys(places).forEach((key) => {
-				console.log(key);
 				places[key].forEach((item) => {
 					storage.address({
 						article: item.trim(),
@@ -3094,11 +3100,9 @@ window.addEventListener("load", () => {
 				if (count === Object.keys(places).length - 1) {
 					count = 0;
 					alert("Завершено");
-					return;
 				} else {
 					count++;
 				}
-				console.log(count);
 			});
 
 			console.timeEnd("stilages");
@@ -3120,6 +3124,10 @@ window.addEventListener("load", () => {
 					},
 				],
 			});
+			if (Object.keys(storage.data.addresses).length == 0) {
+				alert("Адреса товару ще не збережені!!!");
+				return;
+			}
 			contentWraper.appendChild(preloader_indicator);
 			let orders = await this.fetch({
 				url: url.orders,
