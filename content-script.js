@@ -15,96 +15,77 @@ window.addEventListener("load", () => {
 
 	const storage = {
 		data: {},
-		changed: false,
 		init: function () {
 			const storedData = JSON.parse(localStorage.getItem("storage"));
-			this.data =
-				this.observe(storedData) ||
-				this.observe({
-					listArray: {},
-					compareArray: {},
-					questions: [],
-					elaborations: {},
-					addresses: {},
-					orders: {},
-					history: [],
-					production: [],
-					settings: {},
-				});
-			console.log(this.data, storedData);
-			if (!storedData) {
-				this.changed = true;
-				this.save();
-			}
+			this.data = storedData || {
+				listArray: {},
+				compareArray: {},
+				questions: [],
+				elaborations: {},
+				addresses: {},
+				orders: {},
+				history: [],
+				production: [],
+				settings: {},
+			};
+
+			this.data = this.observe(this.data);
 		},
 		save: function () {
-			if (this.changed) {
-				console.log("Сохранено");
-				localStorage.setItem("storage", JSON.stringify(this.data));
-				this.changed = false;
-			}
+			localStorage.setItem("storage", JSON.stringify(this.data));
+			console.log("saved");
 		},
 		address: function (data) {
-			console.time("adres");
 			console.log(data);
 			let article = data.article;
+			let storage = this.data.addresses;
 			if (!article) {
 				console.error(
 					"Артикул є обов'язковим для отримання чи збереження даних"
 				);
 				return;
 			}
-			if (!this.data.addresses[article]) {
-				this.data.addresses[article] = this.observe({});
+			if (!storage[article]) {
+				storage[article] = {};
 			}
 
-			if (data.place && data.place !== this.data.addresses[article].place) {
-				console.log("place");
-				this.data.addresses[article].place = this.observe(data.place);
-				this.changed = true;
-				this.save();
+			if (data.place && data.place !== storage[article].place) {
+				if (storage[article].place == undefined) {
+					storage[article].place = data.place;
+					return;
+				}
+				if (storage[article].place.includes(data.place)) {
+					return;
+				}
+
+				storage[article].place += "|" + data.place;
 			}
-			if (data.cell && data.cell !== this.data.addresses[article].cell) {
+			if (data.cell && data.cell !== storage[article].cell) {
 				console.log("cell");
-				this.data.addresses[article].cell = this.observe(data.cell);
-				this.changed = true;
-				this.save();
+				storage[article].cell = data.cell;
 			}
 			if (
 				data.cell_capacity &&
-				data.cell_capacity !== this.data.addresses[article].cell_capacity
+				data.cell_capacity !== storage[article].cell_capacity
 			) {
 				console.log("capacity");
-				this.data.addresses[article].cell_capacity = this.observe(
-					this.data.cell_capacity
-				);
-				this.changed = true;
-				this.save();
+				storage[article].cell_capacity = data.cell_capacity;
 			}
 			if (
 				this.data.last_goods_count &&
-				this.data.last_goods_count !==
-				this.data.addresses[article].last_goods_count
+				this.data.last_goods_count !== storage[article].last_goods_count
 			) {
 				console.log("good scount");
-				this.data.addresses[article].last_goods_count = this.observe(
-					this.data.last_goods_count
-				);
-				this.changed = true;
-				this.save();
+				storage[article].last_goods_count = this.data.last_goods_count;
 			}
 			if (
 				this.data.is_ignored &&
-				this.data.is_ignored !== data.addresses[article].is_ignored
+				this.data.is_ignored !== storage[article].is_ignored
 			) {
 				console.log("is ignored");
-				this.data.addresses[article].is_ignored = this.observe(
-					this.data.is_ignored
-				);
-				this.changed = true;
-				this.save();
+				storage[article].is_ignored = this.data.is_ignored;
 			}
-			console.timeEnd("adres");
+
 			return this.data.addresses[article];
 		},
 		observe: function (obj) {
@@ -113,13 +94,15 @@ window.addEventListener("load", () => {
 			}
 
 			for (const key in obj) {
-				obj[key] = this.observe(obj[key]);
+				if (typeof obj[key] === "object") {
+					obj[key] = this.observe(obj[key]);
+				}
 			}
 
 			return new Proxy(obj, {
 				set: (target, key, value) => {
+					console.log("proxy");
 					target[key] = value;
-					this.changed = true;
 					this.save();
 					return true;
 				},
@@ -1518,12 +1501,17 @@ window.addEventListener("load", () => {
 										{
 											el: "p",
 											className: "compare-time",
-											text: `${storage.data.compareArray[item].addingDate.day
-												}.${storage.data.compareArray[item].addingDate.month}.${storage.data.compareArray[item].addingDate.year
-												}   ${storage.data.compareArray[item].addingDate.hours}:${storage.data.compareArray[item].addingDate.minutes
-												}:${storage.data.compareArray[item].addingDate.seconds
-												}| ${storage.data.addresses[item]?.place ?? "Ще не Збережено"
-												}`,
+											text: `${
+												storage.data.compareArray[item].addingDate.day
+											}.${storage.data.compareArray[item].addingDate.month}.${
+												storage.data.compareArray[item].addingDate.year
+											}   ${storage.data.compareArray[item].addingDate.hours}:${
+												storage.data.compareArray[item].addingDate.minutes
+											}:${
+												storage.data.compareArray[item].addingDate.seconds
+											}| ${
+												storage.data.addresses[item]?.place ?? "Ще не Збережено"
+											}`,
 										},
 										{
 											el: "div",
@@ -1630,11 +1618,15 @@ window.addEventListener("load", () => {
 										{
 											el: "p",
 											className: "desc date-desc",
-											text: `${storage.data.listArray[item].addingDate.day}.${storage.data.listArray[item].addingDate.month
-												}.${storage.data.listArray[item].addingDate.year}  ${storage.data.listArray[item].addingDate.hours
-												}:${storage.data.listArray[item].addingDate.minutes}:${storage.data.listArray[item].addingDate.seconds
-												}|${storage.data.addresses[item]?.place ?? "Ще не Збережено"
-												} `,
+											text: `${storage.data.listArray[item].addingDate.day}.${
+												storage.data.listArray[item].addingDate.month
+											}.${storage.data.listArray[item].addingDate.year}  ${
+												storage.data.listArray[item].addingDate.hours
+											}:${storage.data.listArray[item].addingDate.minutes}:${
+												storage.data.listArray[item].addingDate.seconds
+											}|${
+												storage.data.addresses[item]?.place ?? "Ще не Збережено"
+											} `,
 										},
 										{
 											el: "p",
@@ -1674,9 +1666,9 @@ window.addEventListener("load", () => {
 			contentWraper.innerHTML = "";
 			if (data.length > 0) {
 				let searchInp = document.querySelector(".search-inp").value;
+				let stored_data_string = JSON.stringify(storage.data);
+				let stored_data = JSON.parse(stored_data_string);
 				data.forEach((item) => {
-					let storage_item_data = storage.data.addresses[item.article];
-					console.log(storage_item_data);
 					let reserve_count_class = "",
 						base_count_class = "";
 					if (item.baseCount.baseCount < 1) {
@@ -1685,15 +1677,18 @@ window.addEventListener("load", () => {
 					if (item.baseCount.orderCount > 0) {
 						reserve_count_class = "danger";
 					}
+
 					if (
 						searchInp !== "" &&
 						searchInp.match(regExp.cell) &&
-						storage_item_data?.cell !== searchInp
+						stored_data.addresses[item.article]?.cell !== searchInp
 					) {
-						console.log(storage_item_data?.cell !== searchInp);
+						stored_data.addresses[item.article] = { cell: searchInp };
 						storage.address({ article: item.article, cell: searchInp });
 					}
-					storage_item_data.last_goods_count = item.baseCount.baseCount;
+					console.log(stored_data.addresses[item.article]);
+					stored_data.addresses[item.article].last_goods_count =
+						item.baseCount.baseCount;
 					let searchItem = get.elements({
 						el: "div",
 						className: "item-wraper",
@@ -1721,8 +1716,12 @@ window.addEventListener("load", () => {
 							{
 								el: "div",
 								className: "item-place danger",
-								text: `Місце: ${storage_item_data?.place ?? "Ще не збережено"
-									} |  Cell: ${storage_item_data?.cell ?? "Ще не збережено"}`,
+								text: `Місце: ${
+									stored_data.addresses[item.article]?.place ??
+									"Ще не збережено"
+								} |  Cell: ${
+									stored_data.addresses[item.article]?.cell ?? "Ще не збережено"
+								}`,
 							},
 							{
 								el: "div",
@@ -1783,9 +1782,11 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "cell-capacity-desc",
-										text: `Кількість товару в комірці ${storage_item_data?.real_goods_count || 0
-											} шт. з можливих ${storage_item_data?.cell_capacity || 0
-											} шт.`,
+										text: `Кількість товару в комірці ${
+											stored_data.addresses[item.article]?.real_goods_count || 0
+										} шт. з можливих ${
+											stored_data.addresses[item.article]?.cell_capacity || 0
+										} шт.`,
 									},
 									{
 										el: "p",
@@ -1796,8 +1797,12 @@ window.addEventListener("load", () => {
 												className: "cell-capacity-bar",
 												style: {
 													width: `${get.percent({
-														main: storage_item_data?.cell_capacity || 0,
-														num: storage_item_data?.real_goods_count || 0,
+														main:
+															stored_data.addresses[item.article]
+																?.cell_capacity || 0,
+														num:
+															stored_data.addresses[item.article]
+																?.real_goods_count || 0,
 													})}%`,
 												},
 											},
@@ -1831,7 +1836,7 @@ window.addEventListener("load", () => {
 										placeholder: "Місткість комірки",
 										data: [{ article: item.article }],
 										type: "number",
-										value: storage_item_data?.cell_capacity,
+										value: stored_data.addresses[item.article]?.cell_capacity,
 										event: "input",
 										hendler: hendlers.set_cell_capacity,
 									},
@@ -1970,6 +1975,7 @@ window.addEventListener("load", () => {
 					contentWraper.classList.add("search-result-wraper");
 					contentWraper.appendChild(searchItem);
 				});
+				storage.data.addresses = stored_data;
 				return;
 			}
 			generate.message("Нічого не знайдено!!");
@@ -2421,14 +2427,16 @@ window.addEventListener("load", () => {
 						{
 							el: "div",
 							className: "history-item saved-articles",
-							text: `Збережено Артикулів: ${Object.keys(storage.data.addresses).length
-								}`,
+							text: `Збережено Артикулів: ${
+								Object.keys(storage.data.addresses).length
+							}`,
 						},
 						{
 							el: "div",
 							className: "history-item elaboration",
-							text: `Відбито Уточнень: ${Object.keys(storage.data.elaborations).length
-								}`,
+							text: `Відбито Уточнень: ${
+								Object.keys(storage.data.elaborations).length
+							}`,
 						},
 						{
 							el: "div",
@@ -2925,7 +2933,7 @@ window.addEventListener("load", () => {
 							let images = Array.from(
 								search
 									.querySelectorAll(".detImg")
-								[index].querySelectorAll("img")
+									[index].querySelectorAll("img")
 							);
 
 							let imgSrc = [];
@@ -2990,6 +2998,7 @@ window.addEventListener("load", () => {
 			return this.storage;
 		},
 		get_stilages: async function () {
+			console.time("stilages");
 			let places = {};
 			let count = 0;
 			let areas = {};
@@ -3074,25 +3083,25 @@ window.addEventListener("load", () => {
 				})
 			);
 
-			let int = setInterval(() => {
-				let key = Object.keys(places)[count];
+			Object.keys(places).forEach((key) => {
+				console.log(key);
 				places[key].forEach((item) => {
 					storage.address({
 						article: item.trim(),
 						place: Object.keys(places)[count],
 					});
 				});
-
 				if (count === Object.keys(places).length - 1) {
 					count = 0;
 					alert("Завершено");
-					clearInterval(int);
+					return;
 				} else {
 					count++;
 				}
-			}, 2);
+				console.log(count);
+			});
 
-			console.log(places);
+			console.timeEnd("stilages");
 			return areas;
 		},
 		get_goods_count: async function () {
