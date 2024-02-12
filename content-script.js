@@ -1,6 +1,6 @@
 window.addEventListener("load", () => {
 	let head = document.querySelector("head");
-	head.innerHTML = ` <meta charset="UTF-8">
+	head.innerHTML = `<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мобільна База Замовлень</title>`;
 	let loginInp = document.querySelector("#loginB1");
@@ -15,29 +15,38 @@ window.addEventListener("load", () => {
 
 	const storage = {
 		data: {},
+		changed: false,
 		init: function () {
 			const storedData = JSON.parse(localStorage.getItem("storage"));
-			this.data = storedData || {
-				listArray: {},
-				compareArray: {},
-				questions: [],
-				elaborations: {},
-				addresses: {},
-				orders: {},
-				history: [],
-				production: [],
-				settings: {},
-			};
-
-			this.data = this.observe(this.data);
+			this.data =
+				this.observe(storedData) ||
+				this.observe({
+					listArray: {},
+					compareArray: {},
+					questions: [],
+					elaborations: {},
+					addresses: {},
+					orders: {},
+					history: [],
+					production: [],
+					settings: {},
+				});
+			console.log(this.data, storedData);
+			if (!storedData) {
+				this.changed = true;
+				this.save();
+			}
 		},
 		save: function () {
-			localStorage.setItem("storage", JSON.stringify(this.data));
-			console.log("saved");
+			if (this.changed) {
+				console.log("Сохранено");
+				localStorage.setItem("storage", JSON.stringify(this.data));
+				this.changed = false;
+			}
 		},
 		address: function (data) {
-			let article = data.article;
 			let storage = this.data.addresses;
+			let article = data.article;
 			if (!article) {
 				console.error(
 					"Артикул є обов'язковим для отримання чи збереження даних"
@@ -45,15 +54,6 @@ window.addEventListener("load", () => {
 				return;
 			}
 			if (!storage[article]) {
-				storage[article] = {};
-			}
-
-			if (data.place && data.place !== storage[article].place) {
-				if (storage[article].place == undefined) {
-					storage[article].place = data.place;
-					return;
-				}
-
 				storage[article] = this.observe({});
 			}
 
@@ -64,35 +64,51 @@ window.addEventListener("load", () => {
 				if (storage[article].place.includes(data.place)) {
 					return;
 				}
-
-				storage[article].place += "|" + data.place;
+				this.data.addresses[article].place += this.observe(data.place);
+				this.changed = true;
+				this.save();
 			}
 			if (data.cell && data.cell !== storage[article].cell) {
 				console.log("cell");
-				storage[article].cell = data.cell;
+				this.data.addresses[article].cell = this.observe(data.cell);
+				this.changed = true;
+				this.save();
 			}
 			if (
 				data.cell_capacity &&
-				data.cell_capacity !== storage[article].cell_capacity
+				data.cell_capacity !== this.data.addresses[article].cell_capacity
 			) {
 				console.log("capacity");
-				storage[article].cell_capacity = data.cell_capacity;
+				this.data.addresses[article].cell_capacity = this.observe(
+					this.data.cell_capacity
+				);
+				this.changed = true;
+				this.save();
 			}
 			if (
 				this.data.last_goods_count &&
-				this.data.last_goods_count !== storage[article].last_goods_count
+				this.data.last_goods_count !==
+					this.data.addresses[article].last_goods_count
 			) {
 				console.log("good scount");
-				storage[article].last_goods_count = this.data.last_goods_count;
+				this.data.addresses[article].last_goods_count = this.observe(
+					this.data.last_goods_count
+				);
+				this.changed = true;
+				this.save();
 			}
 			if (
 				this.data.is_ignored &&
-				this.data.is_ignored !== storage[article].is_ignored
+				this.data.is_ignored !== data.addresses[article].is_ignored
 			) {
 				console.log("is ignored");
-				storage[article].is_ignored = this.data.is_ignored;
+				this.data.addresses[article].is_ignored = this.observe(
+					this.data.is_ignored
+				);
+				this.changed = true;
+				this.save();
 			}
-
+			console.timeEnd("adres");
 			return this.data.addresses[article];
 		},
 		observe: function (obj) {
@@ -101,15 +117,13 @@ window.addEventListener("load", () => {
 			}
 
 			for (const key in obj) {
-				if (typeof obj[key] === "object") {
-					obj[key] = this.observe(obj[key]);
-				}
+				obj[key] = this.observe(obj[key]);
 			}
 
 			return new Proxy(obj, {
 				set: (target, key, value) => {
-					console.log("proxy");
 					target[key] = value;
+					this.changed = true;
 					this.save();
 					return true;
 				},
@@ -343,7 +357,7 @@ window.addEventListener("load", () => {
 
 			if (data.event && data.hendler && typeof data.hendler === "function") {
 				element.addEventListener(data.event, (event) => {
-					data.hendler.call(element, event); // Виклик хендлера в контексті створеного DOM-елемента
+					data.hendler.call(element, event);
 				});
 			}
 			if (data.children) {
@@ -911,8 +925,9 @@ window.addEventListener("load", () => {
 			return element;
 		},
 		preloader: function (data) {
+			let element;
 			if (data.status == "start") {
-				let element = get.elements({
+				element = get.elements({
 					el: "div",
 					className: "preloader-wraper",
 					children: [
@@ -921,10 +936,24 @@ window.addEventListener("load", () => {
 							className: "preloader-spiner",
 							src: get.url(src.ico.spiner),
 						},
+						{
+							el: "p",
+							className: "preloader-text tasks-count",
+						},
 					],
 				});
 				contentWraper.innerHTML = "";
 				contentWraper.appendChild(element);
+			} else if (data.status == "update_status") {
+				let status_desc = document.querySelector(".preloader-text");
+				status_desc.textContent = data.desc;
+				status_desc.appendChild(
+					get.elements({
+						el: "span",
+						className: "task-proces-bar",
+						style: { width: `${data.percent}%` },
+					})
+				);
 			} else {
 				let element = contentWraper.querySelector(".preloader-wraper");
 				if (element) {
@@ -1673,9 +1702,9 @@ window.addEventListener("load", () => {
 			contentWraper.innerHTML = "";
 			if (data.length > 0) {
 				let searchInp = document.querySelector(".search-inp").value;
-				let stored_data_string = JSON.stringify(storage.data);
-				let stored_data = JSON.parse(stored_data_string);
 				data.forEach((item) => {
+					let storage_item_data = storage.data.addresses[item.article];
+					console.log(storage_item_data);
 					let reserve_count_class = "",
 						base_count_class = "";
 					if (item.baseCount.baseCount < 1) {
@@ -1684,18 +1713,16 @@ window.addEventListener("load", () => {
 					if (item.baseCount.orderCount > 0) {
 						reserve_count_class = "danger";
 					}
-
 					if (
 						searchInp !== "" &&
 						searchInp.match(regExp.cell) &&
-						stored_data.addresses[item.article]?.cell !== searchInp
+						storage_item_data?.cell !== searchInp
 					) {
-						stored_data.addresses[item.article] = { cell: searchInp };
+						console.log(storage_item_data?.cell !== searchInp);
 						storage.address({ article: item.article, cell: searchInp });
 					}
-					console.log(stored_data.addresses[item.article]);
-					stored_data.addresses[item.article].last_goods_count =
-						item.baseCount.baseCount;
+					console.log(storage_item_data.last_goods_count);
+					storage_item_data.last_goods_count = item.baseCount.baseCount;
 					let searchItem = get.elements({
 						el: "div",
 						className: "item-wraper",
@@ -1704,7 +1731,6 @@ window.addEventListener("load", () => {
 							{
 								el: "div",
 								className: "item-header",
-
 								children: [
 									{
 										el: "span",
@@ -1724,11 +1750,8 @@ window.addEventListener("load", () => {
 								el: "div",
 								className: "item-place danger",
 								text: `Місце: ${
-									stored_data.addresses[item.article]?.place ??
-									"Ще не збережено"
-								} |  Cell: ${
-									stored_data.addresses[item.article]?.cell ?? "Ще не збережено"
-								}`,
+									storage_item_data?.place ?? "Ще не збережено"
+								} |  Cell: ${storage_item_data?.cell ?? "Ще не збережено"}`,
 							},
 							{
 								el: "div",
@@ -1790,9 +1813,9 @@ window.addEventListener("load", () => {
 										el: "p",
 										className: "cell-capacity-desc",
 										text: `Кількість товару в комірці ${
-											stored_data.addresses[item.article]?.real_goods_count || 0
+											storage_item_data?.real_goods_count || 0
 										} шт. з можливих ${
-											stored_data.addresses[item.article]?.cell_capacity || 0
+											storage_item_data?.cell_capacity || 0
 										} шт.`,
 									},
 									{
@@ -1804,12 +1827,8 @@ window.addEventListener("load", () => {
 												className: "cell-capacity-bar",
 												style: {
 													width: `${get.percent({
-														main:
-															stored_data.addresses[item.article]
-																?.cell_capacity || 0,
-														num:
-															stored_data.addresses[item.article]
-																?.real_goods_count || 0,
+														main: storage_item_data?.cell_capacity || 0,
+														num: storage_item_data?.real_goods_count || 0,
 													})}%`,
 												},
 											},
@@ -1843,7 +1862,7 @@ window.addEventListener("load", () => {
 										placeholder: "Місткість комірки",
 										data: [{ article: item.article }],
 										type: "number",
-										value: stored_data.addresses[item.article]?.cell_capacity,
+										value: storage_item_data?.cell_capacity,
 										event: "input",
 										hendler: hendlers.set_cell_capacity,
 									},
@@ -1982,7 +2001,6 @@ window.addEventListener("load", () => {
 					contentWraper.classList.add("search-result-wraper");
 					contentWraper.appendChild(searchItem);
 				});
-				storage.data.addresses = stored_data;
 				return;
 			}
 			generate.message("Нічого не знайдено!!");
@@ -2621,6 +2639,11 @@ window.addEventListener("load", () => {
 				}
 			} catch (error) {
 				console.error("Fetch error:", error);
+				storage.data.settings.error = {
+					err_tyte: "load eroor",
+					err_desc: error.message,
+				};
+				generate.preloader({ status: "end" });
 				return [];
 			}
 		},
@@ -2902,6 +2925,8 @@ window.addEventListener("load", () => {
 			});
 
 			const rows = Array.from(elaborations.querySelectorAll("table tbody tr"));
+			let elaboarations_count = rows.length - 1;
+			let loaded_elaborations_count = 0;
 			let sortByPlace = (a, b) => {
 				let placeA = a.place.toUpperCase();
 				let placeB = b.place.toUpperCase();
@@ -2936,6 +2961,7 @@ window.addEventListener("load", () => {
 							get.article(item.textContent.trim()).article ===
 							elaborationData.search
 						) {
+							loaded_elaborations_count++;
 							let countData = search.querySelectorAll(".detPr")[index];
 							let images = Array.from(
 								search
@@ -2958,6 +2984,18 @@ window.addEventListener("load", () => {
 							elaborationData.count = get.goodsCount(
 								countData.textContent.trim()
 							);
+							generate.preloader({
+								status: "update_status",
+								desc:
+									"Завантажено: " +
+									loaded_elaborations_count +
+									"/" +
+									elaboarations_count,
+								percent: get.percent({
+									num: loaded_elaborations_count,
+									main: elaboarations_count,
+								}),
+							});
 						}
 					});
 					return elaborationData;
@@ -2997,6 +3035,13 @@ window.addEventListener("load", () => {
 						this.storage.push(data);
 					} catch (error) {
 						console.error("Помилка обробки рядка:", error.message);
+						storage.data.settings.error = {
+							err_tyte: "load eroor",
+							err_desc: error.message,
+						};
+						generate.preloader({
+							status: "end",
+						});
 
 						return;
 					}
@@ -3005,7 +3050,6 @@ window.addEventListener("load", () => {
 			return this.storage;
 		},
 		get_stilages: async function () {
-			console.time("stilages");
 			let places = {};
 			let count = 0;
 			let areas = {};
@@ -3097,6 +3141,7 @@ window.addEventListener("load", () => {
 						place: Object.keys(places)[count],
 					});
 				});
+
 				if (count === Object.keys(places).length - 1) {
 					count = 0;
 					alert("Завершено");
@@ -3105,7 +3150,7 @@ window.addEventListener("load", () => {
 				}
 			});
 
-			console.timeEnd("stilages");
+			console.log(places);
 			return areas;
 		},
 		get_goods_count: async function () {
@@ -3124,7 +3169,8 @@ window.addEventListener("load", () => {
 					},
 				],
 			});
-			if (Object.keys(storage.data.addresses).length == 0) {
+			let stored_data = storage.data;
+			if (Object.keys(stored_data.addresses).length == 0) {
 				alert("Адреса товару ще не збережені!!!");
 				return;
 			}
@@ -3148,8 +3194,8 @@ window.addEventListener("load", () => {
 					td[4].textContent !== "******"
 				) {
 					let order_id = td[0].textContent.trim();
-					if (!storage.data.orders[order_id]) {
-						storage.data.orders[order_id] = {
+					if (!stored_data.orders[order_id]) {
+						stored_data.orders[order_id] = {
 							is_new: true,
 							order_date: get.date(),
 						};
@@ -3158,8 +3204,8 @@ window.addEventListener("load", () => {
 				}
 			});
 
-			for (const order_id of Object.keys(storage.data.orders)) {
-				if (storage.data.orders[order_id].is_new) {
+			for (const order_id of Object.keys(stored_data.orders)) {
+				if (stored_data.orders[order_id].is_new) {
 					let response = await this.order({ id: order_id });
 					console.log(response);
 					response.forEach((item) => {
@@ -3167,7 +3213,7 @@ window.addEventListener("load", () => {
 							return;
 						}
 						let article = item.articleAndPlace.article;
-						let storage_article = storage.data.addresses[article];
+						let storage_article = stored_data.addresses[article];
 						let quality = item.quality.match(regExp.num)[0];
 
 						if (
@@ -3178,11 +3224,13 @@ window.addEventListener("load", () => {
 							return;
 						}
 						storage_article.last_goods_count = item.base_quality;
+
 						if (storage_article.real_goods_count) {
 							storage_article.real_goods_count =
 								Number(storage_article.real_goods_count) - Number(quality);
 						}
 					});
+					stored_data.orders[order_id].is_new = false;
 					await new Promise((resolve) => setTimeout(resolve, 250));
 				}
 			}
