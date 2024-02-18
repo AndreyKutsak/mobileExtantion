@@ -16,7 +16,7 @@ window.addEventListener("load", () => {
 
 	const storage = {
 		data: {},
-		changed: false,
+
 		init: function () {
 			const storedData = JSON.parse(localStorage.getItem("storage"));
 			this.data = storedData || {
@@ -31,28 +31,21 @@ window.addEventListener("load", () => {
 				settings: {},
 				id: {},
 			};
-			console.log(this.data, storedData);
-			if (!storedData) {
-				this.changed = true;
-				this.save();
-			}
 		},
 		save: function () {
-			if (this.changed) {
-				console.log("Сохранено");
-				localStorage.setItem("storage", JSON.stringify(this.data));
-				this.changed = false;
-			}
+			console.log("Сохранено");
+			localStorage.setItem("storage", JSON.stringify(this.data));
 		},
 		set_id: function (data) {
-			console.log(data);
 			let storage = this.data;
+			if (storage.id == undefined) {
+				storage.id = {};
+			}
 			if (storage.id[data.id]) {
 				return;
 			}
 			if (storage.id[data.id] == undefined) {
 				storage.id[data.id] = data.article;
-				this.changed = true;
 				this.save();
 			}
 		},
@@ -67,6 +60,7 @@ window.addEventListener("load", () => {
 			}
 			if (!storage[article]) {
 				storage[article] = {};
+				this.save();
 			}
 
 			if (data.place && data.place !== this.data.addresses[article].place) {
@@ -77,13 +71,13 @@ window.addEventListener("load", () => {
 					return;
 				}
 				this.data.addresses[article].place += data.place;
-				this.changed = true;
+
 				this.save();
 			}
 			if (data.cell && data.cell !== storage[article].cell) {
 				console.log("cell");
 				this.data.addresses[article].cell = data.cell;
-				this.changed = true;
+
 				this.save();
 			}
 			if (
@@ -93,19 +87,17 @@ window.addEventListener("load", () => {
 				console.log("capacity");
 				this.data.addresses[article].cell_capacity = this.data.cell_capacity;
 
-				this.changed = true;
 				this.save();
 			}
 			if (
 				this.data.last_goods_count &&
 				this.data.last_goods_count !==
-					this.data.addresses[article].last_goods_count
+				this.data.addresses[article].last_goods_count
 			) {
 				console.log("good scount");
 				this.data.addresses[article].last_goods_count =
 					this.data.last_goods_count;
 
-				this.changed = true;
 				this.save();
 			}
 			if (
@@ -115,7 +107,6 @@ window.addEventListener("load", () => {
 				console.log("is ignored");
 				this.data.addresses[article].is_ignored = this.data.is_ignored;
 
-				this.changed = true;
 				this.save();
 			}
 			console.timeEnd("adres");
@@ -800,6 +791,7 @@ window.addEventListener("load", () => {
 			if (article) {
 				let capacity = this.value;
 				storage.data.addresses[article].cell_capacity = capacity;
+				storage.save();
 			}
 		},
 		ignore_article: function () {
@@ -808,6 +800,7 @@ window.addEventListener("load", () => {
 				storage.data.addresses[article].is_ignored = true;
 			} else {
 				storage.data.addresses[article] = false;
+				storage.save();
 			}
 		},
 		fill_cell: function () {
@@ -820,9 +813,11 @@ window.addEventListener("load", () => {
 				) {
 					storage.data.addresses[article].real_goods_count =
 						storage.data.addresses[article].last_goods_count;
+					storage.save();
 				} else {
 					storage.data.addresses[article].real_goods_count =
 						storage.data.addresses[article].cell_capacity;
+					storage.save();
 				}
 			}
 		},
@@ -858,12 +853,13 @@ window.addEventListener("load", () => {
 		show_delivery_item: function () {
 			let el = this;
 			let item_id = this.dataset.delivery_id;
-			let footer = Array.from(document.querySelectorAll(".item-footer"));
+			let footers = Array.from(document.querySelectorAll(".item-footer"));
+			let item_footer = el.querySelector(".item-footer");
 
-			footer.forEach((element) => {
+			footers.forEach((element) => {
 				element.innerHTML = "";
 			});
-			el.appendChild(
+			item_footer.appendChild(
 				get.elements({
 					el: "div",
 					className: "item-preloader",
@@ -894,6 +890,45 @@ window.addEventListener("load", () => {
 					console.log(err);
 				});
 		},
+		get_id: async function () {
+			let store = storage.data.addresses;
+			let cell = {};
+			let cell_count = 0;
+
+
+			for (const item of Object.values(store)) {
+				if (item.cell !== undefined && cell[item.cell] === undefined) {
+					cell[item.cell] = { is_checked: false };
+
+				}
+			}
+			storage.data.settings.cell = cell;
+			storage.save();
+
+
+			generate.preloader({ status: "start" });
+
+			for (const cellKey in storage.data.settings.cell) {
+				cell_count++;
+
+				if (storage.data.settings.cell[cellKey].is_checked) {
+					continue;
+				}
+
+				let search = await load.search({ search: cellKey, search_sel: 0 });
+				storage.data.settings.cell[cellKey].is_checked = true;
+				storage.save();
+				await Promise.all(search);
+
+				generate.preloader({
+					status: "update_status",
+					desc: `${cell_count} / ${Object.keys(storage.data.settings.cell).length}`,
+				});
+
+				await new Promise((resolve) => setTimeout(resolve, 1000));
+			}
+		}
+
 	};
 	// creating and adding new elements to DOM
 	let contentWraper = get.elements({ el: "div", className: "wraper" });
@@ -1577,17 +1612,12 @@ window.addEventListener("load", () => {
 										{
 											el: "p",
 											className: "compare-time",
-											text: `${
-												storage.data.compareArray[item].addingDate.day
-											}.${storage.data.compareArray[item].addingDate.month}.${
-												storage.data.compareArray[item].addingDate.year
-											}   ${storage.data.compareArray[item].addingDate.hours}:${
-												storage.data.compareArray[item].addingDate.minutes
-											}:${
-												storage.data.compareArray[item].addingDate.seconds
-											}| ${
-												storage.data.addresses[item]?.place ?? "Ще не Збережено"
-											}`,
+											text: `${storage.data.compareArray[item].addingDate.day
+												}.${storage.data.compareArray[item].addingDate.month}.${storage.data.compareArray[item].addingDate.year
+												}   ${storage.data.compareArray[item].addingDate.hours}:${storage.data.compareArray[item].addingDate.minutes
+												}:${storage.data.compareArray[item].addingDate.seconds
+												}| ${storage.data.addresses[item]?.place ?? "Ще не Збережено"
+												}`,
 										},
 										{
 											el: "div",
@@ -1694,15 +1724,11 @@ window.addEventListener("load", () => {
 										{
 											el: "p",
 											className: "desc date-desc",
-											text: `${storage.data.listArray[item].addingDate.day}.${
-												storage.data.listArray[item].addingDate.month
-											}.${storage.data.listArray[item].addingDate.year}  ${
-												storage.data.listArray[item].addingDate.hours
-											}:${storage.data.listArray[item].addingDate.minutes}:${
-												storage.data.listArray[item].addingDate.seconds
-											}|${
-												storage.data.addresses[item]?.place ?? "Ще не Збережено"
-											} `,
+											text: `${storage.data.listArray[item].addingDate.day}.${storage.data.listArray[item].addingDate.month
+												}.${storage.data.listArray[item].addingDate.year}  ${storage.data.listArray[item].addingDate.hours
+												}:${storage.data.listArray[item].addingDate.minutes}:${storage.data.listArray[item].addingDate.seconds
+												}|${storage.data.addresses[item]?.place ?? "Ще не Збережено"
+												} `,
 										},
 										{
 											el: "p",
@@ -1744,8 +1770,7 @@ window.addEventListener("load", () => {
 				let searchInp = document.querySelector(".search-inp").value;
 				data.forEach((item) => {
 					let storage_item_data = storage.data.addresses[item.article];
-					storage.set_id(item);
-					console.log(storage_item_data);
+
 					let reserve_count_class = "",
 						base_count_class = "";
 					if (item.baseCount.baseCount < 1) {
@@ -1790,9 +1815,8 @@ window.addEventListener("load", () => {
 							{
 								el: "div",
 								className: "item-place danger",
-								text: `Місце: ${
-									storage_item_data?.place ?? "Ще не збережено"
-								} |  Cell: ${storage_item_data?.cell ?? "Ще не збережено"}`,
+								text: `Місце: ${storage_item_data?.place ?? "Ще не збережено"
+									} |  Cell: ${storage_item_data?.cell ?? "Ще не збережено"}`,
 							},
 							{
 								el: "div",
@@ -1853,11 +1877,9 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "cell-capacity-desc",
-										text: `Кількість товару в комірці ${
-											storage_item_data?.real_goods_count || 0
-										} шт. з можливих ${
-											storage_item_data?.cell_capacity || 0
-										} шт.`,
+										text: `Кількість товару в комірці ${storage_item_data?.real_goods_count || 0
+											} шт. з можливих ${storage_item_data?.cell_capacity || 0
+											} шт.`,
 									},
 									{
 										el: "p",
@@ -2493,16 +2515,14 @@ window.addEventListener("load", () => {
 						{
 							el: "div",
 							className: "history-item saved-articles",
-							text: `Збережено Артикулів: ${
-								Object.keys(storage.data.addresses).length
-							}`,
+							text: `Збережено Артикулів: ${Object.keys(storage.data.addresses).length
+								}`,
 						},
 						{
 							el: "div",
 							className: "history-item elaboration",
-							text: `Відбито Уточнень: ${
-								Object.keys(storage.data.elaborations).length
-							}`,
+							text: `Відбито Уточнень: ${Object.keys(storage.data.elaborations).length
+								}`,
 						},
 						{
 							el: "div",
@@ -2530,7 +2550,7 @@ window.addEventListener("load", () => {
 							className: "history-item get_cells",
 							text: "Отримати всі збережені ID товару",
 							event: "click",
-							Header: hendlers.get_id,
+							hendler: hendlers.get_id,
 						},
 						{
 							el: "div",
@@ -2722,11 +2742,7 @@ window.addEventListener("load", () => {
 							el: "div",
 							className: "item item-header",
 							children: [
-								{
-									el: "p",
-									className: "item-desc",
-									text: "ID",
-								},
+
 								{
 									el: "p",
 									className: "item-desc",
@@ -2754,20 +2770,16 @@ window.addEventListener("load", () => {
 					],
 				});
 				let item_footer = this.querySelector(".item-footer");
+				item_footer.innerHTML = "";
 				let store = storage.data;
 				data.forEach((item) => {
-					// let item_article = store?.id[item.id];
-					// console.log(item_article, store.id);
+					let item_article = store?.id[item.id] || 0;
+					console.log(item_article);
 					item_wraper.appendChild(
 						get.elements({
 							el: "div",
 							className: "item",
 							children: [
-								{
-									el: "p",
-									className: "item-desc",
-									text: item.id,
-								},
 								{
 									el: "p",
 									className: "item-desc",
@@ -2793,11 +2805,23 @@ window.addEventListener("load", () => {
 								{
 									el: "div",
 									className: "indicator-wrapper",
-									childre: [
+									children: [
 										{
 											el: "div",
 											className: "fill-indicator",
-											//style: { width: `${item.percentage}%` },
+											style: {
+												width: `${get.percent({
+													main: store.addresses[item_article]?.cell_capacity || 0,
+													num: store.addresses[item_article]?.real_goods_count || 0,
+												})}%`,
+											},
+											children: [
+												{
+													el: "span",
+													className: "indicator-desc",
+													text: `${store.addresses[item_article]?.real_goods_count || 0} / ${store.addresses[item_article]?.cell_capacity || 0}`,
+												}
+											]
 										},
 									],
 								},
@@ -2983,6 +3007,7 @@ window.addEventListener("load", () => {
 				data.baseCount = get.goodsCount(goodsCount[index].textContent.trim());
 				console.log(data);
 				this.storage.push(data);
+				storage.set_id(data);
 			});
 
 			return get.mergeSort(this.storage);
@@ -3201,7 +3226,7 @@ window.addEventListener("load", () => {
 							let images = Array.from(
 								search
 									.querySelectorAll(".detImg")
-									[index].querySelectorAll("img")
+								[index].querySelectorAll("img")
 							);
 
 							let imgSrc = [];
@@ -3466,6 +3491,7 @@ window.addEventListener("load", () => {
 						}
 					});
 					stored_data.orders[order_id].is_new = false;
+					storage.save();
 					await new Promise((resolve) => setTimeout(resolve, 250));
 				}
 			}
@@ -3716,7 +3742,6 @@ window.addEventListener("load", () => {
 	}
 
 	check_last_check();
-
 	let btnWraper = get.elements(buttons);
 	document.body.appendChild(searchWraper);
 	document.body.appendChild(contentWraper);
