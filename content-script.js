@@ -883,6 +883,17 @@ window.addEventListener("load", () => {
 			}
 			alert("Відбулася помилдка під час отримання інформації про   прихід");
 		},
+		copy_storage: function () {
+			let data = JSON.stringify(storage.data);
+			navigator.clipboard
+				.writeText(data)
+				.then(function () {
+					console.log("Async: Copying to clipboard was successful!");
+				})
+				.catch(function (err) {
+					console.log(err);
+				});
+		},
 	};
 	// creating and adding new elements to DOM
 	let contentWraper = get.elements({ el: "div", className: "wraper" });
@@ -2527,6 +2538,13 @@ window.addEventListener("load", () => {
 							text: "Показати приходи",
 							event: "click",
 							hendler: hendlers.show_delivery,
+						},
+						{
+							el: "div",
+							className: "history-item get_history",
+							text: "Копіювати Сховище",
+							event: "click",
+							hendler: hendlers.copy_storage,
 						},
 					],
 				})
