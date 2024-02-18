@@ -2,7 +2,8 @@ window.addEventListener("load", () => {
 	let head = document.querySelector("head");
 	head.innerHTML = `<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мобільна База Замовлень</title>`;
+    <title>Мобільна База Замовлень</title>">
+`;
 	let loginInp = document.querySelector("#loginB1");
 	if (loginInp !== null) {
 		return false;
@@ -18,19 +19,18 @@ window.addEventListener("load", () => {
 		changed: false,
 		init: function () {
 			const storedData = JSON.parse(localStorage.getItem("storage"));
-			this.data =
-				this.observe(storedData) ||
-				this.observe({
-					listArray: {},
-					compareArray: {},
-					questions: [],
-					elaborations: {},
-					addresses: {},
-					orders: {},
-					history: [],
-					production: [],
-					settings: {},
-				});
+			this.data = storedData || {
+				listArray: {},
+				compareArray: {},
+				questions: [],
+				elaborations: {},
+				addresses: {},
+				orders: {},
+				history: [],
+				production: [],
+				settings: {},
+				id: {},
+			};
 			console.log(this.data, storedData);
 			if (!storedData) {
 				this.changed = true;
@@ -44,6 +44,18 @@ window.addEventListener("load", () => {
 				this.changed = false;
 			}
 		},
+		set_id: function (data) {
+			console.log(data);
+			let storage = this.data;
+			if (storage.id[data.id]) {
+				return;
+			}
+			if (storage.id[data.id] == undefined) {
+				storage.id[data.id] = data.article;
+				this.changed = true;
+				this.save();
+			}
+		},
 		address: function (data) {
 			let storage = this.data.addresses;
 			let article = data.article;
@@ -54,23 +66,23 @@ window.addEventListener("load", () => {
 				return;
 			}
 			if (!storage[article]) {
-				storage[article] = this.observe({});
+				storage[article] = {};
 			}
 
 			if (data.place && data.place !== this.data.addresses[article].place) {
 				if (storage[article].place == undefined) {
-					storage[article].place = this.observe(data.place);
+					storage[article].place = data.place;
 				}
 				if (storage[article].place.includes(data.place)) {
 					return;
 				}
-				this.data.addresses[article].place += this.observe(data.place);
+				this.data.addresses[article].place += data.place;
 				this.changed = true;
 				this.save();
 			}
 			if (data.cell && data.cell !== storage[article].cell) {
 				console.log("cell");
-				this.data.addresses[article].cell = this.observe(data.cell);
+				this.data.addresses[article].cell = data.cell;
 				this.changed = true;
 				this.save();
 			}
@@ -79,9 +91,8 @@ window.addEventListener("load", () => {
 				data.cell_capacity !== this.data.addresses[article].cell_capacity
 			) {
 				console.log("capacity");
-				this.data.addresses[article].cell_capacity = this.observe(
-					this.data.cell_capacity
-				);
+				this.data.addresses[article].cell_capacity = this.data.cell_capacity;
+
 				this.changed = true;
 				this.save();
 			}
@@ -91,9 +102,9 @@ window.addEventListener("load", () => {
 					this.data.addresses[article].last_goods_count
 			) {
 				console.log("good scount");
-				this.data.addresses[article].last_goods_count = this.observe(
-					this.data.last_goods_count
-				);
+				this.data.addresses[article].last_goods_count =
+					this.data.last_goods_count;
+
 				this.changed = true;
 				this.save();
 			}
@@ -102,32 +113,13 @@ window.addEventListener("load", () => {
 				this.data.is_ignored !== data.addresses[article].is_ignored
 			) {
 				console.log("is ignored");
-				this.data.addresses[article].is_ignored = this.observe(
-					this.data.is_ignored
-				);
+				this.data.addresses[article].is_ignored = this.data.is_ignored;
+
 				this.changed = true;
 				this.save();
 			}
 			console.timeEnd("adres");
 			return this.data.addresses[article];
-		},
-		observe: function (obj) {
-			if (typeof obj !== "object" || obj === null) {
-				return obj;
-			}
-
-			for (const key in obj) {
-				obj[key] = this.observe(obj[key]);
-			}
-
-			return new Proxy(obj, {
-				set: (target, key, value) => {
-					target[key] = value;
-					this.changed = true;
-					this.save();
-					return true;
-				},
-			});
 		},
 	};
 
@@ -149,9 +141,12 @@ window.addEventListener("load", () => {
 		stilages: "https://baza.m-p.in.ua/ajax/stillages.php",
 		stilagesZones: "https://baza.m-p.in.ua/ajax/stillagesZone.php",
 		stilage: "https://baza.m-p.in.ua/ajax/stillage.php",
+		prihod: "https://baza.m-p.in.ua/ajax/prihod.php",
+		prihod_item: "https://baza.m-p.in.ua/ajax/nakladnaya_cont.php",
 	};
 	//regulars expression
 	let regExp = {
+		id: /\((\d+)\)/,
 		elaboration: /Є уточнення: (\d+) шт\./,
 		question: /Є питання: (\d+) шт\./,
 		article: /\s(\d+\.\d+\.\d+)/,
@@ -820,8 +815,8 @@ window.addEventListener("load", () => {
 			this.textContent = "Заповнено";
 			if (article) {
 				if (
-					storage.data.addresses[article].cell_capacity >
-					storage.data.addresses[article].last_goods_count
+					Number(storage.data.addresses[article].cell_capacity) >
+					Number(storage.data.addresses[article].last_goods_count)
 				) {
 					storage.data.addresses[article].real_goods_count =
 						storage.data.addresses[article].last_goods_count;
@@ -853,6 +848,40 @@ window.addEventListener("load", () => {
 			});
 
 			generate.empty_cells(empty_cells);
+		},
+		show_delivery: function () {
+			generate.preloader({ status: "start" });
+			load.deliverys_list().then((data) => {
+				generate.delivery_list(data);
+			});
+		},
+		show_delivery_item: function () {
+			let el = this;
+			let item_id = this.dataset.delivery_id;
+			let footer = Array.from(document.querySelectorAll(".item-footer"));
+
+			footer.forEach((element) => {
+				element.innerHTML = "";
+			});
+			el.appendChild(
+				get.elements({
+					el: "div",
+					className: "item-preloader",
+					children: [
+						{
+							el: "img",
+							src: get.url(src.ico.spiner),
+						},
+					],
+				})
+			);
+			if (item_id) {
+				load.delivery_item(item_id).then((data) => {
+					generate.delivery_item.call(el, data, generate);
+				});
+				return;
+			}
+			alert("Відбулася помилдка під час отримання інформації про   прихід");
 		},
 	};
 	// creating and adding new elements to DOM
@@ -1704,6 +1733,7 @@ window.addEventListener("load", () => {
 				let searchInp = document.querySelector(".search-inp").value;
 				data.forEach((item) => {
 					let storage_item_data = storage.data.addresses[item.article];
+					storage.set_id(item);
 					console.log(storage_item_data);
 					let reserve_count_class = "",
 						base_count_class = "";
@@ -2484,6 +2514,20 @@ window.addEventListener("load", () => {
 							event: "click",
 							hendler: hendlers.show_empty_cells,
 						},
+						{
+							el: "div",
+							className: "history-item get_cells",
+							text: "Отримати всі збережені ID товару",
+							event: "click",
+							Header: hendlers.get_id,
+						},
+						{
+							el: "div",
+							className: "history-item get_delivery",
+							text: "Показати приходи",
+							event: "click",
+							hendler: hendlers.show_delivery,
+						},
 					],
 				})
 			);
@@ -2576,6 +2620,178 @@ window.addEventListener("load", () => {
 					],
 				})
 			);
+		},
+		delivery_list: function (data) {
+			generate.preloader({ status: "end" });
+			if (data.length === 0) {
+				this.message("Немає приходів");
+				return;
+			}
+			let delivery_wraper = get.elements({
+				el: "div",
+				className: "delivery-wraper",
+				children: [
+					{
+						el: "div",
+						className: "delivery-header",
+						children: [
+							{
+								el: "p",
+								className: "delivery-desc",
+								text: "ID",
+							},
+							{
+								el: "p",
+								className: "delivery-desc",
+								text: "Постачальник",
+							},
+							{
+								el: "p",
+								className: "delivery-desc",
+								text: "Дата",
+							},
+						],
+					},
+				],
+			});
+			data.forEach((item) => {
+				delivery_wraper.appendChild(
+					get.elements({
+						el: "div",
+						className: "delivery-item",
+						event: "click",
+						data: [{ delivery_id: item.delivery_id }],
+						hendler: hendlers.show_delivery_item,
+						children: [
+							{
+								el: "div",
+								className: "desc-wrapper",
+								children: [
+									{
+										el: "p",
+										className: "item-desc",
+										text: item.delivery_id,
+									},
+									{
+										el: "p",
+										className: "item-desc",
+										text: item.delivery_provider,
+									},
+									{
+										el: "p",
+										className: "item-desc",
+										text: item.delivery_date,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "item-footer",
+							},
+						],
+					})
+				);
+			});
+			contentWraper.appendChild(delivery_wraper);
+		},
+		delivery_item: function (data) {
+			if (data.length > 0) {
+				let item_wraper = get.elements({
+					el: "div",
+					className: "item-wraper",
+					children: [
+						{
+							el: "div",
+							className: "item item-header",
+							children: [
+								{
+									el: "p",
+									className: "item-desc",
+									text: "ID",
+								},
+								{
+									el: "p",
+									className: "item-desc",
+									text: "Назва товару",
+								},
+								{
+									el: "p",
+									className: "item-desc",
+									text: "місце",
+								},
+								{
+									el: "p",
+									className: "item-desc",
+									text: "Кількість",
+								},
+								{
+									el: "button",
+									className: "btn fill_all_cell_btn",
+									text: "Заповнити всі комірки",
+									event: "click",
+									hendler: hendlers.fill_all_cells,
+								},
+							],
+						},
+					],
+				});
+				let item_footer = this.querySelector(".item-footer");
+				let store = storage.data;
+				data.forEach((item) => {
+					// let item_article = store?.id[item.id];
+					// console.log(item_article, store.id);
+					item_wraper.appendChild(
+						get.elements({
+							el: "div",
+							className: "item",
+							children: [
+								{
+									el: "p",
+									className: "item-desc",
+									text: item.id,
+								},
+								{
+									el: "p",
+									className: "item-desc",
+									text: item.desc,
+								},
+								{
+									el: "p",
+									className: "item-desc",
+									text: item.place,
+								},
+								{
+									el: "p",
+									className: "item-desc",
+									text: item.count,
+								},
+								{
+									el: "button",
+									className: "btn fill_cell_btn",
+									text: "Заповнити комірку",
+									event: "click",
+									hendler: hendlers.show_delivery_item,
+								},
+								{
+									el: "div",
+									className: "indicator-wrapper",
+									childre: [
+										{
+											el: "div",
+											className: "fill-indicator",
+											//style: { width: `${item.percentage}%` },
+										},
+									],
+								},
+							],
+						})
+					);
+				});
+				console.log(item_wraper);
+				item_footer.appendChild(item_wraper);
+				return;
+			}
+			this.message("Немає інформації про прихід");
 		},
 	};
 
@@ -2747,6 +2963,7 @@ window.addEventListener("load", () => {
 					goodsCount[index].textContent.trim()
 				).baseCount;
 				data.baseCount = get.goodsCount(goodsCount[index].textContent.trim());
+				console.log(data);
 				this.storage.push(data);
 			});
 
@@ -2828,7 +3045,7 @@ window.addEventListener("load", () => {
 					);
 					rowData.quality = quality.trim();
 					rowData.price = td[5].textContent.trim();
-					console.log(rowData);
+
 					this.storage.push(rowData);
 				}
 			});
@@ -3240,7 +3457,53 @@ window.addEventListener("load", () => {
 			preloader_indicator.remove();
 			storage.save();
 		},
+		deliverys_list: async function () {
+			this.storage = [];
+			let deliverys = await this.fetch({ url: url.prihod, method: "POST" });
+			let divs_rows = Array.from(deliverys.querySelectorAll("div"));
+			divs_rows.shift();
+			divs_rows.forEach((item) => {
+				if (
+					item.style.float.includes("left") ||
+					item.style.display == "none" ||
+					Array.from(item.children).length == 0
+				) {
+					return;
+				}
+				let data = {};
+				data.delivery_id = item.children[0].textContent.trim();
+				data.delivery_provider = item.children[3].textContent.trim();
+				data.delivery_date = item.children[4].textContent.trim();
+				this.storage.push(data);
+			});
+			return this.storage;
+		},
+		delivery_item: async function (id) {
+			this.storage = [];
 
+			let delivery = await this.fetch({
+				url: url.prihod_item,
+				method: "POST",
+				body: { id: id, search: "" },
+			});
+			let rows = Array.from(delivery.querySelectorAll("table tr"));
+			rows.shift();
+			rows.forEach((item) => {
+				let data = {};
+				let td = Array.from(item.querySelectorAll("td"));
+				if (td.length < 14) {
+					return;
+				}
+
+				data.id = regExp.id.exec(td[1].textContent)[1];
+				data.desc = td[2].textContent;
+				data.place = td[4].textContent;
+				data.count = td[9].textContent;
+				this.storage.push(data);
+			});
+
+			return this.storage;
+		},
 		logOut: function () {
 			document.cookie = "login=null";
 			document.cookie = "hash=null";

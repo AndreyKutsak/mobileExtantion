@@ -471,7 +471,6 @@ button.html5-qrcode-element {
 // wraper
 .wraper {
 	padding: 50px 5px;
-
 	.message-title {
 		font-family: $headers;
 		font-size: 26px;
@@ -1066,7 +1065,7 @@ button.html5-qrcode-element {
 		background-color: $actionBtnBg;
 	}
 }
-// orderindicator
+// order indicator
 .checking-indicator {
 	position: fixed;
 	display: flex;
@@ -1092,5 +1091,79 @@ button.html5-qrcode-element {
 		width: 40px;
 		height: 40px;
 		margin: 0 10px;
+	}
+}
+.delivery-wraper {
+	padding: 20px 10px;
+	.delivery-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		border-radius: 5px;
+		background-color: $white;
+		margin-bottom: 20px;
+		padding: 20px 0;
+		.delivery-desc {
+			font-family: $headers;
+			font-size: 14px;
+			font-weight: 800;
+			text-align: center;
+			padding: 0 10px;
+		}
+	}
+	.delivery-item {
+		font-family: $headers;
+		font-size: 14px;
+		font-weight: 600;
+		border-radius: 5px;
+
+		padding: 10px;
+		margin-bottom: 15px;
+		background-color: $white;
+		.desc-wrapper {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+		.item-footer {
+			.item {
+				position: relative;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 15px 0;
+
+				.item-desc {
+					text-align: center;
+					font-weight: 400;
+					padding: 10px 15px;
+					&:first-child {
+						width: 5%;
+					}
+					&:nth-child(2) {
+						width: 40%;
+					}
+					&:nth-child(3) {
+						width: 20%;
+					}
+					&:nth-child(4) {
+						width: 15%;
+					}
+					&:nth-child(5) {
+						width: 20%;
+					}
+				}
+				.btn {
+					background-color: $actionBtnBg;
+					padding: 15px 5px;
+					color: $white;
+					border-radius: 5px;
+				}
+			}
+			.item-header {
+				font-size: 13px;
+				font-weight: 600;
+			}
+		}
 	}
 }
