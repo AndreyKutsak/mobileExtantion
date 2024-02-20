@@ -892,9 +892,13 @@ window.addEventListener("load", () => {
 		},
 		get_id: async function () {
 			let store = storage.data.addresses;
+			let stored_cell = storage.data.settings.cell;
 			let cell = {};
 			let cell_count = 0;
-
+			if (stored_cell === undefined) {
+				storage.data.settings.cell = {};
+				storage.save();
+			}
 
 			for (const item of Object.values(store)) {
 				if (item.cell !== undefined && cell[item.cell] === undefined) {
@@ -902,27 +906,32 @@ window.addEventListener("load", () => {
 
 				}
 			}
-			storage.data.settings.cell = cell;
-			storage.save();
+			if (Object.keys(stored_cell).length < Object.keys(cell).length) {
+				alert("Cell перезаписаний!!");
+				Object.keys(cell).forEach((item) => {
+					if (Object.keys(storage.data.setings.cell).includes(item)) {
+						storage.data.settings.cell = {};
+						storage.save();
+					}
+					storage.data.settings.cell = cell;
 
-
-			generate.preloader({ status: "start" });
-
-			for (const cellKey in storage.data.settings.cell) {
+				})
+				storage.save();
+			} generate.preloader({ status: "start" });
+			for (const cellKey in stored_cell) {
 				cell_count++;
-
-				if (storage.data.settings.cell[cellKey].is_checked) {
+				console.log(cell_count)
+				if (stored_cell[cellKey].is_checked) {
 					continue;
 				}
-
 				let search = await load.search({ search: cellKey, search_sel: 0 });
-				storage.data.settings.cell[cellKey].is_checked = true;
+				stored_cell[cellKey].is_checked = true;
 				storage.save();
 				await Promise.all(search);
 
 				generate.preloader({
 					status: "update_status",
-					desc: `${cell_count} / ${Object.keys(storage.data.settings.cell).length}`,
+					desc: `${cell_count} / ${Object.keys(stored_cell).length}`,
 				});
 
 				await new Promise((resolve) => setTimeout(resolve, 1000));

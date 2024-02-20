@@ -1015,7 +1015,7 @@ button.html5-qrcode-element {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 0 45px 0;
+  padding: 5px 0 35px 0;
 }
 .delivery-wraper .delivery-item .item-footer .item .item-desc {
   font-size: 12px;
@@ -1038,7 +1038,7 @@ button.html5-qrcode-element {
 .delivery-wraper .delivery-item .item-footer .item .btn {
   font-size: 12px;
   background-color: #1cc879;
-  padding: 15px 5px;
+  padding: 8px 5px;
   color: #fff;
   border-radius: 5px;
 }
@@ -1070,7 +1070,7 @@ button.html5-qrcode-element {
 .delivery-wraper .delivery-item .item-footer .item .indicator-wrapper .fill-indicator .indicator-desc:after {
   position: absolute;
   content: "";
-  bottom: -5px;
+  bottom: -4px;
   right: 0px;
   width: 0;
   height: 0;
