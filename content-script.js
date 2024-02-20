@@ -892,32 +892,24 @@ window.addEventListener("load", () => {
 		},
 		get_id: async function () {
 			let store = storage.data.addresses;
-			let stored_cell = storage.data.settings.cell;
-			let cell = {};
+			let stored_cell = storage.data.settings.cell || {};
+
 			let cell_count = 0;
-			if (stored_cell === undefined) {
-				storage.data.settings.cell = {};
-				storage.save();
-			}
-
-			for (const item of Object.values(store)) {
-				if (item.cell !== undefined && cell[item.cell] === undefined) {
-					cell[item.cell] = { is_checked: false };
-
+			Object.values(store).forEach(element => {
+				if (element.cell == undefined) {
+					return;
 				}
-			}
-			if (Object.keys(stored_cell).length < Object.keys(cell).length) {
-				alert("Cell перезаписаний!!");
-				Object.keys(cell).forEach((item) => {
-					if (Object.keys(storage.data.setings.cell).includes(item)) {
-						storage.data.settings.cell = {};
-						storage.save();
-					}
-					storage.data.settings.cell = cell;
+				if (Object.keys(stored_cell).includes(element.cell)) {
+					return;
+				}
+				if (stored_cell[element.cell] == undefined) {
+					stored_cell[element.cell] = {
+						is_checked: false,
+					};
+				}
 
-				})
-				storage.save();
-			} generate.preloader({ status: "start" });
+			}); storage.save();
+			generate.preloader({ status: "start" });
 			for (const cellKey in stored_cell) {
 				cell_count++;
 				console.log(cell_count)
