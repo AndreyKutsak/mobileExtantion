@@ -892,9 +892,13 @@ window.addEventListener("load", () => {
 		},
 		get_id: async function () {
 			let store = storage.data.addresses;
-			let stored_cell = storage.data.settings.cell || {};
-
+			let stored_cell = storage.data.settings.cell;
 			let cell_count = 0;
+			if (stored_cell == undefined) {
+				stored_cell = {};
+				storage.data.settings.cell = {};
+				storage.save()
+			}
 			Object.values(store).forEach(element => {
 				if (element.cell == undefined) {
 					return;
@@ -907,7 +911,7 @@ window.addEventListener("load", () => {
 						is_checked: false,
 					};
 				}
-
+				console.log(stored_cell)
 			}); storage.save();
 			generate.preloader({ status: "start" });
 			for (const cellKey in stored_cell) {
@@ -3707,6 +3711,8 @@ window.addEventListener("load", () => {
 	};
 	function check_last_check() {
 		let last_check_time = storage.data.settings.last_check;
+		let orders_storage = storage.data.orders;
+
 		if (last_check_time == undefined) {
 			storage.data.settings.last_check = {
 				year: 0,
@@ -3719,12 +3725,12 @@ window.addEventListener("load", () => {
 		}
 		let current_date = get.date();
 		if (
-			storage.data.orders !== undefined &&
-			Object.keys(storage.data.orders).length !== 0
+			orders_storage !== undefined &&
+			Object.keys(orders_storage).length !== 0
 		) {
-			Object.keys(storage.data.orders).forEach((item) => {
-				if (storage.data.orders[item].order_date.day !== current_date.day) {
-					delete storage.data.orders[item];
+			Object.keys(orders_storage).forEach((item) => {
+				if (orders_storage[item].order_date.day !== current_date.day) {
+					delete orders_storage[item];
 				}
 			});
 		}
@@ -3740,6 +3746,7 @@ window.addEventListener("load", () => {
 				load.get_goods_count();
 			}
 		}
+		storage.save();
 	}
 
 	check_last_check();
