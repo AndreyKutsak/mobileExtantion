@@ -914,9 +914,12 @@ window.addEventListener("load", () => {
 				console.log(stored_cell)
 			}); storage.save();
 			generate.preloader({ status: "start" });
-			for (const cellKey in stored_cell) {
+
+			let keys = Object.keys(stored_cell);
+			for (let index = 0; index < keys.length; index++) {
+				let cellKey = keys[index];
 				cell_count++;
-				console.log(cell_count)
+
 				if (stored_cell[cellKey].is_checked) {
 					continue;
 				}
@@ -927,11 +930,16 @@ window.addEventListener("load", () => {
 
 				generate.preloader({
 					status: "update_status",
-					desc: `${cell_count} / ${Object.keys(stored_cell).length}`,
+					desc: `${cell_count} / ${keys.length}`,
 				});
 
-				await new Promise((resolve) => setTimeout(resolve, 1000));
+				await new Promise((resolve) => setTimeout(resolve, 1000)); // Затримка на 1 секунду
 			}
+
+
+			storage.save();
+
+
 		}
 
 	};
@@ -1773,9 +1781,9 @@ window.addEventListener("load", () => {
 			contentWraper.innerHTML = "";
 			if (data.length > 0) {
 				let searchInp = document.querySelector(".search-inp").value;
+				let store = storage.data.addresses;
 				data.forEach((item) => {
-					let storage_item_data = storage.data.addresses[item.article];
-
+					let storage_item_data = store[item.article];
 					let reserve_count_class = "",
 						base_count_class = "";
 					if (item.baseCount.baseCount < 1) {
@@ -1789,7 +1797,6 @@ window.addEventListener("load", () => {
 						searchInp.match(regExp.cell) &&
 						storage_item_data?.cell !== searchInp
 					) {
-						console.log(storage_item_data?.cell !== searchInp);
 						storage.address({ article: item.article, cell: searchInp });
 					}
 					console.log(storage_item_data.last_goods_count);
@@ -2069,6 +2076,7 @@ window.addEventListener("load", () => {
 					contentWraper.classList.add("search-result-wraper");
 					contentWraper.appendChild(searchItem);
 				});
+				storage.save();
 				return;
 			}
 			generate.message("Нічого не знайдено!!");
