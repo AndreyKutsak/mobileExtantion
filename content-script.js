@@ -914,12 +914,9 @@ window.addEventListener("load", () => {
 				console.log(stored_cell)
 			}); storage.save();
 			generate.preloader({ status: "start" });
-
-			let keys = Object.keys(stored_cell);
-			for (let index = 0; index < keys.length; index++) {
-				let cellKey = keys[index];
+			for (const cellKey in stored_cell) {
 				cell_count++;
-
+				console.log(cell_count)
 				if (stored_cell[cellKey].is_checked) {
 					continue;
 				}
@@ -930,16 +927,11 @@ window.addEventListener("load", () => {
 
 				generate.preloader({
 					status: "update_status",
-					desc: `${cell_count} / ${keys.length}`,
+					desc: `${cell_count} / ${Object.keys(stored_cell).length}`,
 				});
 
-				await new Promise((resolve) => setTimeout(resolve, 1000)); // Затримка на 1 секунду
+				await new Promise((resolve) => setTimeout(resolve, 1000));
 			}
-
-
-			storage.save();
-
-
 		}
 
 	};
@@ -1781,9 +1773,9 @@ window.addEventListener("load", () => {
 			contentWraper.innerHTML = "";
 			if (data.length > 0) {
 				let searchInp = document.querySelector(".search-inp").value;
-				let store = storage.data.addresses;
 				data.forEach((item) => {
-					let storage_item_data = store[item.article];
+					let storage_item_data = storage.data.addresses[item.article];
+
 					let reserve_count_class = "",
 						base_count_class = "";
 					if (item.baseCount.baseCount < 1) {
@@ -1797,6 +1789,7 @@ window.addEventListener("load", () => {
 						searchInp.match(regExp.cell) &&
 						storage_item_data?.cell !== searchInp
 					) {
+						console.log(storage_item_data?.cell !== searchInp);
 						storage.address({ article: item.article, cell: searchInp });
 					}
 					console.log(storage_item_data.last_goods_count);
@@ -2076,7 +2069,6 @@ window.addEventListener("load", () => {
 					contentWraper.classList.add("search-result-wraper");
 					contentWraper.appendChild(searchItem);
 				});
-				storage.save();
 				return;
 			}
 			generate.message("Нічого не знайдено!!");
@@ -3189,14 +3181,12 @@ window.addEventListener("load", () => {
 			this.storage.push(requests);
 			return this.storage;
 		},
-
 		elaborations: async function (data) {
 			this.storage = [];
 			const elaborations = await this.fetch({
 				url: url.elaborations,
 				method: "POST",
 			});
-
 			const rows = Array.from(elaborations.querySelectorAll("table tbody tr"));
 			let elaboarations_count = rows.length - 1;
 			let loaded_elaborations_count = 0;
@@ -3472,11 +3462,11 @@ window.addEventListener("load", () => {
 							is_new: true,
 							order_date: get.date(),
 						};
-						storage.save();
+
 					}
 				}
 			});
-
+			storage.save();
 			for (const order_id of Object.keys(stored_data.orders)) {
 				if (stored_data.orders[order_id].is_new) {
 					let response = await this.order({ id: order_id });
@@ -3508,9 +3498,7 @@ window.addEventListener("load", () => {
 					await new Promise((resolve) => setTimeout(resolve, 250));
 				}
 			}
-			storage.data.settings = {
-				last_check: get.date(),
-			};
+			storage.data.settings.last_check = get.date();
 			preloader_indicator.remove();
 			storage.save();
 		},
@@ -3720,7 +3708,6 @@ window.addEventListener("load", () => {
 	function check_last_check() {
 		let last_check_time = storage.data.settings.last_check;
 		let orders_storage = storage.data.orders;
-
 		if (last_check_time == undefined) {
 			storage.data.settings.last_check = {
 				year: 0,
