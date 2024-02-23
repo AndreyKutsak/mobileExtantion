@@ -790,8 +790,15 @@ window.addEventListener("load", () => {
 			let article = this.dataset.article || false;
 			if (article) {
 				let capacity = this.value;
+				if (capacity == "" || isNaN(Number(capacity))) {
+					alert("Введи правильні данні!!!");
+					return;
+				}
 				storage.data.addresses[article].cell_capacity = capacity;
 				storage.save();
+			}
+			else {
+				alert("Невдалося встановити ємність комірки!!!")
 			}
 		},
 		ignore_article: function () {
@@ -893,17 +900,28 @@ window.addEventListener("load", () => {
 		get_id: async function () {
 			let store = storage.data.addresses;
 			let stored_cell = storage.data.settings.cell;
+			let stored_id = storage.data.id;
 			let cell_count = 0;
 			if (stored_cell == undefined) {
 				stored_cell = {};
 				storage.data.settings.cell = {};
 				storage.save()
 			}
-			Object.values(store).forEach(element => {
+			if (stored_id == undefined) {
+				storage.data.id = {};
+				storage.save();
+			}
+
+			Object.values(store).forEach((element, index) => {
+
 				if (element.cell == undefined) {
 					return;
 				}
 				if (Object.keys(stored_cell).includes(element.cell)) {
+					return;
+				}
+				if (Object.values(stored_id).includes(Object.keys(store)[index])) {
+					console.log(element, Object.keys(store)[index], store[Object.keys(store)[index]])
 					return;
 				}
 				if (stored_cell[element.cell] == undefined) {
@@ -911,7 +929,7 @@ window.addEventListener("load", () => {
 						is_checked: false,
 					};
 				}
-				console.log(stored_cell)
+
 			}); storage.save();
 			generate.preloader({ status: "start" });
 			for (const cellKey in stored_cell) {
@@ -1450,21 +1468,13 @@ window.addEventListener("load", () => {
 								el: "div",
 								className: "row-body",
 								children: [
-									// {
-									// 	el: "p",
-									// 	className: "row-desc id",
-									// 	text: item.id,
-									// },
+
 									{
 										el: "p",
 										className: "row-desc number",
 										text: item.Number,
 									},
-									// {
-									// 	el: "p",
-									// 	className: "row-desc status client",
-									// 	text: item.client,
-									// },
+									,
 									{
 										el: "p",
 										className: "row-desc status",
@@ -1495,6 +1505,7 @@ window.addEventListener("load", () => {
 			let orderWraper = get.elements({ el: "div", className: "order-wraper" });
 			if (data.length > 0) {
 				data.forEach((item) => {
+					console.log(item)
 					storage.address({
 						article: item.articleAndPlace.article,
 						place: item.articleAndPlace.place,
@@ -1792,7 +1803,7 @@ window.addEventListener("load", () => {
 						console.log(storage_item_data?.cell !== searchInp);
 						storage.address({ article: item.article, cell: searchInp });
 					}
-					console.log(storage_item_data.last_goods_count);
+					console.log(storage_item_data)
 					storage_item_data.last_goods_count = item.baseCount.baseCount;
 					let searchItem = get.elements({
 						el: "div",
@@ -3033,17 +3044,15 @@ window.addEventListener("load", () => {
 				if (td.length < 6) {
 					return;
 				}
-
 				rowData.id = td[0].textContent;
 				rowData.Number = td[1].textContent;
-				rowData.client = td[2].textContent;
 				rowData.ststus = td[3].textContent;
 				rowData.city = td[4].textContent;
 				rowData.type = td[5].textContent;
 				rowData.date = td[6].textContent;
 				this.storage.push(rowData);
 			});
-			console.log(this.storage);
+
 			return this.storage;
 		},
 		order: async function (data) {
@@ -3079,7 +3088,7 @@ window.addEventListener("load", () => {
 					let base_quality_div = td[2].querySelectorAll("div")[4];
 					let base_quality = 0;
 					if (base_quality_div != undefined && base_quality_div !== null) {
-						base_quality = base_quality_div.textContent.trim();
+						base_quality = Number(base_quality_div.textContent.trim());
 					}
 
 					rowData.imgSrc = td[1].querySelector("img").src;
@@ -3413,94 +3422,100 @@ window.addEventListener("load", () => {
 				}
 			});
 
-			console.log(places);
+
 			return areas;
 		},
 		get_goods_count: async function () {
-			let preloader_indicator = get.elements({
-				el: "div",
-				className: "checking-indicator",
-				children: [
-					{
-						el: "p",
-						className: "indecator-desc",
-						text: "Триває Перевірка замовлень",
-					},
-					{
-						el: "img",
-						src: get.url(src.ico.spiner),
-					},
-				],
-			});
-			let stored_data = storage.data;
-			if (Object.keys(stored_data.addresses).length == 0) {
-				alert("Адреса товару ще не збережені!!!");
-				return;
-			}
-			contentWraper.appendChild(preloader_indicator);
-			let orders = await this.fetch({
-				url: url.orders,
-				method: "POST",
-				body: { status: 4 },
-			});
-
-			let tr = Array.from(orders.querySelectorAll("table tbody tr"));
-			tr.shift();
-			tr.forEach((item) => {
-				let td = Array.from(item.querySelectorAll("td"));
-				if (td.length < 5) {
+			try {
+				let preloader_indicator = get.elements({
+					el: "div",
+					className: "checking-indicator",
+					children: [
+						{
+							el: "p",
+							className: "indecator-desc",
+							text: "Триває Перевірка замовлень",
+						},
+						{
+							el: "img",
+							src: get.url(src.ico.spiner),
+						},
+					],
+				});
+				let stored_data = storage.data;
+				if (Object.keys(stored_data.addresses).length == 0) {
+					alert("Адреса товару ще не збережені!!!");
 					return;
 				}
-				if (
-					td[3].textContent === "чекає відправки" &&
-					td[2].textContent !== "****** (***** *****)" &&
-					td[4].textContent !== "******"
-				) {
-					let order_id = td[0].textContent.trim();
-					if (!stored_data.orders[order_id]) {
-						stored_data.orders[order_id] = {
-							is_new: true,
-							order_date: get.date(),
-						};
+				contentWraper.appendChild(preloader_indicator);
+				let orders = await this.fetch({
+					url: url.orders,
+					method: "POST",
+					body: { status: 4 },
+				});
 
+				let tr = Array.from(orders.querySelectorAll("table tbody tr"));
+				tr.shift();
+				tr.forEach((item) => {
+					let td = Array.from(item.querySelectorAll("td"));
+					if (td.length < 5) {
+						return;
+					}
+					if (
+						td[3].textContent === "чекає відправки" &&
+						td[2].textContent !== "****** (***** *****)" &&
+						td[4].textContent !== "******"
+					) {
+						let order_id = td[0].textContent.trim();
+						if (!stored_data.orders[order_id]) {
+							stored_data.orders[order_id] = {
+								is_new: true,
+								order_date: get.date(),
+							};
+
+						}
+					}
+				});
+				storage.save();
+				for (const order_id of Object.keys(stored_data.orders)) {
+					if (stored_data.orders[order_id].is_new) {
+						let response = await this.order({ id: order_id });
+						console.log(response);
+						response.forEach((item) => {
+							if (item.questionsCount >= 0) {
+								return;
+							}
+							let article = item.articleAndPlace.article;
+							let storage_article = stored_data.addresses[article];
+							let quality = item.quality.match(regExp.num)[0];
+
+							if (
+								storage_article == null ||
+								storage_article == undefined ||
+								quality >= storage_article.cell_capacity
+							) {
+								return;
+							}
+							storage_article.last_goods_count = item.base_quality;
+
+							if (storage_article.real_goods_count) {
+								storage_article.real_goods_count =
+									Number(storage_article.real_goods_count) - Number(quality);
+							}
+						});
+						stored_data.orders[order_id].is_new = false;
+						storage.save();
+						await new Promise((resolve) => setTimeout(resolve, 250));
 					}
 				}
-			});
-			storage.save();
-			for (const order_id of Object.keys(stored_data.orders)) {
-				if (stored_data.orders[order_id].is_new) {
-					let response = await this.order({ id: order_id });
-					console.log(response);
-					response.forEach((item) => {
-						if (item.questionsCount >= 0) {
-							return;
-						}
-						let article = item.articleAndPlace.article;
-						let storage_article = stored_data.addresses[article];
-						let quality = item.quality.match(regExp.num)[0];
-
-						if (
-							storage_article == null ||
-							storage_article == undefined ||
-							quality >= storage_article.cell_capacity
-						) {
-							return;
-						}
-						storage_article.last_goods_count = item.base_quality;
-
-						if (storage_article.real_goods_count) {
-							storage_article.real_goods_count =
-								Number(storage_article.real_goods_count) - Number(quality);
-						}
-					});
-					stored_data.orders[order_id].is_new = false;
-					storage.save();
-					await new Promise((resolve) => setTimeout(resolve, 250));
-				}
+				storage.data.settings.last_check = get.date();
+				preloader_indicator.remove();
+				storage.save();
 			}
-			storage.data.settings.last_check = get.date();
-			preloader_indicator.remove();
-			storage.save();
+			catch {
+
+				alert("Відбулася помилка під час парсингу замовлень для актуалізації залишків в комірці!!!")
+			}
 		},
 		deliverys_list: async function () {
 			this.storage = [];
