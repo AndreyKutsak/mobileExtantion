@@ -824,6 +824,7 @@ window.addEventListener("load", () => {
 				} else {
 					storage.data.addresses[article].real_goods_count =
 						storage.data.addresses[article].cell_capacity;
+					storage_article.save_area_count = Number(storage_article.last_goods_count) - Number(storage_article.real_goods_count);
 					storage.save();
 				}
 			}
@@ -3477,7 +3478,7 @@ window.addEventListener("load", () => {
 					}
 				});
 				storage.save();
-				for (const order_id of Object.keys(stored_data.orders)) {
+				for (const order_id of Object.keys(stored_data.orders).reverse()) {
 					if (stored_data.orders[order_id].is_new) {
 						let response = await this.order({ id: order_id });
 						console.log(response);
@@ -3491,16 +3492,20 @@ window.addEventListener("load", () => {
 
 							if (
 								storage_article == null ||
-								storage_article == undefined ||
-								quality >= storage_article.cell_capacity
+								storage_article == undefined
+
 							) {
 								return;
+							}
+							if (storage_article.save_area_count != undefined && quality >= storage_article?.cell_capacity) {
+								storage_article.save_area_count = Number(storage_article.save_area_count) - Number(quality);
 							}
 							storage_article.last_goods_count = item.base_quality;
 
 							if (storage_article.real_goods_count) {
 								storage_article.real_goods_count =
 									Number(storage_article.real_goods_count) - Number(quality);
+								storage_article.save_area_count = Number(storage_article.last_goods_count) - Number(storage_article.real_goods_count);
 							}
 						});
 						stored_data.orders[order_id].is_new = false;
