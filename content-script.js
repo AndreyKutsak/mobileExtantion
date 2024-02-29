@@ -134,6 +134,7 @@ window.addEventListener("load", () => {
 		stilage: "https://baza.m-p.in.ua/ajax/stillage.php",
 		prihod: "https://baza.m-p.in.ua/ajax/prihod.php",
 		prihod_item: "https://baza.m-p.in.ua/ajax/nakladnaya_cont.php",
+		seal_number: "https://baza.m-p.in.ua/ajax/save_warranty.php",
 	};
 	//regulars expression
 	let regExp = {
@@ -143,6 +144,7 @@ window.addEventListener("load", () => {
 		article: /\s(\d+\.\d+\.\d+)/,
 		elaborationArticle: /\((\d+(\.\d+)*)\)$/,
 		orderArticle: /\d+\.\d+\.\d+/,
+		params: /\((.*?)\)/,
 		number: /№(\d+)/,
 		num: /\d+/,
 		sentence: /[^\\n]+(?=\\n|$)/g,
@@ -172,6 +174,17 @@ window.addEventListener("load", () => {
 		cell_goods_count: 1000 * 30 * 60,
 	};
 	let get = {
+		params_for_seal: function (str) {
+			let matches = str.match(regExp.params);
+			let params = [];
+			if (matches && matches.length > 1) {
+				matches[1].split(",").forEach((item) => {
+					params.push(item.trim());
+
+				})
+				return params;
+			}
+		},
 		url: function (data) {
 			return chrome.runtime.getURL(String(data));
 		},
@@ -343,7 +356,9 @@ window.addEventListener("load", () => {
 
 			if (data.event && data.hendler && typeof data.hendler === "function") {
 				element.addEventListener(data.event, (event) => {
+					event.stopPropagation();
 					data.hendler.call(element, event);
+					console.log(event.currentTarget)
 				});
 			}
 			if (data.children) {
@@ -376,6 +391,13 @@ window.addEventListener("load", () => {
 		},
 	};
 	let hendlers = {
+		send_seal_number: function () {
+			let order_num = this.dataset.order_num;
+			let seal_goods = this.dataset.seal_goods;
+			let seal_number = this.value;
+			console.log({ order: order_num, goods: seal_goods, warranty: seal_number })
+			load.seal_number({ body: { order: order_num, goods: seal_goods, warranty: seal_number } })
+		},
 		add_to_list: function (item) {
 			let article = this.dataset.article;
 			if (storage.data.listArray[article]) {
@@ -693,6 +715,7 @@ window.addEventListener("load", () => {
 		search: function () {
 			let input = this.parentNode.querySelector(".search-inp");
 			let wrapper = document.querySelector(".wraper");
+			let is_order_number = regExp.num.test(input.value);
 			if (input.value.length < 2) {
 				alert("Довжина пошукового запиту має бути 2-х символів");
 				return;
@@ -700,12 +723,21 @@ window.addEventListener("load", () => {
 			let isOrder = wrapper.querySelector(".orders-wraper");
 
 			generate.preloader({ status: "start" });
+			console.log(is_order_number)
+			if (isOrder || is_order_number) {
+
+				load.orders({ status: input.value }).then((data) => {
+					wrapper.appendChild(generate.orders(data));
+				});
+				return;
+			}
 			if (isOrder) {
 				load.orders({ text: input.value }).then((data) => {
 					wrapper.appendChild(generate.orders(data));
 				});
 				return;
 			}
+
 
 			let search_sell = 0;
 			let result = load.search({
@@ -716,6 +748,7 @@ window.addEventListener("load", () => {
 				generate.search(data);
 			});
 		},
+
 		productionSearch: function () {
 			let input = this.parentNode.querySelector(".search-inp");
 			let wrapper = document.querySelector(".wraper");
@@ -740,17 +773,22 @@ window.addEventListener("load", () => {
 			}
 		},
 		// orders hendlers
-		order: function () {
+		order: function (e) {
+			console.log(this, e.target);
 			let itemFooter = this.querySelector(".row-footer");
-
 			let items = Array.from(
 				document.querySelectorAll(".row-footer .order-wraper,.item-preloader")
 			);
 			let id = this.dataset.id;
-
+			if (e.target.tagName === 'INPUT' && itemFooter.contains(e.target)) {
+				return;
+			}
 			items.forEach((item) => {
+
 				item.remove();
 			});
+
+
 			itemFooter.appendChild(
 				get.elements({
 					el: "div",
@@ -763,6 +801,7 @@ window.addEventListener("load", () => {
 					],
 				})
 			);
+
 			if (itemFooter.classList.contains("active")) {
 				itemFooter.classList.remove("active");
 				itemFooter.innerHTML = "";
@@ -779,7 +818,9 @@ window.addEventListener("load", () => {
 
 				itemFooter.appendChild(generate.order(data));
 			});
-		},
+		}
+
+		,
 		show_stilages: function () {
 			console.log("show_stilages");
 
@@ -1505,7 +1546,20 @@ window.addEventListener("load", () => {
 			let orderWraper = get.elements({ el: "div", className: "order-wraper" });
 			if (data.length > 0) {
 				data.forEach((item) => {
-					console.log(item)
+					let options_inp = [];
+					let seal_number = item.seal_number || "";
+					console.log(seal_number)
+					if (item.is_need_seal) {
+						options_inp.push({
+							el: "input",
+							type: "text",
+							placeholder: "№ пломби",
+							value: seal_number,
+							event: "input",
+							data: [{ order_num: item.seal_params[0], }, { seal_goods: item.seal_params[1], }],
+							hendler: hendlers.send_seal_number
+						});
+					}
 					storage.address({
 						article: item.articleAndPlace.article,
 						place: item.articleAndPlace.place,
@@ -1514,6 +1568,11 @@ window.addEventListener("load", () => {
 						el: "div",
 						className: "order-item",
 						children: [
+							{
+								el: "p",
+								className: "manager_desc",
+								text: item.order_manager
+							},
 							{
 								el: "img",
 								className: "goods-image",
@@ -1544,6 +1603,11 @@ window.addEventListener("load", () => {
 										el: "p",
 										className: "position-name",
 										text: item.positionName,
+									}, {
+										el: "div",
+										className: "options_wrapper",
+										children: options_inp,
+
 									},
 									{
 										el: "p",
@@ -2921,7 +2985,21 @@ window.addEventListener("load", () => {
 				return [];
 			}
 		},
+		seal_number: function (data) {
+			console.log(data);
+			let send_seal = this.fetch({
+				url: url.seal_number,
+				method: "POST",
+				body: data.body,
+			});
+			send_seal.then((data) => {
+				console.log(data);
+				if (data.body.textContent != "ok") {
 
+					alert("Помилка збереження пломби");
+				}
+			})
+		},
 		reserve: async function (data) {
 			this.storage = [];
 			const reserve = await this.fetch({
@@ -3085,8 +3163,17 @@ window.addEventListener("load", () => {
 					}
 
 					let rowData = {};
+					let order_manager = order.querySelectorAll("div")[0].textContent.trim();
+					let is_need_seal = td[4].querySelectorAll("input[type='text']")[2];
+					let seal_number = 0;
+					let seal_params;
 					let base_quality_div = td[2].querySelectorAll("div")[4];
 					let base_quality = 0;
+					if (is_need_seal && is_need_seal.id.includes("warranty")) {
+						seal_number = Number(is_need_seal.value);
+						seal_params = get.params_for_seal(is_need_seal.getAttribute("onkeyup"))
+						console.log(is_need_seal.getAttribute("onkeyup"), "hello")
+					};
 					if (base_quality_div != undefined && base_quality_div !== null) {
 						base_quality = Number(base_quality_div.textContent.trim());
 					}
@@ -3095,6 +3182,10 @@ window.addEventListener("load", () => {
 					Array.from(td[2].children).forEach((child) => {
 						child.textContent = "";
 					});
+					rowData.seal_params = seal_params;
+					rowData.is_need_seal = is_need_seal;
+					rowData.seal_number = seal_number;
+					rowData.order_manager = order_manager;
 					rowData.base_quality = base_quality;
 					rowData.positionName = td[2].textContent.trim();
 					rowData.articleAndPlace = get.articleAndPlacement(
@@ -3102,8 +3193,9 @@ window.addEventListener("load", () => {
 					);
 					rowData.quality = quality.trim();
 					rowData.price = td[5].textContent.trim();
-
+					console.log(rowData)
 					this.storage.push(rowData);
+
 				}
 			});
 
