@@ -865,6 +865,7 @@ window.addEventListener("load", () => {
 				} else {
 					storage.data.addresses[article].real_goods_count =
 						storage.data.addresses[article].cell_capacity;
+					storage_article.save_area_count = Number(storage_article.last_goods_count) - Number(storage_article.real_goods_count);
 					storage.save();
 				}
 			}
@@ -2684,6 +2685,7 @@ window.addEventListener("load", () => {
 							children: data.map((item) => {
 								let real_count = storage.data.addresses[item].real_goods_count;
 								let cell_capacity = storage.data.addresses[item].cell_capacity;
+								let save_area = storage.data.addresses[item].save_area_count;
 
 								let percent = get.percent({
 									num: real_count,
@@ -2713,7 +2715,11 @@ window.addEventListener("load", () => {
 													text: `Ємність комірки:${cell_capacity} Реальна кількість: ${real_count} Заповнено на: (${percent.toFixed(
 														1
 													)}%)`,
-												},
+												}, {
+													el: "span",
+													className: "empty-cell-data",
+													text: `Товару в зоні збереження:${save_area}`
+												}
 											],
 										},
 										{
@@ -3569,7 +3575,7 @@ window.addEventListener("load", () => {
 					}
 				});
 				storage.save();
-				for (const order_id of Object.keys(stored_data.orders)) {
+				for (const order_id of Object.keys(stored_data.orders).reverse()) {
 					if (stored_data.orders[order_id].is_new) {
 						let response = await this.order({ id: order_id });
 						console.log(response);
@@ -3583,17 +3589,25 @@ window.addEventListener("load", () => {
 
 							if (
 								storage_article == null ||
-								storage_article == undefined ||
-								quality >= storage_article.cell_capacity
+								storage_article == undefined
+
 							) {
 								return;
+							}
+							if (storage_article.save_area_count == undefined || storage_article.save_area_count == null) {
+								storage_article.save_area_count = 0;
+							}
+							if (storage_article.save_area_count != undefined && quality >= storage_article?.cell_capacity) {
+								storage_article.save_area_count = Number(storage_article.save_area_count) - Number(quality);
 							}
 							storage_article.last_goods_count = item.base_quality;
 
 							if (storage_article.real_goods_count) {
 								storage_article.real_goods_count =
 									Number(storage_article.real_goods_count) - Number(quality);
+								storage_article.save_area_count = Number(storage_article.last_goods_count) - Number(storage_article.real_goods_count);
 							}
+							console.log(storage_article.save_area_count)
 						});
 						stored_data.orders[order_id].is_new = false;
 						storage.save();
