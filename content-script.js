@@ -391,6 +391,7 @@ window.addEventListener("load", () => {
 				addingDate: get.date(),
 			};
 			generate.tasksCount();
+			storage.save()
 		},
 		add_to_compare: function (item) {
 			let article = this.dataset.article;
@@ -424,6 +425,7 @@ window.addEventListener("load", () => {
 			wraper.style.backgroundColor = "#fbc8c8";
 			this.classList.toggle("clicked");
 			generate.tasksCount();
+			storage.save();
 		},
 		check: function () {
 			let parentEl = this.parentElement.parentElement;
@@ -433,10 +435,8 @@ window.addEventListener("load", () => {
 		removeItem: function () {
 			let article = this.dataset.article;
 			let arr = this.dataset.arr;
-
 			delete storage.data[arr][article];
 			storage.save();
-
 			this.parentElement.remove();
 			generate.tasksCount();
 		},
