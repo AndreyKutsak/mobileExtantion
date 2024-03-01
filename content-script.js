@@ -135,6 +135,7 @@ window.addEventListener("load", () => {
 		prihod: "https://baza.m-p.in.ua/ajax/prihod.php",
 		prihod_item: "https://baza.m-p.in.ua/ajax/nakladnaya_cont.php",
 		seal_number: "https://baza.m-p.in.ua/ajax/save_warranty.php",
+		add_coment: "https://baza.m-p.in.ua/ajax/add_comment_order.php",
 	};
 	//regulars expression
 	let regExp = {
@@ -2991,6 +2992,13 @@ window.addEventListener("load", () => {
 				generate.preloader({ status: "end" });
 				return [];
 			}
+		},
+		add_comment: function () {
+			let add_comment_result = this.fetch({
+				url: url.add_coment,
+				method: "POST",
+				body: data.body
+			})
 		},
 		seal_number: function (data) {
 			console.log(data);
