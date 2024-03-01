@@ -716,7 +716,7 @@ window.addEventListener("load", () => {
 		search: function () {
 			let input = this.parentNode.querySelector(".search-inp");
 			let wrapper = document.querySelector(".wraper");
-			let is_order_number = regExp.num.test(input.value);
+			let is_order_number = isNaN(input.value);
 			if (input.value.length < 2) {
 				alert("Довжина пошукового запиту має бути 2-х символів");
 				return;
@@ -725,7 +725,7 @@ window.addEventListener("load", () => {
 
 			generate.preloader({ status: "start" });
 			console.log(is_order_number)
-			if (isOrder || is_order_number) {
+			if (isOrder || !is_order_number) {
 
 				load.orders({ status: input.value }).then((data) => {
 					wrapper.appendChild(generate.orders(data));
