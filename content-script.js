@@ -483,6 +483,7 @@ window.addEventListener("load", () => {
 				count: count.value,
 				isProcesed: false,
 			});
+			storage.save();
 			count.disabled = true;
 			parent.classList.add("procesed");
 			parent.parentNode.prepend(parent);
@@ -527,7 +528,7 @@ window.addEventListener("load", () => {
 					parent.remove();
 				}
 			});
-
+			storage.save();
 			generate.tasksCount();
 		},
 		addToList: function () {
