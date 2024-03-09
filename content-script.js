@@ -867,7 +867,7 @@ window.addEventListener("load", () => {
 				} else {
 					storage.data.addresses[article].real_goods_count =
 						storage.data.addresses[article].cell_capacity;
-					storage_article.save_area_count = Number(storage_article.last_goods_count) - Number(storage_article.real_goods_count);
+					storage.data.addresses[article].save_area_count = Number(storage.data.addresses[article].last_goods_count) - Number(storage_article.real_goods_count);
 					storage.save();
 				}
 			}
