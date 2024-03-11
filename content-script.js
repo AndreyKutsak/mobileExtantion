@@ -104,12 +104,10 @@ window.addEventListener("load", () => {
 				this.data.is_ignored &&
 				this.data.is_ignored !== data.addresses[article].is_ignored
 			) {
-				console.log("is ignored");
 				this.data.addresses[article].is_ignored = this.data.is_ignored;
-
 				this.save();
 			}
-			console.timeEnd("adres");
+
 			return this.data.addresses[article];
 		},
 	};
@@ -462,6 +460,7 @@ window.addEventListener("load", () => {
 			storage.save();
 			this.parentElement.remove();
 			generate.tasksCount();
+
 		},
 		getToProduction: function () {
 			if (storage.data.production.some((obj) => obj.id === this.dataset.id)) {
@@ -512,6 +511,7 @@ window.addEventListener("load", () => {
 			storage.data[arr][id] = el;
 			itemWraper.parentNode.appendChild(itemWraper);
 			generate.tasksCount();
+			storage.save();
 		},
 		production: function () {
 			generate.preloader({ status: "start" });
@@ -1867,10 +1867,10 @@ window.addEventListener("load", () => {
 						searchInp.match(regExp.cell) &&
 						storage_item_data?.cell !== searchInp
 					) {
-						console.log(storage_item_data?.cell !== searchInp);
+
 						storage.address({ article: item.article, cell: searchInp });
 					}
-					console.log(storage_item_data)
+
 					storage_item_data.last_goods_count = item.baseCount.baseCount;
 					let searchItem = get.elements({
 						el: "div",
@@ -2086,7 +2086,7 @@ window.addEventListener("load", () => {
 											footer.classList.toggle("active-reserve");
 											footer.innerHTML = "";
 											reserve.then((reserve) => {
-												console.log(reserve, generate.reserve(reserve));
+
 												footer.appendChild(generate.reserve(reserve));
 											});
 										},
@@ -2147,6 +2147,8 @@ window.addEventListener("load", () => {
 					contentWraper.classList.add("search-result-wraper");
 					contentWraper.appendChild(searchItem);
 				});
+
+				storage.save();
 				return;
 			}
 			generate.message("Нічого не знайдено!!");
