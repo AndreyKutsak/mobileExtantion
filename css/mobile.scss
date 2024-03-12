@@ -35,6 +35,7 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
   }
+
   .preloader-text {
     position: absolute;
     top: 60%;
@@ -44,6 +45,7 @@ body {
     font-size: 16px;
     font-weight: 600;
     color: $white;
+
     .task-proces-bar {
       position: absolute;
       left: 0%;
@@ -215,22 +217,27 @@ button.html5-qrcode-element {
     .visible {
       max-height: 1000px;
     }
+
     .cell-capacity-display {
       padding: 15px 10px;
+
       .cell-capacity-desc {
         font-family: $descriptions;
         font-size: 14px;
         font-weight: 600;
         margin-bottom: 10px;
       }
+
       .cell-capacity-bar-wraper {
         width: 100%;
+
         .cell-capacity-bar {
           height: 10px;
           background-color: $actionBtnBg;
         }
       }
     }
+
     .cell-capacity-wraper {
       display: flex;
       align-items: center;
@@ -345,6 +352,7 @@ button.html5-qrcode-element {
     }
 
     .item-footer {
+
       .sales-item,
       .deliveries-item,
       .reserve-item {
@@ -471,6 +479,7 @@ button.html5-qrcode-element {
 // wraper
 .wraper {
   padding: 50px 5px;
+
   .message-title {
     font-family: $headers;
     font-size: 26px;
@@ -591,6 +600,7 @@ button.html5-qrcode-element {
       }
 
       .item-footer {
+
         .sales-item,
         .deliveries-item,
         .reserve-item {
@@ -713,6 +723,7 @@ button.html5-qrcode-element {
 
   .list-wraper,
   .compare-wraper {
+
     .list-item,
     .compare-item {
       display: flex;
@@ -1114,15 +1125,18 @@ button.html5-qrcode-element {
       margin-bottom: 30px;
     }
   }
+
   // empty cells wraper
   .empty-cells-wraper {
     padding: 20px 5px 0;
+
     .empty-cells-description {
       font-family: $headers;
       font-size: 16px;
       font-weight: 600;
       margin-bottom: 20px;
     }
+
     .empty-items-wraper {
       .empty-cell-item {
         font-family: $headers;
@@ -1135,6 +1149,7 @@ button.html5-qrcode-element {
         margin-bottom: 15px;
         border-radius: 5px;
         background-color: $white;
+
         .empty-cell-description {
           span {
             display: inline-block;
@@ -1142,6 +1157,7 @@ button.html5-qrcode-element {
           }
         }
       }
+
       .add-btn {
         font-size: 16px;
         text-align: center;
@@ -1152,6 +1168,7 @@ button.html5-qrcode-element {
       }
     }
   }
+
   .search-empty_cells {
     display: block;
 
@@ -1165,6 +1182,7 @@ button.html5-qrcode-element {
     background-color: $actionBtnBg;
   }
 }
+
 // order indicator
 .checking-indicator {
   position: fixed;
@@ -1187,14 +1205,17 @@ button.html5-qrcode-element {
     text-align: center;
     color: $white;
   }
+
   img {
     width: 40px;
     height: 40px;
     margin: 0 10px;
   }
 }
+
 .delivery-wraper {
   padding: 20px 10px;
+
   .delivery-header {
     display: flex;
     justify-content: space-between;
@@ -1203,6 +1224,7 @@ button.html5-qrcode-element {
     background-color: $white;
     margin-bottom: 20px;
     padding: 20px 0;
+
     .delivery-desc {
       font-family: $headers;
       font-size: 14px;
@@ -1211,6 +1233,7 @@ button.html5-qrcode-element {
       padding: 0 10px;
     }
   }
+
   .delivery-item {
     font-family: $headers;
     font-size: 14px;
@@ -1220,11 +1243,13 @@ button.html5-qrcode-element {
     padding: 10px;
     margin-bottom: 15px;
     background-color: $white;
+
     .desc-wrapper {
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
+
     .item-footer {
       .item {
         position: relative;
@@ -1232,6 +1257,7 @@ button.html5-qrcode-element {
         justify-content: space-between;
         align-items: center;
         padding: 5px 0 35px 0;
+
         .item-desc {
           font-size: 12px;
           text-align: center;
@@ -1241,16 +1267,20 @@ button.html5-qrcode-element {
           &:nth-child(1) {
             width: 40%;
           }
+
           &:nth-child(2) {
             width: 20%;
           }
+
           &:nth-child(3) {
             width: 15%;
           }
+
           &:nth-child(4) {
             width: 20%;
           }
         }
+
         .btn {
           font-size: 12px;
           background-color: $actionBtnBg;
@@ -1258,18 +1288,21 @@ button.html5-qrcode-element {
           color: $white;
           border-radius: 5px;
         }
+
         .indicator-wrapper {
           position: absolute;
           bottom: 0;
           left: 0;
           height: 5px;
           width: 100%;
+
           .fill-indicator {
             position: relative;
             height: 5px;
             width: 100%;
             background-color: $actionBtnBg;
             border-radius: 2px;
+
             .indicator-desc {
               position: absolute;
               top: -30px;
@@ -1280,6 +1313,7 @@ button.html5-qrcode-element {
               color: $white;
               border-radius: 4px 4px 0 4px;
               padding: 5px;
+
               &:after {
                 position: absolute;
                 content: "";
@@ -1295,9 +1329,44 @@ button.html5-qrcode-element {
           }
         }
       }
+
       .item-header {
         font-weight: 600;
       }
     }
+  }
+}
+
+.elaborations-list-wrapper {
+  .list-item {
+
+
+    background-color: $white;
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+
+    .item-desc {
+
+      font-family: $descriptions;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px;
+      width: 100%;
+      border-bottom: 2px solid $mainBg;
+
+      span {
+        float: right;
+        display: inline-block;
+        margin-right: auto;
+
+        &::after {
+          content: " ";
+          clear: both;
+        }
+      }
+    }
+
+
   }
 }

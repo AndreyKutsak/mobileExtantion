@@ -104,12 +104,10 @@ window.addEventListener("load", () => {
 				this.data.is_ignored &&
 				this.data.is_ignored !== data.addresses[article].is_ignored
 			) {
-				console.log("is ignored");
 				this.data.addresses[article].is_ignored = this.data.is_ignored;
-
 				this.save();
 			}
-			console.timeEnd("adres");
+
 			return this.data.addresses[article];
 		},
 	};
@@ -153,7 +151,7 @@ window.addEventListener("load", () => {
 		cell: new RegExp("cell", "gi"),
 		orderPlace: /[A-Z]\d*-\d+\.\d+\.\d+/gm,
 		goodsCount:
-			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.)/g,
+			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.|пар\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.|пар\.)/g,
 	};
 	let src = {
 		ico: {
@@ -505,6 +503,7 @@ window.addEventListener("load", () => {
 			storage.save();
 			this.parentElement.remove();
 			generate.tasksCount();
+
 		},
 		getToProduction: function () {
 			if (storage.data.production.some((obj) => obj.id === this.dataset.id)) {
@@ -555,6 +554,7 @@ window.addEventListener("load", () => {
 			storage.data[arr][id] = el;
 			itemWraper.parentNode.appendChild(itemWraper);
 			generate.tasksCount();
+			storage.save();
 		},
 		production: function () {
 			generate.preloader({ status: "start" });
@@ -654,7 +654,9 @@ window.addEventListener("load", () => {
 			}
 		},
 		// elaboration hendlers
-		addElaborationAnswer: function () {
+		addElaborationAnswer: function (data) {
+
+
 			let order = this.dataset.order;
 			let elaborationInp = this.parentNode.querySelector("input");
 			let count = Number(get.num(elaborationInp.value));
@@ -676,12 +678,15 @@ window.addEventListener("load", () => {
 					body: { text: elaborationInp.value, id: order },
 				})
 				.then((result) => {
-					console.log(result.body.textContent);
+
 					if (result.body.textContent === "ok") {
 						this.parentNode.parentNode.classList.add("success");
 						elaborationInp.remove();
 						this.remove();
-						generate.requestCount();
+						generate.requestCount(); 0
+						data.user_answer = elaborationInp.value;
+						storage.data.elaborations[`${get.date().year}.${get.date().month}.${get.date().day}.${get.date().hours}:${get.date().minutes}:${get.date().seconds}`] = data;
+						storage.save();
 					} else {
 						alert("Помилка Щсь пішло не так!!");
 					}
@@ -766,10 +771,10 @@ window.addEventListener("load", () => {
 				return;
 			}
 			let isOrder = wrapper.querySelector(".orders-wraper");
-
+			console.log(input.value[0])
 			generate.preloader({ status: "start" });
 			console.log(is_order_number)
-			if (isOrder || !is_order_number) {
+			if (isOrder || !is_order_number && input.value[0] != "0") {
 
 				load.orders({ status: input.value }).then((data) => {
 					wrapper.appendChild(generate.orders(data));
@@ -910,7 +915,7 @@ window.addEventListener("load", () => {
 				} else {
 					storage.data.addresses[article].real_goods_count =
 						storage.data.addresses[article].cell_capacity;
-					storage_article.save_area_count = Number(storage_article.last_goods_count) - Number(storage_article.real_goods_count);
+					storage.data.addresses[article].save_area_count = Number(storage.data.addresses[article].last_goods_count) - Number(storage.data.addresses[article].real_goods_count);
 					storage.save();
 				}
 			}
@@ -1108,6 +1113,104 @@ window.addEventListener("load", () => {
 				text: data,
 			});
 			return element;
+		},
+		elaborations_list: function () {
+			let item_count = 1;
+			contentWraper.innerHTML = "";
+			let elaborations_list = get.elements({ el: "div", className: "elaborations-list-wrapper" });
+			if (Object.keys(storage.data.elaborations).length > 0) {
+				Object.values(storage.data.elaborations).forEach((item, index) => {
+					elaborations_list.appendChild(get.elements({
+						el: "div",
+						className: "list-item",
+						children: [{
+							el: "p",
+							className: "item-desc count",
+							text: "№",
+							children: [{
+								el: "span",
+								text: String(item_count),
+							}]
+
+						},
+						{
+							el: "p",
+							className: "item-desc order",
+							text: "Номер замовлення:",
+							children: [
+								{
+									el: "span",
+									text: item.order
+								}
+							]
+						},
+						{
+							el: "p",
+							className: "item-desc manager",
+							text: "Менеджер:",
+							children: [
+								{
+									el: "span",
+									text: item.manager
+								}
+							]
+						},
+						{
+							el: "p",
+							className: "item-desc date",
+							text: "Дата:",
+							children: [
+								{
+									el: "span",
+									text: Object.keys(storage.data.elaborations)[index]
+								}
+							]
+
+						}, {
+							el: "p",
+							className: "item-desc artilce",
+							text: "Артикул:",
+							children: [{
+								el: "span",
+								text: item.search
+							}]
+
+						}, {
+							el: "p",
+							className: "item-desc base-quantity",
+							text: "Кількість По базі",
+							children: [{
+								el: "span",
+								text: String(item.count.baseCount)
+							}]
+
+						},
+						{
+							el: "p",
+							className: "item-desc reserve-quantity",
+							text: "Зарезервовано:",
+							children: [{
+								el: "span",
+								text: String(item.count.orderCount)
+							}]
+
+						}, {
+							el: "p",
+							className: "item-desc user-answer",
+							text: "Відповідь:",
+							children: [{
+								el: "span",
+								text: item.user_answer || `не збережено`
+							}]
+
+						}],
+					}))
+					item_count++;
+				})
+				contentWraper.appendChild(elaborations_list)
+				return;
+			}
+			contentWraper.appendChild(generate.message("Ще не було уточнень"));
 		},
 		preloader: function (data) {
 			let element;
@@ -1976,10 +2079,10 @@ window.addEventListener("load", () => {
 						searchInp.match(regExp.cell) &&
 						storage_item_data?.cell !== searchInp
 					) {
-						console.log(storage_item_data?.cell !== searchInp);
+
 						storage.address({ article: item.article, cell: searchInp });
 					}
-					console.log(storage_item_data)
+
 					storage_item_data.last_goods_count = item.baseCount.baseCount;
 					let searchItem = get.elements({
 						el: "div",
@@ -2195,7 +2298,7 @@ window.addEventListener("load", () => {
 											footer.classList.toggle("active-reserve");
 											footer.innerHTML = "";
 											reserve.then((reserve) => {
-												console.log(reserve, generate.reserve(reserve));
+
 												footer.appendChild(generate.reserve(reserve));
 											});
 										},
@@ -2256,6 +2359,8 @@ window.addEventListener("load", () => {
 					contentWraper.classList.add("search-result-wraper");
 					contentWraper.appendChild(searchItem);
 				});
+
+				storage.save();
 				return;
 			}
 			generate.message("Нічого не знайдено!!");
@@ -2429,7 +2534,7 @@ window.addEventListener("load", () => {
 													{ order: get.orderId(item.order) },
 													{ count: item.count.baseCount },
 												],
-												hendler: hendlers.addElaborationAnswer,
+												hendler: function () { hendlers.addElaborationAnswer.call(this, item) },
 												children: [
 													{
 														el: "img",
@@ -2715,6 +2820,8 @@ window.addEventListener("load", () => {
 							className: "history-item elaboration",
 							text: `Відбито Уточнень: ${Object.keys(storage.data.elaborations).length
 								}`,
+							event: "click",
+							hendler: generate.elaborations_list,
 						},
 						{
 							el: "div",
@@ -4004,22 +4111,5 @@ window.addEventListener("load", () => {
 	document.body.appendChild(btnWraper);
 	generate.requestCount();
 	generate.tasksCount();
-});
-function redactAdmComment(goods_id, id, act) {
-	var comDiv = $('#adm_comm' + goods_id + '_' + id);
-	$('#loader').show();
-	if (act == 2) {
-		var newText = $('#newComm' + goods_id + '_' + id).val();
-		$.post("https://baza.m-p.in.ua/ajax/redactAdmComm.php", { goods_id: goods_id, id: id, act: act, text: newText }, function (data) {
-			comDiv.html(data);
-			$('#loader').hide();
-		});
-	}
-	else {
-		$.post("https://baza.m-p.in.ua/ajax/redactAdmComm.php", { goods_id: goods_id, id: id, act: act }, function (data) {
-			comDiv.html(data);
-			$('#loader').hide();
-		});
-	}
 
-}
+});

@@ -1181,4 +1181,28 @@ button.html5-qrcode-element {
 }
 .delivery-wraper .delivery-item .item-footer .item-header {
   font-weight: 600;
+}
+
+.elaborations-list-wrapper .list-item {
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+}
+.elaborations-list-wrapper .list-item .item-desc {
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px;
+  width: 100%;
+  border-bottom: 2px solid #d7e3f2;
+}
+.elaborations-list-wrapper .list-item .item-desc span {
+  float: right;
+  display: inline-block;
+  margin-right: auto;
+}
+.elaborations-list-wrapper .list-item .item-desc span::after {
+  content: " ";
+  clear: both;
 }/*# sourceMappingURL=mobile.css.map */
