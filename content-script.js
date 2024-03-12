@@ -136,6 +136,7 @@ window.addEventListener("load", () => {
 		prihod_item: "https://baza.m-p.in.ua/ajax/nakladnaya_cont.php",
 		seal_number: "https://baza.m-p.in.ua/ajax/save_warranty.php",
 		add_coment: "https://baza.m-p.in.ua/ajax/add_comment_order.php",
+		add_goods_comment: "https://baza.m-p.in.ua/ajax/redactAdmComm.php",
 	};
 	//regulars expression
 	let regExp = {
@@ -398,6 +399,48 @@ window.addEventListener("load", () => {
 			let seal_number = this.value;
 			console.log({ order: order_num, goods: seal_goods, warranty: seal_number })
 			load.seal_number({ body: { order: order_num, goods: seal_goods, warranty: seal_number } })
+		},
+		add_seal_number: function () {
+			let inp = this.parentElement.querySelector(".seal_inp");
+			let comment_area = document.querySelector("textarea.order_comment");
+			let comment_btn = document.querySelector("button.send_comment");
+			if (inp.value.length == 0) {
+				alert("Введіть пломбу!!");
+				return;
+			}
+			console.log(comment_area, inp, comment_btn)
+			comment_area.value = inp.value;
+			comment_btn.click();
+
+		},
+		send_order_comment: function (e) {
+			e.preventDefault();
+			let parrent = this.parentElement;
+			let textarea = parrent.querySelector("textarea");
+			let order_id = this.dataset.order_id;
+			if (textarea.value.length < 2) {
+				alert("Введіть коментар");
+				return;
+			};
+			if (!order_id) {
+				alert("Сталася помилка пад час відправки коментаря");
+				return
+			}
+			load.add_order_comment({ body: { order: order_id, texts: textarea.value } })
+
+		},
+		add_good_comment: function (e) {
+			e.preventDefault();
+			// let inp = this.querySelector(".good_comment_inp");
+			// let btn = this.querySelector(".send_comment_btn");
+			// if (!btn.classList.contains("active")) {
+			// 	btn.classList.add("active");
+			// 	inp.classList.add("active_inp");
+			// 	return;
+			// }
+			// btn.classList.remove("active");
+			// inp.classList.remove("active_inp");
+			// inp.value = ""
 		},
 		add_to_list: function (item) {
 			let article = this.dataset.article;
@@ -782,7 +825,7 @@ window.addEventListener("load", () => {
 				document.querySelectorAll(".row-footer .order-wraper,.item-preloader")
 			);
 			let id = this.dataset.id;
-			if (e.target.tagName === 'INPUT' && itemFooter.contains(e.target)) {
+			if (itemFooter.contains(e.target)) {
 				return;
 			}
 			items.forEach((item) => {
@@ -1546,6 +1589,7 @@ window.addEventListener("load", () => {
 			return generate.message("Немає замовлень.");
 		},
 		order: function (data) {
+			console.log(data)
 			let orderWraper = get.elements({ el: "div", className: "order-wraper" });
 			if (data.length > 0) {
 				data.forEach((item) => {
@@ -1555,13 +1599,21 @@ window.addEventListener("load", () => {
 					if (item.is_need_seal) {
 						options_inp.push({
 							el: "input",
+							className: "seal_inp",
 							type: "text",
 							placeholder: "№ пломби",
 							value: seal_number,
 							event: "input",
 							data: [{ order_num: item.seal_params[0], }, { seal_goods: item.seal_params[1], }],
 							hendler: hendlers.send_seal_number
-						});
+						},
+							{
+								el: "button",
+								className: "send_seal_btn",
+								event: "click",
+								hendler: hendlers.add_seal_number,
+
+							});
 					}
 					storage.address({
 						article: item.articleAndPlace.article,
@@ -1574,51 +1626,108 @@ window.addEventListener("load", () => {
 							{
 								el: "p",
 								className: "manager_desc",
-								text: item.order_manager
-							},
-							{
-								el: "img",
-								className: "goods-image",
-								src: item.imgSrc,
-								aly: item.positionName,
+								text: `Менеджер: ${item.order_manager}`
 							},
 							{
 								el: "div",
-								className: "text-wraper",
+								className: "main_item_desc",
+								children: [{
+									el: "img",
+									className: "goods-image",
+									src: item.imgSrc,
+									alt: item.positionName,
+								},
+								{
+									el: "div",
+									className: "text-wraper",
+									children: [
+										{
+											el: "p",
+											className: "order-article success",
+											children: [
+												{
+													el: "span",
+													className: "article",
+													text: item.articleAndPlace.article,
+												},
+												{
+													el: "span",
+													className: "place",
+													text: item.articleAndPlace.place,
+												},
+											],
+										},
+										{
+											el: "p",
+											className: "position-name",
+											text: item.positionName,
+										},
+										{
+											el: "form",
+											className: "good_comment",
+											event: "submit",
+											children: [
+												{
+													el: "div", className: "inp-wrapper"
+													, children: [
+														// {
+														// 	el: "input",
+														// 	type: "text",
+														// 	placeholder: "Коментар",
+														// 	className: "good_comment_inp",
+														// }, {
+														// 	el: "button",
+														// 	className: "send_comment_btn",
+														// 	text: "",
+														// 	type: "submit",
+														// }
+													]
+												},
+												{
+													el: "div",
+													className: "options_wrapper",
+													children: options_inp,
+												},
+											],
+											hendler: hendlers.add_good_comment
+										},
+										{
+											el: "p",
+											className: "position-quality success",
+											text: item.quality,
+										},]
+								}
+
+								],
+							},
+							{
+								el: "form",
+								className: "order_comment_form",
+								event: "submit",
+								data: [{
+									order_id: item.order_id
+								}],
+								hendler: hendlers.send_order_comment,
 								children: [
 									{
-										el: "p",
-										className: "order-article success",
-										children: [
-											{
-												el: "span",
-												className: "article",
-												text: item.articleAndPlace.article,
-											},
-											{
-												el: "span",
-												className: "place",
-												text: item.articleAndPlace.place,
-											},
-										],
-									},
-									{
-										el: "p",
-										className: "position-name",
-										text: item.positionName,
-									}, {
-										el: "div",
-										className: "options_wrapper",
-										children: options_inp,
+										el: "textarea",
+										className: "order_comment",
+										placeholder: "Коментар",
 
 									},
 									{
-										el: "p",
-										className: "position-quality success",
-										text: item.quality,
-									},
-								],
-							},
+										el: "button",
+										className: "send_comment",
+										children: [
+											{
+												el: "img",
+												src: get.url(src.ico.send),
+												alt: "send icon"
+											}
+										]
+									}
+								]
+							}
 						],
 					});
 					orderWraper.appendChild(orderItem);
@@ -2993,11 +3102,23 @@ window.addEventListener("load", () => {
 				return [];
 			}
 		},
-		add_comment: function () {
+		add_good_comment: function (data) {
+			//let add_result = this.fetch({})
+		},
+		add_order_comment: function (req_data) {
 			let add_comment_result = this.fetch({
 				url: url.add_coment,
 				method: "POST",
-				body: data.body
+				body: req_data.body
+			});
+			add_comment_result.then((data) => {
+
+				if (!data.body.textContent.includes(req_data.body.texts)) {
+					alert("Помилка збереження коментаря");
+					return;
+				}
+				let textarea = document.querySelector("textarea.order_comment");
+				textarea.value = "";
 			})
 		},
 		seal_number: function (data) {
@@ -3178,6 +3299,7 @@ window.addEventListener("load", () => {
 					}
 
 					let rowData = {};
+
 					let order_manager = order.querySelectorAll("div")[0].textContent.trim();
 					let is_need_seal = td[4].querySelectorAll("input[type='text']")[2];
 					let seal_number = 0;
@@ -3197,6 +3319,7 @@ window.addEventListener("load", () => {
 					Array.from(td[2].children).forEach((child) => {
 						child.textContent = "";
 					});
+					rowData.order_id = data.id;
 					rowData.seal_params = seal_params;
 					rowData.is_need_seal = is_need_seal;
 					rowData.seal_number = seal_number;
@@ -3882,3 +4005,21 @@ window.addEventListener("load", () => {
 	generate.requestCount();
 	generate.tasksCount();
 });
+function redactAdmComment(goods_id, id, act) {
+	var comDiv = $('#adm_comm' + goods_id + '_' + id);
+	$('#loader').show();
+	if (act == 2) {
+		var newText = $('#newComm' + goods_id + '_' + id).val();
+		$.post("https://baza.m-p.in.ua/ajax/redactAdmComm.php", { goods_id: goods_id, id: id, act: act, text: newText }, function (data) {
+			comDiv.html(data);
+			$('#loader').hide();
+		});
+	}
+	else {
+		$.post("https://baza.m-p.in.ua/ajax/redactAdmComm.php", { goods_id: goods_id, id: id, act: act }, function (data) {
+			comDiv.html(data);
+			$('#loader').hide();
+		});
+	}
+
+}
