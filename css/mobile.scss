@@ -352,7 +352,6 @@ button.html5-qrcode-element {
     }
 
     .item-footer {
-
       .sales-item,
       .deliveries-item,
       .reserve-item {
@@ -600,7 +599,6 @@ button.html5-qrcode-element {
       }
 
       .item-footer {
-
         .sales-item,
         .deliveries-item,
         .reserve-item {
@@ -723,7 +721,6 @@ button.html5-qrcode-element {
 
   .list-wraper,
   .compare-wraper {
-
     .list-item,
     .compare-item {
       display: flex;
@@ -950,29 +947,29 @@ button.html5-qrcode-element {
                 color: $white;
               }
             }
-            .order_comment_form {
-              position: relative;
-              width: 100%;
-              padding: 15px 10px;
-              textarea {
-                border-radius: 5px;
-                padding: 10px;
-                outline: none;
-                border: 2px solid $itemShadow;
-                width: 100%;
-                height: 150px;
-              }
-              .send_comment {
-                position: absolute;
-                top: 50%;
-                right: 15px;
-                transform: translate(0, -50%);
-                border: none;
-                border-radius: 5px;
-                background-color: $actionBtnBg;
-                padding: 10px;
-              }
-            }
+          }
+        }
+        .order_comment_form {
+          position: relative;
+          width: 100%;
+          padding: 15px 10px;
+          textarea {
+            border-radius: 5px;
+            padding: 10px;
+            outline: none;
+            border: 2px solid $itemShadow;
+            width: 100%;
+            height: 150px;
+          }
+          .send_comment {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translate(0, -50%);
+            border: none;
+            border-radius: 5px;
+            background-color: $actionBtnBg;
+            padding: 10px;
           }
         }
       }
@@ -1339,15 +1336,12 @@ button.html5-qrcode-element {
 
 .elaborations-list-wrapper {
   .list-item {
-
-
     background-color: $white;
     border-radius: 5px;
     padding: 10px 15px;
     margin-bottom: 15px;
 
     .item-desc {
-
       font-family: $descriptions;
       font-size: 12px;
       font-weight: 600;
@@ -1366,7 +1360,5 @@ button.html5-qrcode-element {
         }
       }
     }
-
-
   }
 }

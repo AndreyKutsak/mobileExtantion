@@ -406,9 +406,12 @@ window.addEventListener("load", () => {
 				alert("Введіть пломбу!!");
 				return;
 			}
-			console.log(comment_area, inp, comment_btn)
+			if (comment_area.value.length > 0) {
+				comment_area.value += ',' + inp.value;
+				return;
+			}
 			comment_area.value = inp.value;
-			comment_btn.click();
+
 
 		},
 		send_order_comment: function (e) {
@@ -1692,13 +1695,14 @@ window.addEventListener("load", () => {
 			return generate.message("Немає замовлень.");
 		},
 		order: function (data) {
-			console.log(data)
+			let order_id;
 			let orderWraper = get.elements({ el: "div", className: "order-wraper" });
 			if (data.length > 0) {
 				data.forEach((item) => {
+					order_id = item.order_id;
 					let options_inp = [];
 					let seal_number = item.seal_number || "";
-					console.log(seal_number)
+
 					if (item.is_need_seal) {
 						options_inp.push({
 							el: "input",
@@ -1772,19 +1776,7 @@ window.addEventListener("load", () => {
 											children: [
 												{
 													el: "div", className: "inp-wrapper"
-													, children: [
-														// {
-														// 	el: "input",
-														// 	type: "text",
-														// 	placeholder: "Коментар",
-														// 	className: "good_comment_inp",
-														// }, {
-														// 	el: "button",
-														// 	className: "send_comment_btn",
-														// 	text: "",
-														// 	type: "submit",
-														// }
-													]
+
 												},
 												{
 													el: "div",
@@ -1801,40 +1793,41 @@ window.addEventListener("load", () => {
 										},]
 								}
 
-								],
-							},
-							{
-								el: "form",
-								className: "order_comment_form",
-								event: "submit",
-								data: [{
-									order_id: item.order_id
-								}],
-								hendler: hendlers.send_order_comment,
-								children: [
-									{
-										el: "textarea",
-										className: "order_comment",
-										placeholder: "Коментар",
-
-									},
-									{
-										el: "button",
-										className: "send_comment",
-										children: [
-											{
-												el: "img",
-												src: get.url(src.ico.send),
-												alt: "send icon"
-											}
-										]
-									}
 								]
-							}
+							},
+
 						],
 					});
 					orderWraper.appendChild(orderItem);
 				});
+				orderWraper.appendChild(get.elements({
+					el: "form",
+					className: "order_comment_form",
+					event: "submit",
+					data: [{
+						order_id: order_id
+					}],
+					hendler: hendlers.send_order_comment,
+					children: [
+						{
+							el: "textarea",
+							className: "order_comment",
+							placeholder: "Коментар",
+
+						},
+						{
+							el: "button",
+							className: "send_comment",
+							children: [
+								{
+									el: "img",
+									src: get.url(src.ico.send),
+									alt: "send icon"
+								}
+							]
+						}
+					]
+				}));
 				return orderWraper;
 			}
 			return generate.message("Сталася помилка під час отримання інформації.");
@@ -3225,6 +3218,7 @@ window.addEventListener("load", () => {
 					return;
 				}
 				let textarea = document.querySelector("textarea.order_comment");
+
 				textarea.value = "";
 			})
 		},

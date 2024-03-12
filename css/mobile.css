@@ -857,12 +857,12 @@ button.html5-qrcode-element {
   border-radius: 5px;
   color: #fff;
 }
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .order_comment_form {
+.wraper .orders-wraper .order-row .row-footer .order_comment_form {
   position: relative;
   width: 100%;
   padding: 15px 10px;
 }
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .order_comment_form textarea {
+.wraper .orders-wraper .order-row .row-footer .order_comment_form textarea {
   border-radius: 5px;
   padding: 10px;
   outline: none;
@@ -870,7 +870,7 @@ button.html5-qrcode-element {
   width: 100%;
   height: 150px;
 }
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .order_comment_form .send_comment {
+.wraper .orders-wraper .order-row .row-footer .order_comment_form .send_comment {
   position: absolute;
   top: 50%;
   right: 15px;
