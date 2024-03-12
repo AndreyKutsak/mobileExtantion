@@ -1122,7 +1122,8 @@ window.addEventListener("load", () => {
 			contentWraper.innerHTML = "";
 			let elaborations_list = get.elements({ el: "div", className: "elaborations-list-wrapper" });
 			if (Object.keys(storage.data.elaborations).length > 0) {
-				Object.values(storage.data.elaborations).forEach((item, index) => {
+
+				Object.values(storage.data.elaborations).reverse().forEach((item, index) => {
 					elaborations_list.appendChild(get.elements({
 						el: "div",
 						className: "list-item",
@@ -2797,6 +2798,13 @@ window.addEventListener("load", () => {
 		},
 		history: function () {
 			contentWraper.innerHTML = "";
+			let today_elaboration_count = 0;
+			Object.keys(storage.data.elaborations).forEach((item) => {
+				if (item.includes(`${get.date().year}.${get.date().month}.${get.date().day}`)) {
+					today_elaboration_count++;
+
+				}
+			})
 			contentWraper.appendChild(
 				get.elements({
 					el: "div",
@@ -2812,7 +2820,7 @@ window.addEventListener("load", () => {
 							el: "div",
 							className: "history-item elaboration",
 							text: `Відбито Уточнень: ${Object.keys(storage.data.elaborations).length
-								}`,
+								}(${today_elaboration_count})`,
 							event: "click",
 							hendler: generate.elaborations_list,
 						},
