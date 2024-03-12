@@ -1083,29 +1083,83 @@ window.addEventListener("load", () => {
 						children: [{
 							el: "p",
 							className: "item-desc count",
-							text: String(item_count),
-						}, {
-							el: "p",
-							classList: "item-desc date",
-							text: Object.keys(storage.data.elaborations)[index]
-						}, {
-							el: "p",
-							className: "item-desc artilce",
-							text:
-								item.search
-						}, {
-							el: "p",
-							className: "item-desc base-quantity",
-							text: String(item.count.baseCount)
+							text: "№",
+							children: [{
+								el: "span",
+								text: String(item_count),
+							}]
+
 						},
 						{
 							el: "p",
-							classList: "item-desc reserve-quantity",
-							text: String(item.count.orderCount)
+							className: "item-desc order",
+							text: "Номер замовлення:",
+							children: [
+								{
+									el: "span",
+									text: item.order
+								}
+							]
+						},
+						{
+							el: "p",
+							className: "item-desc manager",
+							text: "Менеджер:",
+							children: [
+								{
+									el: "span",
+									text: item.manager
+								}
+							]
+						},
+						{
+							el: "p",
+							className: "item-desc date",
+							text: "Дата:",
+							children: [
+								{
+									el: "span",
+									text: Object.keys(storage.data.elaborations)[index]
+								}
+							]
+
+						}, {
+							el: "p",
+							className: "item-desc artilce",
+							text: "Артикул:",
+							children: [{
+								el: "span",
+								text: item.search
+							}]
+
+						}, {
+							el: "p",
+							className: "item-desc base-quantity",
+							text: "Кількість По базі",
+							children: [{
+								el: "span",
+								text: String(item.count.baseCount)
+							}]
+
+						},
+						{
+							el: "p",
+							className: "item-desc reserve-quantity",
+							text: "Зарезервовано:",
+							children: [{
+								el: "span",
+								text: String(item.count.orderCount)
+							}]
+
 						}, {
 							el: "p",
 							className: "item-desc user-answer",
-							text: item.user_answer || `не збережено`
+							text: "Відповідь:",
+							children: [{
+								el: "span",
+								text: item.user_answer || `не збережено`
+							}]
+
 						}],
 					}))
 					item_count++;
