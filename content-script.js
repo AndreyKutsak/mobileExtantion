@@ -150,7 +150,7 @@ window.addEventListener("load", () => {
 		cell: new RegExp("cell", "gi"),
 		orderPlace: /[A-Z]\d*-\d+\.\d+\.\d+/gm,
 		goodsCount:
-			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.)/g,
+			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.|пар\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.|пар\.)/g,
 	};
 	let src = {
 		ico: {
@@ -611,7 +611,9 @@ window.addEventListener("load", () => {
 			}
 		},
 		// elaboration hendlers
-		addElaborationAnswer: function () {
+		addElaborationAnswer: function (data) {
+
+
 			let order = this.dataset.order;
 			let elaborationInp = this.parentNode.querySelector("input");
 			let count = Number(get.num(elaborationInp.value));
@@ -639,6 +641,8 @@ window.addEventListener("load", () => {
 						elaborationInp.remove();
 						this.remove();
 						generate.requestCount();
+						storage.data.elaborations[`${get.date().year}.${get.date().month}.${get.date().day}.${get.date().hours}:${get.date().minutes}:${get.date().seconds}`] = data;
+						storage.save();
 					} else {
 						alert("Помилка Щсь пішло не так!!");
 					}
@@ -2322,7 +2326,7 @@ window.addEventListener("load", () => {
 													{ order: get.orderId(item.order) },
 													{ count: item.count.baseCount },
 												],
-												hendler: hendlers.addElaborationAnswer,
+												hendler: function () { hendlers.addElaborationAnswer.call(this, item) },
 												children: [
 													{
 														el: "img",
@@ -3883,4 +3887,5 @@ window.addEventListener("load", () => {
 	document.body.appendChild(btnWraper);
 	generate.requestCount();
 	generate.tasksCount();
+
 });
