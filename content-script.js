@@ -728,10 +728,10 @@ window.addEventListener("load", () => {
 				return;
 			}
 			let isOrder = wrapper.querySelector(".orders-wraper");
-
+			console.log(input.value[0])
 			generate.preloader({ status: "start" });
 			console.log(is_order_number)
-			if (isOrder || !is_order_number) {
+			if (isOrder || !is_order_number && input.value[0] != "0") {
 
 				load.orders({ status: input.value }).then((data) => {
 					wrapper.appendChild(generate.orders(data));
