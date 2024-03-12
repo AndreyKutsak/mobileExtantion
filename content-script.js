@@ -635,12 +635,13 @@ window.addEventListener("load", () => {
 					body: { text: elaborationInp.value, id: order },
 				})
 				.then((result) => {
-					console.log(result.body.textContent);
+
 					if (result.body.textContent === "ok") {
 						this.parentNode.parentNode.classList.add("success");
 						elaborationInp.remove();
 						this.remove();
-						generate.requestCount();
+						generate.requestCount(); 0
+						data.user_answer = elaborationInp.value;
 						storage.data.elaborations[`${get.date().year}.${get.date().month}.${get.date().day}.${get.date().hours}:${get.date().minutes}:${get.date().seconds}`] = data;
 						storage.save();
 					} else {
@@ -1069,6 +1070,50 @@ window.addEventListener("load", () => {
 				text: data,
 			});
 			return element;
+		},
+		elaborations_list: function () {
+			let item_count = 1;
+			contentWraper.innerHTML = "";
+			let elaborations_list = get.elements({ el: "div", className: "elaborations-list-wrapper" });
+			if (Object.keys(storage.data.elaborations).length > 0) {
+				Object.values(storage.data.elaborations).forEach((item, index) => {
+					elaborations_list.appendChild(get.elements({
+						el: "div",
+						className: "list-item",
+						children: [{
+							el: "p",
+							className: "item-desc count",
+							text: String(item_count),
+						}, {
+							el: "p",
+							classList: "item-desc date",
+							text: Object.keys(storage.data.elaborations)[index]
+						}, {
+							el: "p",
+							className: "item-desc artilce",
+							text:
+								item.search
+						}, {
+							el: "p",
+							className: "item-desc base-quantity",
+							text: String(item.count.baseCount)
+						},
+						{
+							el: "p",
+							classList: "item-desc reserve-quantity",
+							text: String(item.count.orderCount)
+						}, {
+							el: "p",
+							className: "item-desc user-answer",
+							text: item.user_answer || `не збережено`
+						}],
+					}))
+					item_count++;
+				})
+				contentWraper.appendChild(elaborations_list)
+				return;
+			}
+			contentWraper.appendChild(generate.message("Ще не було уточнень"));
 		},
 		preloader: function (data) {
 			let element;
@@ -2612,6 +2657,8 @@ window.addEventListener("load", () => {
 							className: "history-item elaboration",
 							text: `Відбито Уточнень: ${Object.keys(storage.data.elaborations).length
 								}`,
+							event: "click",
+							hendler: generate.elaborations_list,
 						},
 						{
 							el: "div",
