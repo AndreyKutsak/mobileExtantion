@@ -178,26 +178,20 @@ window.addEventListener("load", () => {
 		elaboration_time: function (data) {
 			let date = get.date();
 			let hours = date.hours;
-			let minute = date.minutes;
-			let seconds = date.seconds;
+			let minutes = date.minutes;
 			var match = data.match(regExp.time_from_str);
-			console.log(date, hours, minute)
-
 			if (match) {
-				if (match.length == 1) {
-					minute = get.date().minutes - (Number(minute) - Number(match[0]));
-					console.log(minute)
-				}
-				else if (match.length == 2) {
-					hours = Number(hours) - Number(match[0]);
-					minute = +(Number(minute) - Number(match[1]))
-					console.log(hours, minute)
-				}
-				console.log("Знайдено число:", match);
-			} else {
-				console.log("Число не знайдено.");
-			}
 
+				if (match.length === 1) {
+
+					minutes -= parseInt(match[0]);
+				} else if (match.length === 2) {
+
+					hours -= parseInt(match[0]);
+					minutes -= parseInt(match[1]);
+				}
+			}
+			return { hours: hours, minutes: minutes }
 
 		},
 		params_for_seal: function (str) {
@@ -684,12 +678,11 @@ window.addEventListener("load", () => {
 		},
 		// elaboration hendlers
 		addElaborationAnswer: function (data) {
-
-
 			let order = this.dataset.order;
 			let elaborationInp = this.parentNode.querySelector("input");
 			let count = Number(get.num(elaborationInp.value));
 			let baseCount = this.dataset.count;
+			let delay = { hours: parseInt(data.time.hours) - get.date().hours, minutes: parseInt(data.time.minutes) - get.date().minutes }
 			if (elaborationInp.value === "") {
 				alert("Введи коректну відповідь!");
 				return;
@@ -714,6 +707,7 @@ window.addEventListener("load", () => {
 						this.remove();
 						generate.requestCount(); 0
 						data.user_answer = elaborationInp.value;
+						data.delay = delay;
 						storage.data.elaborations[`${get.date().year}.${get.date().month}.${get.date().day}.${get.date().hours}:${get.date().minutes}:${get.date().seconds}`] = data;
 						storage.save();
 					} else {
@@ -1196,6 +1190,12 @@ window.addEventListener("load", () => {
 								}
 							]
 
+						}, { el: "p", className: "item-desc", text: "Час створення уточнекння:", children: [{ el: "span", text: `${item?.time?.hours ?? "00"}:${item?.time?.minutes ?? "00"}` }] },
+						{
+							el: "p", className: "item-desc delay", text: "Відбито за:", children: [{
+								el: "span",
+								text: `${item?.delay?.hours ?? "00"}:${item?.delay?.minutes ?? "00"}`,
+							}]
 						}, {
 							el: "p",
 							className: "item-desc artilce",
@@ -1224,7 +1224,8 @@ window.addEventListener("load", () => {
 								text: String(item.count.orderCount)
 							}]
 
-						}, {
+						},
+						{
 							el: "p",
 							className: "item-desc user-answer",
 							text: "Відповідь:",
@@ -1995,7 +1996,7 @@ window.addEventListener("load", () => {
 				Object.keys(storage.data.listArray)
 					.reverse()
 					.forEach((item) => {
-						console.log(storage.data.listArray[item].addingDate);
+
 						let isProcesedText = "Обробити",
 							isProcesedClass = ``;
 						if (storage.data.listArray[item].isProcesed) {
@@ -2458,6 +2459,22 @@ window.addEventListener("load", () => {
 										text: item.positionName,
 									},
 								],
+							},
+							{
+								el: "div",
+								className: "table-row",
+								children: [
+									{
+										el: "p",
+										className: "table-text",
+										text: "Час"
+
+									}, {
+										el: "p",
+										className: "table-text",
+										text: `${item.time.hours || "00"}:${item.time.minutes || "00"}`
+									}
+								]
 							},
 							{
 								el: "div",
@@ -3586,6 +3603,7 @@ window.addEventListener("load", () => {
 					elaborationData.place = cell[3].textContent.trim();
 					elaborationData.type = cell[4].textContent.trim();
 					elaborationData.quality = cell[5].textContent.trim();
+					elaborationData.time = get.elaboration_time(cell[1].querySelector("span").title);
 					elaborationData.search = get.elaborationArtice(
 						cell[2].textContent.trim()
 					);
