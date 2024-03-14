@@ -139,6 +139,7 @@ window.addEventListener("load", () => {
 	//regulars expression
 	let regExp = {
 		id: /\((\d+)\)/,
+		time_from_str: /\d+(?=:|\b)/g,
 		elaboration: /Є уточнення: (\d+) шт\./,
 		question: /Є питання: (\d+) шт\./,
 		article: /\s(\d+\.\d+\.\d+)/,
@@ -174,6 +175,31 @@ window.addEventListener("load", () => {
 		cell_goods_count: 1000 * 30 * 60,
 	};
 	let get = {
+		elaboration_time: function (data) {
+			let date = get.date();
+			let hours = date.hours;
+			let minute = date.minutes;
+			let seconds = date.seconds;
+			var match = data.match(regExp.time_from_str);
+			console.log(date, hours, minute)
+
+			if (match) {
+				if (match.length == 1) {
+					minute = get.date().minutes - (Number(minute) - Number(match[0]));
+					console.log(minute)
+				}
+				else if (match.length == 2) {
+					hours = Number(hours) - Number(match[0]);
+					minute = +(Number(minute) - Number(match[1]))
+					console.log(hours, minute)
+				}
+				console.log("Знайдено число:", match);
+			} else {
+				console.log("Число не знайдено.");
+			}
+
+
+		},
 		params_for_seal: function (str) {
 			let matches = str.match(regExp.params);
 			let params = [];
@@ -3078,6 +3104,8 @@ window.addEventListener("load", () => {
 				item_footer.innerHTML = "";
 				let store = storage.data;
 				data.forEach((item) => {
+
+
 					let item_article = store?.id[item.id] || 0;
 					console.log(item_article);
 					item_wraper.appendChild(
@@ -3104,8 +3132,10 @@ window.addEventListener("load", () => {
 									el: "button",
 									className: "btn fill_cell_btn",
 									text: "Заповнити комірку",
+
+									data: [{ article: item_article }],
 									event: "click",
-									hendler: hendlers.show_delivery_item,
+									hendler: hendlers.fill_cell,
 								},
 								{
 									el: "div",
@@ -4113,5 +4143,7 @@ window.addEventListener("load", () => {
 	document.body.appendChild(btnWraper);
 	generate.requestCount();
 	generate.tasksCount();
+	get.elaboration_time("2 хвилини тому")
+	get.elaboration_time("вчора 15:06")
 
 });
