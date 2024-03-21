@@ -683,6 +683,7 @@ window.addEventListener("load", () => {
 			let count = Number(get.num(elaborationInp.value));
 			let baseCount = this.dataset.count;
 			let delay = { hours: parseInt(data.time.hours) - get.date().hours, minutes: parseInt(data.time.minutes) - get.date().minutes }
+
 			if (elaborationInp.value === "") {
 				alert("Введи коректну відповідь!");
 				return;
@@ -2891,7 +2892,7 @@ window.addEventListener("load", () => {
 						{
 							el: "div",
 							className: "history-item get_cells",
-							text: "Отримати всі збережені ID товару",
+							text: `Отримати ID товаів збережено ${Object.keys(storage.data.id).length}/${Object.keys(storage.data.addresses).length}`,
 							event: "click",
 							hendler: hendlers.get_id,
 						},
