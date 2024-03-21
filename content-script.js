@@ -175,6 +175,30 @@ window.addEventListener("load", () => {
 		cell_goods_count: 1000 * 30 * 60,
 	};
 	let get = {
+		LocalStorageUsage: function () {
+
+			var totalSpace = (1024 * 1024 * 5);
+			var usedSpace = 0;
+
+
+			for (var i = 0; i < localStorage.length; i++) {
+				var key = localStorage.key(i);
+				var value = localStorage.getItem(key);
+				usedSpace += (key.length + value.length) * 2;
+			}
+
+			var availableSpace = totalSpace - usedSpace;
+
+			totalSpace = totalSpace / (1024 * 1024);
+			usedSpace = usedSpace / (1024 * 1024);
+			availableSpace = availableSpace / (1024 * 1024);
+
+
+			return "Загальний обєм: " + totalSpace.toFixed(2) + " MB, Використано: " + usedSpace.toFixed(2) + " MB, Доступно: " + availableSpace.toFixed(2) + " MB";
+		},
+
+
+
 		elaboration_time: function (data) {
 			let date = get.date();
 			let hours = date.hours;
@@ -2859,6 +2883,7 @@ window.addEventListener("load", () => {
 					el: "div",
 					className: "history-wraper",
 					children: [
+
 						{
 							el: "div",
 							className: "history-item saved-articles",
@@ -2914,7 +2939,11 @@ window.addEventListener("load", () => {
 							text: "Копіювати Сховище",
 							event: "click",
 							hendler: hendlers.copy_storage,
-						},
+						}, {
+							el: "div"
+							, className: "history-item  localStorage-usage",
+							text: get.LocalStorageUsage(),
+						}
 					],
 				})
 			);
