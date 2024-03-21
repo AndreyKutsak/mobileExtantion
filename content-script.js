@@ -682,8 +682,13 @@ window.addEventListener("load", () => {
 			let elaborationInp = this.parentNode.querySelector("input");
 			let count = Number(get.num(elaborationInp.value));
 			let baseCount = this.dataset.count;
-			let delay = { hours: parseInt(data.time.hours) - get.date().hours, minutes: parseInt(data.time.minutes) - get.date().minutes }
-
+			let delay = { hours: get.date().hours - parseInt(data.time.hours), minutes: get.date().minutes - parseInt(data.time.minutes) };
+			if (delay.hours < 10) {
+				delay.hours = `0${delay.hours}`;
+			}
+			if (delay.minutes < 10) {
+				delay.minutes = `0${delay.minutes}`
+			}
 			if (elaborationInp.value === "") {
 				alert("Введи коректну відповідь!");
 				return;
