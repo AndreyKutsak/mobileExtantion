@@ -2133,7 +2133,11 @@ window.addEventListener("load", () => {
 
 						storage.address({ article: item.article, cell: searchInp });
 					}
+					if (storage_item_data == undefined) {
+						storage.address({ article: item.article });
+						storage_item_data = storage.data.addresses[item.article];
 
+					};
 					storage_item_data.last_goods_count = item.baseCount.baseCount;
 					let searchItem = get.elements({
 						el: "div",
