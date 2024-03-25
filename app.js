@@ -42877,14 +42877,14 @@
 // 		}
 // 	}
 // }
-let index=0;
-let arr=[];
+let index = 0;
+let arr = [];
 
-function get_cell(){
-	return Object.keys(obj.addresses).map((item)=>{
-	if(obj.addresses[item].cell!==undefinded){
-	return obj.addresses[item].cell;
-	}
-	});
-	}
-	console.log(get_cell())
+function get_cell() {
+    return Object.keys(obj.addresses).map((item) => {
+        if (obj.addresses[item].cell !== undefinded) {
+            return obj.addresses[item].cell;
+        }
+    });
+}
+console.log(get_cell())

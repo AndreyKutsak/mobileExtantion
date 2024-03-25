@@ -987,8 +987,9 @@ window.addEventListener("load", () => {
 				}
 
 				if (
-					address.real_goods_count < address.cell_capacity / 2 &&
-					+address.cell_capacity < +address.last_goods_count
+					address.real_goods_count < address.cell_capacity / 2 ||
+					+address.cell_capacity < +address.last_goods_count ||
+					(+address.cell_capacity - address.real_goods_count) > address.save_area_count
 				) {
 					empty_cells.push(item);
 				}
