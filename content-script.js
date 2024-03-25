@@ -982,14 +982,12 @@ window.addEventListener("load", () => {
 			articles_list.forEach((item) => {
 				let address = storage.data.addresses[item];
 
-				if (address.is_ignored || address.cell_capacity === undefined) {
+				if (address.is_ignored || address.cell_capacity === undefined || address.save_area_count == undefined || address.save_area_count <= 0) {
 					return;
 				}
 
 				if (
-					address.real_goods_count < address.cell_capacity / 2 ||
-					+address.cell_capacity < +address.last_goods_count ||
-					(+address.cell_capacity - +address.real_goods_count) > +address.save_area_count && +address.save_area_count > 0
+					address.real_goods_count < address.cell_capacity / 2 && (+address.cell_capacity - +address.real_goods_count) > +address.save_area_count
 				) {
 					empty_cells.push(item);
 				}
