@@ -938,7 +938,7 @@ window.addEventListener("load", () => {
 					alert("Введи правильні данні!!!");
 					return;
 				}
-				storage.data.addresses[article].cell_capacity = capacity;
+				storage.data.addresses[article].cell_capacity = Number(capacity);
 				storage.save();
 			}
 			else {
@@ -955,8 +955,10 @@ window.addEventListener("load", () => {
 			}
 		},
 		fill_cell: function () {
+
 			let article = this.dataset.article || false;
-			this.textContent = "Заповнено";
+			console.table(storage.data.addresses[article])
+
 			if (article) {
 				if (
 					Number(storage.data.addresses[article].cell_capacity) >
@@ -964,6 +966,7 @@ window.addEventListener("load", () => {
 				) {
 					storage.data.addresses[article].real_goods_count =
 						storage.data.addresses[article].last_goods_count;
+					storage.data.addresses[article].save_area_count = 0;
 					storage.save();
 				}
 				else if ((+storage.data.addresses[article].cell_capacity - +storage.data.addresses[article].real_goods_count) > +storage.data.addresses[article].save_area_count
@@ -977,7 +980,10 @@ window.addEventListener("load", () => {
 					storage.data.addresses[article].save_area_count = Number(storage.data.addresses[article].last_goods_count) - Number(storage.data.addresses[article].real_goods_count);
 					storage.save();
 				}
+				this.textContent = "Заповнено";
 			}
+			console.table(storage.data.addresses[article])
+
 		},
 		find_empty_cells: function () {
 			load.get_goods_count.call(load);
@@ -995,9 +1001,12 @@ window.addEventListener("load", () => {
 				if (
 					address.real_goods_count < address.cell_capacity / 2 && (+address.cell_capacity - +address.real_goods_count) > +address.save_area_count
 				) {
+
 					empty_cells.push(item);
 				}
 			});
+
+			empty_cells.sort((a, b) => storage.data.addresses[a].place.trim().localeCompare(storage.data.addresses[b].place.trim()))
 
 			generate.empty_cells(empty_cells);
 		},
