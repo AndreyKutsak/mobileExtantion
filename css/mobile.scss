@@ -871,12 +871,12 @@ button.html5-qrcode-element {
                   height: 100%;
                   margin-bottom: 15px;
                 }
-                .good_comment_inp {
+                .seal_inp {
                   padding: 0;
                   border-radius: 2px;
                   border: 1px solid $itemShadow;
                   height: 30px;
-                  width: 0;
+                  width: 70%;
                   transition: 0.4s;
                 }
                 .send_comment_btn,
@@ -1336,11 +1336,23 @@ button.html5-qrcode-element {
 
 .elaborations-list-wrapper {
   .list-item {
+    position: relative;
     background-color: $white;
     border-radius: 5px;
-    padding: 10px 15px;
+    padding: 30px 15px 20px;
     margin-bottom: 15px;
 
+    .remove_btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-family: sans-serif;
+      font-size: 18px;
+
+      font-weight: 800;
+      text-transform: uppercase;
+      color: $danger;
+    }
     .item-desc {
       font-family: $descriptions;
       font-size: 12px;
@@ -1349,6 +1361,13 @@ button.html5-qrcode-element {
       width: 100%;
       border-bottom: 2px solid $mainBg;
 
+      .remove_btn {
+        font-family: sans-serif;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: $danger;
+      }
       span {
         float: right;
         display: inline-block;

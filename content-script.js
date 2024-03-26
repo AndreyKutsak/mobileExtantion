@@ -435,6 +435,12 @@ window.addEventListener("load", () => {
 		},
 	};
 	let hendlers = {
+		remove_elaboration_item: function () {
+			let date = this.dataset.date;
+			delete storage.data.elaborations[date];
+			storage.save();
+			this.parentNode.remove();
+		},
 		send_seal_number: function () {
 			let order_num = this.dataset.order_num;
 			let seal_goods = this.dataset.seal_goods;
@@ -1188,97 +1194,109 @@ window.addEventListener("load", () => {
 			if (Object.keys(storage.data.elaborations).length > 0) {
 
 				Object.values(storage.data.elaborations).reverse().forEach((item, index) => {
+					console.log(item)
 					elaborations_list.appendChild(get.elements({
 						el: "div",
 						className: "list-item",
-						children: [{
-							el: "p",
-							className: "item-desc count",
-							text: "№",
-							children: [{
+						children: [
+							{
 								el: "span",
-								text: String(item_count),
-							}]
+								className: "remove_btn",
+								text: "X",
+								event: "click",
+								data: [{
+									date: Object.keys(storage.data.elaborations)[index]
+								}],
+								hendler: hendlers.remove_elaboration_item,
+							}, {
 
-						},
-						{
-							el: "p",
-							className: "item-desc order",
-							text: "Номер замовлення:",
-							children: [
-								{
+								el: "p",
+								className: "item-desc count",
+								text: "№",
+								children: [{
 									el: "span",
-									text: item.order
-								}
-							]
-						},
-						{
-							el: "p",
-							className: "item-desc manager",
-							text: "Менеджер:",
-							children: [
-								{
+									text: String(item_count),
+								}]
+
+							},
+							{
+								el: "p",
+								className: "item-desc order",
+								text: "Номер замовлення:",
+								children: [
+									{
+										el: "span",
+										text: item.order
+									}
+								]
+							},
+							{
+								el: "p",
+								className: "item-desc manager",
+								text: "Менеджер:",
+								children: [
+									{
+										el: "span",
+										text: item.manager
+									}
+								]
+							},
+							{
+								el: "p",
+								className: "item-desc date",
+								text: "Дата:",
+								children: [
+									{
+										el: "span",
+										text: Object.keys(storage.data.elaborations)[index]
+									}
+								]
+
+							}, { el: "p", className: "item-desc", text: "Час створення уточнекння:", children: [{ el: "span", text: `${item?.time?.hours ?? "00"}:${item?.time?.minutes ?? "00"}` }] },
+							{
+								el: "p", className: "item-desc delay", text: "Відбито за:", children: [{
 									el: "span",
-									text: item.manager
-								}
-							]
-						},
-						{
-							el: "p",
-							className: "item-desc date",
-							text: "Дата:",
-							children: [
-								{
+									text: `${item?.delay?.hours ?? "00"}:${item?.delay?.minutes ?? "00"}`,
+								}]
+							}, {
+								el: "p",
+								className: "item-desc artilce",
+								text: "Артикул:",
+								children: [{
 									el: "span",
-									text: Object.keys(storage.data.elaborations)[index]
-								}
-							]
+									text: item.search
+								}]
 
-						}, { el: "p", className: "item-desc", text: "Час створення уточнекння:", children: [{ el: "span", text: `${item?.time?.hours ?? "00"}:${item?.time?.minutes ?? "00"}` }] },
-						{
-							el: "p", className: "item-desc delay", text: "Відбито за:", children: [{
-								el: "span",
-								text: `${item?.delay?.hours ?? "00"}:${item?.delay?.minutes ?? "00"}`,
-							}]
-						}, {
-							el: "p",
-							className: "item-desc artilce",
-							text: "Артикул:",
-							children: [{
-								el: "span",
-								text: item.search
-							}]
+							}, {
+								el: "p",
+								className: "item-desc base-quantity",
+								text: "Кількість По базі",
+								children: [{
+									el: "span",
+									text: String(item.count.baseCount)
+								}]
 
-						}, {
-							el: "p",
-							className: "item-desc base-quantity",
-							text: "Кількість По базі",
-							children: [{
-								el: "span",
-								text: String(item.count.baseCount)
-							}]
+							},
+							{
+								el: "p",
+								className: "item-desc reserve-quantity",
+								text: "Зарезервовано:",
+								children: [{
+									el: "span",
+									text: String(item.count.orderCount)
+								}]
 
-						},
-						{
-							el: "p",
-							className: "item-desc reserve-quantity",
-							text: "Зарезервовано:",
-							children: [{
-								el: "span",
-								text: String(item.count.orderCount)
-							}]
+							},
+							{
+								el: "p",
+								className: "item-desc user-answer",
+								text: "Відповідь:",
+								children: [{
+									el: "span",
+									text: item.user_answer || `не збережено`
+								}]
 
-						},
-						{
-							el: "p",
-							className: "item-desc user-answer",
-							text: "Відповідь:",
-							children: [{
-								el: "span",
-								text: item.user_answer || `не збережено`
-							}]
-
-						}],
+							}],
 					}))
 					item_count++;
 				})

@@ -784,12 +784,12 @@ button.html5-qrcode-element {
   height: 100%;
   margin-bottom: 15px;
 }
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .good_comment_inp {
+.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .seal_inp {
   padding: 0;
   border-radius: 2px;
   border: 1px solid #d1d9e8;
   height: 30px;
-  width: 0;
+  width: 70%;
   transition: 0.4s;
 }
 .wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .send_comment_btn,
@@ -1184,10 +1184,21 @@ button.html5-qrcode-element {
 }
 
 .elaborations-list-wrapper .list-item {
+  position: relative;
   background-color: #fff;
   border-radius: 5px;
-  padding: 10px 15px;
+  padding: 30px 15px 20px;
   margin-bottom: 15px;
+}
+.elaborations-list-wrapper .list-item .remove_btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-family: sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #ff7070;
 }
 .elaborations-list-wrapper .list-item .item-desc {
   font-family: "Trebuchet MS", sans-serif;
@@ -1196,6 +1207,13 @@ button.html5-qrcode-element {
   padding: 5px;
   width: 100%;
   border-bottom: 2px solid #d7e3f2;
+}
+.elaborations-list-wrapper .list-item .item-desc .remove_btn {
+  font-family: sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #ff7070;
 }
 .elaborations-list-wrapper .list-item .item-desc span {
   float: right;
