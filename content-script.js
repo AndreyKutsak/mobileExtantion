@@ -1005,9 +1005,8 @@ window.addEventListener("load", () => {
 				}
 
 				if (
-					address.real_goods_count < address.cell_capacity / 2 && (+address.cell_capacity - +address.real_goods_count) > +address.save_area_count
+					address.real_goods_count < address.cell_capacity / 2 || (+address.cell_capacity - +address.real_goods_count) > +address.save_area_count
 				) {
-
 					empty_cells.push(item);
 				}
 			});
@@ -1027,7 +1026,6 @@ window.addEventListener("load", () => {
 			let item_id = this.dataset.delivery_id;
 			let footers = Array.from(document.querySelectorAll(".item-footer"));
 			let item_footer = el.querySelector(".item-footer");
-
 			footers.forEach((element) => {
 				element.innerHTML = "";
 			});
@@ -2450,7 +2448,7 @@ window.addEventListener("load", () => {
 				storage.save();
 				return;
 			}
-			generate.message("Нічого не знайдено!!");
+			contentWraper.appendChild(generate.message("Нічого не знайдено!!"));
 		},
 		elaborations: function (data) {
 			generate.preloader({ status: "end" });
