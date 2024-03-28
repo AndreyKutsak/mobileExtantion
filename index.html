@@ -1,14 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
+<button onclick="clearElaboration();">Почистити</button>
+<select id="eleborationType" onchange="eleborationType()" style="float: right;">
+    <option value="0">У цьому вікні</option>
+    <option value="1"  >У новій вкладці</option>
+</select>
+<div class="clear"></div>
+<table border="1" cellpadding="0" cellspacing="0" width="98%">
+    <tr>
+        <td align="center" style="padding: 5px;"># Замовлення</td>
+        <td align="center" style="padding: 5px;">Менеджер</td>
+        <td align="center" style="padding: 5px;">Товар</td>
+        <td align="center" style="padding: 5px;">Адрес</td>
+        <td align="center" style="padding: 5px;">Уточнення</td>
+        <td align="center" style="padding: 5px;">Постачальник</td>
+        <td align="center" style="padding: 5px;">Відповідь</td>
+        <td align="center" style="padding: 5px;">Видал.</td>
+    </tr>
+    <tr>
+        <td align="center" style="padding: 5px; background-color: #dff1fe;"><span onclick="Orders(1194258);" style="cursor: pointer; font-weight: bold;"># 1194258 (369265)</span></td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe"><span title="менше хвилини тому">Гловач Ольга Анатоліївна</span></td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">Супорт підшипників сумісний з Electrolux 4071430971 (ліве різьблення) (1.9.0080)</td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">B-22.8.5</td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">Уточнення наявності</td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">
+        По базе: 1<br>В заказі: 1            </td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe" id="eleborationAnswer369265"><input type="text" id="elaborationInput369265" style="width: 100px; border: solid 1px #adadad; border-radius: 3px; padding: 2px; margin-left: 10px;"><button onclick="addElaborationAnswer(369265,0)">збер.</button></td>
+        <td align="center" style="padding: 5px; background-color: #dff1fe">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-
-<body>
-    <a href="vscode://">click me</a>
-</body>
-
-</html>
+        </td>
+    </tr>
+</table>

@@ -3532,9 +3532,9 @@ window.addEventListener("load", () => {
 					let base_quality_div = td[2].querySelectorAll("div")[4];
 					let base_quality = 0;
 					if (is_need_seal && is_need_seal.id.includes("warranty")) {
-						seal_number = Number(is_need_seal.value);
+						seal_number = is_need_seal.value;
 						seal_params = get.params_for_seal(is_need_seal.getAttribute("onkeyup"))
-						console.log(is_need_seal.getAttribute("onkeyup"), "hello")
+
 					};
 					if (base_quality_div != undefined && base_quality_div !== null) {
 						base_quality = Number(base_quality_div.textContent.trim());

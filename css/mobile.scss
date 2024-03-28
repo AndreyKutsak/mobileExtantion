@@ -352,6 +352,7 @@ button.html5-qrcode-element {
     }
 
     .item-footer {
+
       .sales-item,
       .deliveries-item,
       .reserve-item {
@@ -599,6 +600,7 @@ button.html5-qrcode-element {
       }
 
       .item-footer {
+
         .sales-item,
         .deliveries-item,
         .reserve-item {
@@ -721,6 +723,7 @@ button.html5-qrcode-element {
 
   .list-wraper,
   .compare-wraper {
+
     .list-item,
     .compare-item {
       display: flex;
@@ -825,19 +828,11 @@ button.html5-qrcode-element {
 
         .order-wraper {
           .order-item {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
             margin-bottom: 30px;
-            .manager_desc {
-              font-family: $headers;
-              font-size: 16px;
-              font-weight: 600;
-              padding: 15px 10px;
-              color: $black;
-            }
-            .main_item_desc {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            }
+
             .text-wraper {
               padding: 0 5px 0 15px;
               margin-bottom: 10px;
@@ -860,76 +855,7 @@ button.html5-qrcode-element {
                   padding: 0 5px;
                 }
               }
-              .good_comment {
-                width: 100%;
 
-                .inp-wrapper,
-                .options_wrapper {
-                  display: flex;
-                  justify-content: flex-end;
-                  width: 100%;
-                  height: 100%;
-                  margin-bottom: 15px;
-                }
-                .seal_inp {
-                  padding: 0;
-                  border-radius: 2px;
-                  border: 1px solid $itemShadow;
-                  height: 30px;
-                  width: 70%;
-                  transition: 0.4s;
-                }
-                .send_comment_btn,
-                .send_seal_btn {
-                  position: relative;
-                  background-color: $actionBtnBg;
-                  width: 30%;
-                  height: 30px;
-                  padding: 5px;
-                  border: none;
-                  &::after {
-                    position: absolute;
-                    content: "";
-                    top: 50%;
-                    left: 50%;
-                    height: 90%;
-                    width: 5%;
-                    transform: translate(-50%, -50%);
-                    border-radius: 2px;
-                    background-color: $white;
-                    transition: 0.4s;
-                  }
-                  &::before {
-                    position: absolute;
-                    content: "";
-                    top: 50%;
-                    left: 50%;
-                    height: 90%;
-                    width: 5%;
-                    transform: translate(-50%, -50%) rotate(90deg);
-                    border-radius: 2px;
-                    background-color: $white;
-                  }
-                }
-                .active {
-                  &::after {
-                    width: 0;
-                    height: 0;
-                    border-top: 8px solid transparent;
-                    border-bottom: 8px solid transparent;
-                    border-right: 12px solid $white;
-                    border-radius: 2px;
-                    background-color: transparent;
-                  }
-                  &::before {
-                    background-color: transparent;
-                  }
-                }
-                .active_inp {
-                  padding: 10px;
-                  width: 80%;
-                }
-              }
               .position-name {
                 font-family: $descriptions;
                 font-size: 14px;
@@ -947,29 +873,6 @@ button.html5-qrcode-element {
                 color: $white;
               }
             }
-          }
-        }
-        .order_comment_form {
-          position: relative;
-          width: 100%;
-          padding: 15px 10px;
-          textarea {
-            border-radius: 5px;
-            padding: 10px;
-            outline: none;
-            border: 2px solid $itemShadow;
-            width: 100%;
-            height: 150px;
-          }
-          .send_comment {
-            position: absolute;
-            top: 50%;
-            right: 15px;
-            transform: translate(0, -50%);
-            border: none;
-            border-radius: 5px;
-            background-color: $actionBtnBg;
-            padding: 10px;
           }
         }
       }
@@ -1336,23 +1239,13 @@ button.html5-qrcode-element {
 
 .elaborations-list-wrapper {
   .list-item {
-    position: relative;
+
+
     background-color: $white;
     border-radius: 5px;
-    padding: 30px 15px 20px;
+    padding: 10px 15px;
     margin-bottom: 15px;
 
-    .remove_btn {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      font-family: sans-serif;
-      font-size: 18px;
-
-      font-weight: 800;
-      text-transform: uppercase;
-      color: $danger;
-    }
     .item-desc {
       font-family: $descriptions;
       font-size: 12px;
@@ -1361,13 +1254,6 @@ button.html5-qrcode-element {
       width: 100%;
       border-bottom: 2px solid $mainBg;
 
-      .remove_btn {
-        font-family: sans-serif;
-        font-size: 12px;
-        font-weight: 800;
-        text-transform: uppercase;
-        color: $danger;
-      }
       span {
         float: right;
         display: inline-block;
@@ -1379,5 +1265,7 @@ button.html5-qrcode-element {
         }
       }
     }
+
+
   }
 }
