@@ -13,7 +13,7 @@ window.addEventListener("load", () => {
 	children.forEach((child) => {
 		child.remove();
 	});
-
+	let db;
 	const storage = {
 		data: {},
 
@@ -175,24 +175,100 @@ window.addEventListener("load", () => {
 		cell_goods_count: 1000 * 30 * 60,
 	};
 	let get = {
-		LocalStorageUsage: function () {
+		years_frequency: function (data) {
+			if (data.length == 0) {
+				return { err: true, err_desc: "no data" }
+			};
+			let year_freq = {};
+			data.forEach(function (item) {
+				let year = item.date.trim().split(" ")[2];
 
-			var totalSpace = (1024 * 1024 * 5);
-			var usedSpace = 0;
+				if (year_freq[year]) {
+					year_freq[year]++;
+				} else {
+					year_freq[year] = 1;
+				}
+			});
+			return year_freq;
 
+		},
+		time_from_last_delivery: function (data) {
+
+			let month = {
+				"січня": 0,
+				"лютого": 1,
+				"березня": 2,
+				"квітня": 3,
+				"травня": 4,
+				"червня": 5,
+				"липня": 6,
+				"серпня": 7,
+				"вересня": 8,
+				"жовтня": 9,
+				"листопада": 10,
+				"грудня": 11,
+			};
+			let [day, delivery_month, year] = data.toLowerCase().split(" ");
+			let targetDate = new Date(year, month[delivery_month], day);
+			let currentDate = new Date();
+			let elapsedTime = currentDate.getTime() - targetDate.getTime();
+			const elapsedYears = Math.floor(elapsedTime / (1000 * 60 * 60 * 24 * 365));
+			const elapsedMonths = Math.floor(elapsedTime / (1000 * 60 * 60 * 24 * 30.44)) % 12;
+			const elapsedDays = Math.floor(elapsedTime / (1000 * 60 * 60 * 24)) % 30.44;
+			return {
+				years: elapsedYears,
+				months: elapsedMonths,
+				days: elapsedDays.toFixed(0),
+			}
+			console.log(elapsedYears, elapsedMonths, elapsedDays.toFixed(0));
+
+		},
+		Local_storage_size: function () {
+			let storage = localStorage.getItem('storage');
+			let test_string = storage || Math.random();
+			let capacity;
+			localStorage.clear();
+
+			try {
+				for (let i = 0; i < 100; i) {
+					localStorage.setItem("test_capacity", test_string += test_string);
+				}
+			}
+			catch {
+				capacity = localStorage.getItem("test_capacity").length * 2;
+				console.log('Перевірку сховища закінчено', capacity);
+				localStorage.clear();
+				localStorage.setItem('storage_capacity', capacity);
+				localStorage.setItem('storage', storage);
+			}
+
+			return capacity;
+
+		},
+		LocalStorageUsage: function (data) {
+
+			let storage_space = this.Local_storage_size();
+			let totalSpace
+			let usedSpace = 0;
+			let availableSpace
+			console.log(storage_space)
 
 			for (var i = 0; i < localStorage.length; i++) {
-				var key = localStorage.key(i);
-				var value = localStorage.getItem(key);
+				let key = localStorage.key(i);
+				let value = localStorage.getItem(key);
 				usedSpace += (key.length + value.length) * 2;
 			}
 
-			var availableSpace = totalSpace - usedSpace;
 
-			totalSpace = totalSpace / (1024 * 1024);
-			usedSpace = usedSpace / (1024 * 1024);
+
+			totalSpace = storage_space / (1024 * 1024);
+			usedSpace = localStorage.getItem("storage").length * 2 / (1024 * 1024);
+			availableSpace = storage_space - usedSpace;
 			availableSpace = availableSpace / (1024 * 1024);
+			if (data !== undefined) {
 
+				return storage_space;
+			}
 
 			return "Загальний обєм: " + totalSpace.toFixed(2) + " MB, Використано: " + usedSpace.toFixed(2) + " MB, Доступно: " + availableSpace.toFixed(2) + " MB";
 		},
@@ -359,6 +435,11 @@ window.addEventListener("load", () => {
 			if (data.alt) {
 				element.alt = data.alt;
 			}
+			if (data.atr) {
+				for (const atrKey in data.atr) {
+					element.setAttribute(atrKey, data.atr[atrKey]);
+				}
+			}
 			if (data.func) {
 				data.func.call(element);
 			}
@@ -435,6 +516,68 @@ window.addEventListener("load", () => {
 		},
 	};
 	let hendlers = {
+		database: async function (data) {
+			let db;
+
+			function save_data(data) {
+				let transaction = db.transaction([data.store_name], "readwrite");
+				let store = transaction.objectStore(data.store_name);
+				let request = store.put(data.data);
+
+				request.onerror = function (event) {
+					console.log("Error: " + event.target.errorCode);
+				};
+
+				request.onsuccess = function (event) {
+					console.log("Data saved successfully");
+				};
+			}
+
+			function get_data(data, callback) {
+				let transaction = db.transaction([data.store_name], "readonly");
+				let objectStore = transaction.objectStore(data.store_name);
+				let request = objectStore.getAll();
+
+				request.onsuccess = function (event) {
+					let stored_data = event.target.result;
+					console.log("Data retrieved:", stored_data);
+					if (callback) {
+						callback(stored_data);
+					}
+				};
+
+				request.onerror = function (event) {
+					console.log("Error getting data: " + event.target.errorCode);
+				};
+			}
+
+			function deliveries_table(data) {
+				let indexDB = indexedDB.open("deliveries", 1);
+
+				indexDB.onerror = function (event) {
+					console.log("Error: " + event.target.errorCode);
+				};
+
+				indexDB.onsuccess = function (event) {
+					db = event.target.result;
+					console.log("Database initialised");
+
+					if (data.action == "get_data") {
+						get_data(data, data.callback);
+					} else if (data.action == "save_data") {
+						save_data(data);
+					}
+				};
+
+				indexDB.onupgradeneeded = function (event) {
+					db = event.target.result;
+					db.createObjectStore("deliveries_list", { keyPath: "id" });
+				};
+			}
+
+			await deliveries_table(data);
+		},
+
 		remove_elaboration_item: function () {
 			let date = this.dataset.date;
 			delete storage.data.elaborations[date];
@@ -1177,6 +1320,200 @@ window.addEventListener("load", () => {
 	});
 
 	let generate = {
+		deliveries_table_excel: function (data) {
+			let a = get.elements({
+				el: "a",
+			});
+			let table = get.elements({
+				el: "table",
+				className: "excel-table",
+				atr: {
+					border: "1"
+				},
+				children: [
+					{
+						el: "tr",
+						atr: {
+							border: "1"
+						},
+						style: {
+							backgroundColor: "#a5b3eb",
+							fontSize: "12px",
+							fontWeight: "600",
+
+						},
+						children: [
+							{
+								el: "td",
+								text: "ID",
+								atr: {
+									border: "1"
+								}
+							},
+							{
+								el: "td",
+								text: "CELL",
+								atr: {
+									border: "1"
+								}
+
+							},
+							{
+								el: "td",
+								text: "Адреса",
+								atr: {
+									border: "1"
+								}
+							},
+							{
+								el: "td",
+								text: "Артикул", atr: {
+									border: "1"
+								}
+							}, {
+								el: "td",
+								text: "Назва товару", atr: {
+									border: "1"
+								}
+							},
+							{
+								el: "td",
+								text: "Кількість", atr: {
+									border: "1"
+								}
+							},
+							{
+								el: "td",
+								text: "Середня кількість поставки  товару", atr: {
+									border: "1"
+								}
+							}, {
+								el: "td",
+								text: "Дата останньої поставки", atr: {
+									border: "1"
+								}
+							},
+							{
+								el: "td",
+								text: "пройшло часу з останньої поставки", atr: {
+									border: "1"
+								}
+							},
+							{
+								el: "td",
+								text: "Частота поставки", atr: {
+									border: "1"
+								}
+							}
+						]
+					}
+				]
+			});
+
+			data.forEach((item) => {
+				table.appendChild(get.elements({
+					el: "tr",
+					atr: {
+						border: "1"
+					},
+					children: [{
+						el: "td",
+						text: item.id
+					}, {
+						el: "td",
+						text: item.cell
+
+					},
+					{
+						el: "td",
+						text: item.place,
+					}, {
+						el: "td",
+						text: item.article
+					},
+					{
+						el: "td",
+						text: item.name
+					}, {
+						el: "td",
+						text: String(item.count)
+					}, {
+						el: "td",
+						text: Math.round(item.average_amount)
+					}, {
+						el: "td",
+						text: item.last_delivery_date
+					}, {
+						el: "td",
+						text: `${item.time_from_last_delivery.years} років ${item.time_from_last_delivery.months} місяців ${item.time_from_last_delivery.days} днів`
+					}, {
+						el: "td",
+						children: Object.keys(item.years_frequency).map((key) => {
+							return {
+								el: "td", children: [{ el: "p", style: { border: "1px solid black" }, text: key }, {
+									el: "p", style: {
+										border: "1px solid black",
+									}, text: item.years_frequency[key]
+								}]
+							}
+						})
+					}]
+				}));
+			});
+			let file = new Blob([table.outerHTML], {
+				type: "application/vnd.ms-excel"
+			});
+			let url = URL.createObjectURL(file);
+			let filename = "table.xls";
+			document.body.appendChild(table);
+			a.download = filename;
+			a.href = url;
+			a.click();
+
+
+		},
+		deliveries_table: async function (data) {
+			let saved_articles = data.length;
+			let main_articles = Object.keys(storage.data.addresses).length
+			contentWraper.innerHTML = "";
+			contentWraper.appendChild(get.elements({
+				el: "div",
+				className: "delivery-wraper",
+				children: [
+					{
+						el: "div",
+						className: "title-wraper",
+						text: `Перевірено артикулів: ${saved_articles} з ${main_articles}`,
+					},
+					{
+						el: "div",
+						className: "btn-wrapper",
+						children: [
+							{
+								el: "button",
+								className: "check-btn btn",
+								text: "Розпочати перевірку Приходів",
+								event: "click",
+								hendler: load.deliveries_statistics
+							},
+							{
+								el: "button",
+								className: "download-btn btn",
+								text: "Скачати таблицю",
+								event: "click",
+								hendler: function () {
+									hendlers.database({
+										action: "get_data",
+										store_name: "deliveries_list",
+										callback: generate.deliveries_table_excel
+									})
+								}
+							}
+						]
+					}
+				]
+			}))
+		},
 		message: function (data) {
 			let element = get.elements({
 				el: "div",
@@ -1876,8 +2213,8 @@ window.addEventListener("load", () => {
 										},
 										{
 											el: "p",
-											className: "position-quality success",
-											text: item.quality,
+											className: "position-quantity success",
+											text: item.quantity,
 										},]
 								}
 
@@ -2160,8 +2497,8 @@ window.addEventListener("load", () => {
 						searchInp.match(regExp.cell) &&
 						storage_item_data?.cell !== searchInp
 					) {
+						storage.data.addresses[item.article].cell = searchInp;
 
-						storage.address({ article: item.article, cell: searchInp });
 					}
 					if (storage_item_data == undefined) {
 						storage.address({ article: item.article });
@@ -2584,7 +2921,7 @@ window.addEventListener("load", () => {
 									{
 										el: "p",
 										className: "table-text",
-										text: item.quality,
+										text: item.quantity,
 									},
 								],
 							},
@@ -2977,6 +3314,14 @@ window.addEventListener("load", () => {
 							el: "div"
 							, className: "history-item  localStorage-usage",
 							text: get.LocalStorageUsage(),
+						},
+						{
+							el: "div",
+							className: "history-item  deliveries_table",
+							text: "Таблиця приходів",
+							event: "click",
+							hendler: function () { hendlers.database({ action: "get_data", store_name: "deliveries_list", callback: generate.deliveries_table }) },
+
 						}
 					],
 				})
@@ -3460,7 +3805,6 @@ window.addEventListener("load", () => {
 					goodsCount[index].textContent.trim()
 				).baseCount;
 				data.baseCount = get.goodsCount(goodsCount[index].textContent.trim());
-				console.log(data);
 				this.storage.push(data);
 				storage.set_id(data);
 			});
@@ -3505,7 +3849,7 @@ window.addEventListener("load", () => {
 			rows.shift();
 			rows.forEach((item) => {
 				let td = Array.from(item.querySelectorAll("td"));
-				let quality;
+				let quantity;
 
 				if (td.length > 7) {
 					td.shift();
@@ -3513,9 +3857,9 @@ window.addEventListener("load", () => {
 
 				if (td.length > 5) {
 					if (td[4].querySelector("input[type='text']")) {
-						quality = td[4].querySelector("input[type='text']").value;
+						quantity = td[4].querySelector("input[type='text']").value;
 					} else {
-						quality = td[4].textContent;
+						quantity = td[4].textContent;
 					}
 					let checkStyle = td[0].getAttribute("style");
 
@@ -3529,15 +3873,15 @@ window.addEventListener("load", () => {
 					let is_need_seal = td[4].querySelectorAll("input[type='text']")[2];
 					let seal_number = 0;
 					let seal_params;
-					let base_quality_div = td[2].querySelectorAll("div")[4];
-					let base_quality = 0;
+					let base_quantity_div = td[2].querySelectorAll("div")[4];
+					let base_quantity = 0;
 					if (is_need_seal && is_need_seal.id.includes("warranty")) {
 						seal_number = is_need_seal.value;
 						seal_params = get.params_for_seal(is_need_seal.getAttribute("onkeyup"))
 
 					};
-					if (base_quality_div != undefined && base_quality_div !== null) {
-						base_quality = Number(base_quality_div.textContent.trim());
+					if (base_quantity_div != undefined && base_quantity_div !== null) {
+						base_quantity = Number(base_quantity_div.textContent.trim());
 					}
 
 					rowData.imgSrc = td[1].querySelector("img").src;
@@ -3549,12 +3893,12 @@ window.addEventListener("load", () => {
 					rowData.is_need_seal = is_need_seal;
 					rowData.seal_number = seal_number;
 					rowData.order_manager = order_manager;
-					rowData.base_quality = base_quality;
+					rowData.base_quantity = base_quantity;
 					rowData.positionName = td[2].textContent.trim();
 					rowData.articleAndPlace = get.articleAndPlacement(
 						td[3].textContent.trim()
 					);
-					rowData.quality = quality.trim();
+					rowData.quantity = quantity.trim();
 					rowData.price = td[5].textContent.trim();
 					console.log(rowData)
 					this.storage.push(rowData);
@@ -3671,7 +4015,7 @@ window.addEventListener("load", () => {
 					elaborationData.positionName = cell[2].textContent.trim();
 					elaborationData.place = cell[3].textContent.trim();
 					elaborationData.type = cell[4].textContent.trim();
-					elaborationData.quality = cell[5].textContent.trim();
+					elaborationData.quantity = cell[5].textContent.trim();
 					elaborationData.time = get.elaboration_time(cell[1].querySelector("span").title);
 					elaborationData.search = get.elaborationArtice(
 						cell[2].textContent.trim()
@@ -3943,7 +4287,7 @@ window.addEventListener("load", () => {
 							}
 							let article = item.articleAndPlace.article;
 							let storage_article = stored_data.addresses[article];
-							let quality = item.quality.match(regExp.num)[0];
+							let quantity = item.quantity.match(regExp.num)[0];
 
 							if (
 								storage_article == null ||
@@ -3955,14 +4299,14 @@ window.addEventListener("load", () => {
 							if (storage_article.save_area_count == undefined || storage_article.save_area_count == null) {
 								storage_article.save_area_count = 0;
 							}
-							if (storage_article.save_area_count != undefined && quality >= storage_article?.cell_capacity) {
-								storage_article.save_area_count = Number(storage_article.save_area_count) - Number(quality);
+							if (storage_article.save_area_count != undefined && quantity >= storage_article?.cell_capacity) {
+								storage_article.save_area_count = Number(storage_article.save_area_count) - Number(quantity);
 							}
-							storage_article.last_goods_count = item.base_quality;
+							storage_article.last_goods_count = item.base_quantity;
 
 							if (storage_article.real_goods_count) {
 								storage_article.real_goods_count =
-									Number(storage_article.real_goods_count) - Number(quality);
+									Number(storage_article.real_goods_count) - Number(quantity);
 								storage_article.save_area_count = Number(storage_article.last_goods_count) - Number(storage_article.real_goods_count);
 							}
 							console.log(storage_article.save_area_count)
@@ -4028,6 +4372,60 @@ window.addEventListener("load", () => {
 
 			return this.storage;
 		},
+		deliveries_statistics: async function processArticles() {
+			let articlesList = Object.keys(storage.data.addresses);
+
+			for (const art of articlesList) {
+				if (storage.data.addresses[art].isChecked) { continue; }
+
+				console.log("Processing article:", art);
+
+				let averageAmount = 0,
+					lastDeliveryDate,
+					timeFromLastDelivery;
+
+				let searchRes = await load.search({
+					search: art,
+					search_sell: 0
+				});
+
+				searchRes = searchRes.filter(item => item.article === art);
+
+				if (searchRes.length === 0) { continue; }
+
+				let deliveries = await load.deliveries({ id: searchRes[0].id });
+
+				deliveries = deliveries.filter(item => Number(item.count) > 0 && item.elaborationsCount === undefined);
+
+				deliveries.forEach(item => averageAmount += Number(item.count));
+				averageAmount /= deliveries.length;
+
+				lastDeliveryDate = deliveries[0].date;
+				timeFromLastDelivery = get.time_from_last_delivery(lastDeliveryDate);
+
+				hendlers.database({
+					action: "save_data",
+					store_name: "deliveries_list",
+					data: {
+						article: art,
+						id: searchRes[0].id,
+						name: searchRes[0].head,
+						count: searchRes[0].baseCount.baseCount,
+						average_amount: averageAmount,
+						time_from_last_delivery: timeFromLastDelivery,
+						last_delivery_date: lastDeliveryDate,
+						place: storage.data.addresses[art].place,
+						cell: storage.data.addresses[art].cell,
+						checking_date: get.date(),
+						years_frequency: get.years_frequency(deliveries),
+					}
+				});
+
+				storage.data.addresses[art].isChecked = true;
+				storage.save();
+			}
+		}
+		,
 		logOut: function () {
 			document.cookie = "login=null";
 			document.cookie = "hash=null";
@@ -4230,7 +4628,5 @@ window.addEventListener("load", () => {
 	document.body.appendChild(btnWraper);
 	generate.requestCount();
 	generate.tasksCount();
-	get.elaboration_time("2 хвилини тому")
-	get.elaboration_time("вчора 15:06")
 
 });

@@ -352,14 +352,14 @@ button.html5-qrcode-element {
   margin-bottom: 10px;
 }
 .search-result-wraper .item-wraper .item-footer .order-wraper .order-item .text-wraper .order-article,
-.search-result-wraper .item-wraper .item-footer .order-wraper .order-item .text-wraper .position-quality {
+.search-result-wraper .item-wraper .item-footer .order-wraper .order-item .text-wraper .position-quantity {
   padding: 5px 10px;
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 10px;
 }
 .search-result-wraper .item-wraper .item-footer .order-wraper .order-item .text-wraper .order-article span,
-.search-result-wraper .item-wraper .item-footer .order-wraper .order-item .text-wraper .position-quality span {
+.search-result-wraper .item-wraper .item-footer .order-wraper .order-item .text-wraper .position-quantity span {
   padding: 0 5px;
 }
 .search-result-wraper .item-wraper .item-footer .message-title {
@@ -565,7 +565,7 @@ button.html5-qrcode-element {
   color: rgb(0, 0, 0);
 }
 .wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .order-item .text-wraper .order-article,
-.wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .order-item .text-wraper .position-quality {
+.wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .order-item .text-wraper .position-quantity {
   padding: 5px 10px;
   color: #fff;
   font-size: 16px;
@@ -573,7 +573,7 @@ button.html5-qrcode-element {
   margin-bottom: 10px;
 }
 .wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .order-item .text-wraper .order-article span,
-.wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .order-item .text-wraper .position-quality span {
+.wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .order-item .text-wraper .position-quantity span {
   padding: 0 5px;
 }
 .wraper .elaboration-wraper .table-wraper .item-footer .message-title {
@@ -738,19 +738,10 @@ button.html5-qrcode-element {
   transform: translate(-50%, -50%);
 }
 .wraper .orders-wraper .order-row .row-footer .order-wraper .order-item {
-  margin-bottom: 30px;
-}
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .manager_desc {
-  font-family: "Roboto", "Helvetica Neue", sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  padding: 15px 10px;
-  color: rgb(0, 0, 0);
-}
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .main_item_desc {
   display: flex;
+  justify-content: flex-start;
   align-items: center;
-  justify-content: space-between;
+  margin-bottom: 30px;
 }
 .wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper {
   padding: 0 5px 0 15px;
@@ -773,82 +764,13 @@ button.html5-qrcode-element {
 .wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .order-article span {
   padding: 0 5px;
 }
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment {
-  width: 100%;
-}
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .inp-wrapper,
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .options_wrapper {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  height: 100%;
-  margin-bottom: 15px;
-}
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .seal_inp {
-  padding: 0;
-  border-radius: 2px;
-  border: 1px solid #d1d9e8;
-  height: 30px;
-  width: 70%;
-  transition: 0.4s;
-}
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .send_comment_btn,
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .send_seal_btn {
-  position: relative;
-  background-color: #1cc879;
-  width: 30%;
-  height: 30px;
-  padding: 5px;
-  border: none;
-}
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .send_comment_btn::after,
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .send_seal_btn::after {
-  position: absolute;
-  content: "";
-  top: 50%;
-  left: 50%;
-  height: 90%;
-  width: 5%;
-  transform: translate(-50%, -50%);
-  border-radius: 2px;
-  background-color: #fff;
-  transition: 0.4s;
-}
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .send_comment_btn::before,
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .send_seal_btn::before {
-  position: absolute;
-  content: "";
-  top: 50%;
-  left: 50%;
-  height: 90%;
-  width: 5%;
-  transform: translate(-50%, -50%) rotate(90deg);
-  border-radius: 2px;
-  background-color: #fff;
-}
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .active::after {
-  width: 0;
-  height: 0;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-right: 12px solid #fff;
-  border-radius: 2px;
-  background-color: transparent;
-}
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .active::before {
-  background-color: transparent;
-}
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .good_comment .active_inp {
-  padding: 10px;
-  width: 80%;
-}
 .wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .position-name {
   font-family: "Trebuchet MS", sans-serif;
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 15px;
 }
-.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .position-quality {
+.wraper .orders-wraper .order-row .row-footer .order-wraper .order-item .text-wraper .position-quantity {
   font-family: "Trebuchet MS", sans-serif;
   font-size: 14px;
   font-weight: 800;
@@ -856,29 +778,6 @@ button.html5-qrcode-element {
   padding: 5px;
   border-radius: 5px;
   color: #fff;
-}
-.wraper .orders-wraper .order-row .row-footer .order_comment_form {
-  position: relative;
-  width: 100%;
-  padding: 15px 10px;
-}
-.wraper .orders-wraper .order-row .row-footer .order_comment_form textarea {
-  border-radius: 5px;
-  padding: 10px;
-  outline: none;
-  border: 2px solid #d1d9e8;
-  width: 100%;
-  height: 150px;
-}
-.wraper .orders-wraper .order-row .row-footer .order_comment_form .send_comment {
-  position: absolute;
-  top: 50%;
-  right: 15px;
-  transform: translate(0, -50%);
-  border: none;
-  border-radius: 5px;
-  background-color: #1cc879;
-  padding: 10px;
 }
 .wraper .production-wraper .production-item-wraper {
   border-radius: 5px;
@@ -1184,21 +1083,10 @@ button.html5-qrcode-element {
 }
 
 .elaborations-list-wrapper .list-item {
-  position: relative;
   background-color: #fff;
   border-radius: 5px;
-  padding: 30px 15px 20px;
+  padding: 10px 15px;
   margin-bottom: 15px;
-}
-.elaborations-list-wrapper .list-item .remove_btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  font-family: sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: #ff7070;
 }
 .elaborations-list-wrapper .list-item .item-desc {
   font-family: "Trebuchet MS", sans-serif;
@@ -1207,13 +1095,6 @@ button.html5-qrcode-element {
   padding: 5px;
   width: 100%;
   border-bottom: 2px solid #d7e3f2;
-}
-.elaborations-list-wrapper .list-item .item-desc .remove_btn {
-  font-family: sans-serif;
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: #ff7070;
 }
 .elaborations-list-wrapper .list-item .item-desc span {
   float: right;

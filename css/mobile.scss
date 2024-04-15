@@ -352,7 +352,6 @@ button.html5-qrcode-element {
     }
 
     .item-footer {
-
       .sales-item,
       .deliveries-item,
       .reserve-item {
@@ -392,7 +391,7 @@ button.html5-qrcode-element {
             }
 
             .order-article,
-            .position-quality {
+            .position-quantity {
               padding: 5px 10px;
               font-size: 16px;
               font-weight: 600;
@@ -600,7 +599,6 @@ button.html5-qrcode-element {
       }
 
       .item-footer {
-
         .sales-item,
         .deliveries-item,
         .reserve-item {
@@ -646,7 +644,7 @@ button.html5-qrcode-element {
               }
 
               .order-article,
-              .position-quality {
+              .position-quantity {
                 padding: 5px 10px;
                 color: $white;
                 font-size: 16px;
@@ -723,7 +721,6 @@ button.html5-qrcode-element {
 
   .list-wraper,
   .compare-wraper {
-
     .list-item,
     .compare-item {
       display: flex;
@@ -863,7 +860,7 @@ button.html5-qrcode-element {
                 margin-bottom: 15px;
               }
 
-              .position-quality {
+              .position-quantity {
                 font-family: $descriptions;
                 font-size: 14px;
                 font-weight: 800;
@@ -1239,8 +1236,6 @@ button.html5-qrcode-element {
 
 .elaborations-list-wrapper {
   .list-item {
-
-
     background-color: $white;
     border-radius: 5px;
     padding: 10px 15px;
@@ -1265,7 +1260,5 @@ button.html5-qrcode-element {
         }
       }
     }
-
-
   }
 }
