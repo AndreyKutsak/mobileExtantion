@@ -1499,6 +1499,18 @@ window.addEventListener("load", () => {
 					},
 					{
 						el: "div",
+						className: "categorys_wrapper",
+						children: [
+							{
+								el: "form",
+								children: [{
+
+								}]
+							}
+						]
+					},
+					{
+						el: "div",
 						className: "btn-wrapper",
 						children: [
 							{
