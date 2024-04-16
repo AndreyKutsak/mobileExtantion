@@ -1,129 +1,427 @@
-/** ### DOWNLOADING EXCEL FILE FROM JSON DATA ###
-    ### Working for all Browser ###
-
-    # All You need to change is to copy your Json data to this variable myList
-    # The rest of the work this code can handle. 
-    # If you want to change the theam or styling of the excel then you must need to 
-    # change the code which is under the variable styleText
-    # This is nothing but simple CSS code.
-
-    ### CODE DEVELOPED BY SUMAN DEY ### **/
-
-//Copy the Json to this variable.
-function Download() {
-    var myList = [{
-        "Book ID": "1",
-        "Book Name": "This is a long latter to get understand",
-        "Category": "Computers",
-        "Price": "125.60",
-        "Hi": "125.60"
-
-    }, {
-        "Book ID": "2",
-        "Book Name": "Asp.Net 4 Blue Book",
-        "Category": "Programming",
-        "Price": "56.00",
-        "Hi": "125.60"
-
-    }, {
-        "Book ID": "3",
-        "Book Name": "Popular Science",
-        "Category": "Science",
-        "Price": "210.40",
-        "Hi": "125.60"
-    }];
-
-    //here we are crating a vertual html page using JavaScript whih can not be show in the body of our page.
-    var html = document.createElement('html');
-    var head = document.createElement('head');
-    html.appendChild(head);
-    var body = document.createElement('body');
-    html.appendChild(body);
-    var div = document.createElement('div');
-    body.appendChild(div);
-    var table = document.createElement('table');
-    table.id = "excelDataTable";
-    table.border = "1";
-    div.appendChild(table);
-
-    //Styling the Table 
-
-    var style = document.createElement('style');
-    head.appendChild(style);
-
-    style.type = "text/css";
-
-    //you can change the style of the excel header and body rows here.
-    var styleText =
-        ".innerTableData { background-color:rgb(91,155,213);color:rgb(255,255,255);font-weight: bold; } td { background-color:rgb(221,235,247); }";
-    style.innerHTML = styleText;
-
-    document.body.appendChild(html);
-
-
-    //this for loop will create the header data for the html table from the given json data key.
-    var columns = [];
-    var headerTr$ = $('<tr/>');
-
-    for (var i = 0; i < myList.length; i++) {
-        var rowHash = myList[i];
-        for (var key in rowHash) {
-            if ($.inArray(key, columns) == -1) {
-                columns.push(key);
-                headerTr$.append($('<td class = "innerTableData"/>').html(key));
-            }
-        }
+let data = [
+    {
+        "date": "18 Березня 2024 в 14:40",
+        "provider": "Самороб",
+        "count": "100",
+        "price": "7.000 грн.",
+        "manager": "Андрій Куцак",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "08 Березня 2024 в 10:56",
+        "provider": "Фасовка смазки",
+        "count": "100",
+        "price": "7.000 грн.",
+        "manager": "Андрій Куцак",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "21 Лютого 2024 в 13:43",
+        "provider": "Самороб",
+        "count": "100",
+        "price": "7.000 грн.",
+        "manager": "Андрій Куцак",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "08 Лютого 2024 в 12:13",
+        "provider": "Акт інвентаризації №559",
+        "count": "27",
+        "price": "6.350 грн.",
+        "manager": "Панчук Артем Васильович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "02 Січня 2024 в 17:32",
+        "provider": "Фасовка смазки",
+        "count": "111",
+        "price": "7.000 грн.",
+        "manager": "Андрій Куцак",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "07 Грудня 2023 в 11:13",
+        "provider": "Фасовка смазки",
+        "count": "123",
+        "price": "6.000 грн.",
+        "manager": "Андрій Куцак",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "06 Грудня 2023 в 17:57",
+        "provider": "Самороб",
+        "count": "65",
+        "price": "6.000 грн.",
+        "manager": "Андрій Куцак",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "04 Грудня 2023 в 20:04",
+        "provider": "Фасовка смазки",
+        "count": "54",
+        "price": "6.000 грн.",
+        "manager": "Андрій Куцак",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "16 Листопада 2023 в 14:09",
+        "provider": "Фасовка смазки",
+        "count": "83",
+        "price": "6.000 грн.",
+        "manager": "Зінець Роман Миколайович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "22 Вересня 2023 в 15:28",
+        "provider": "Фасовка смазки",
+        "count": "130",
+        "price": "6.000 грн.",
+        "manager": "Выдача СКЛАД",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "20 Вересня 2023 в 14:21",
+        "provider": "Фасовка смазки",
+        "count": "126",
+        "price": "6.000 грн.",
+        "manager": "Зінець Роман Миколайович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "05 Вересня 2023 в 10:09",
+        "provider": "Фасовка смазки",
+        "count": "130",
+        "price": "6.000 грн.",
+        "manager": "Зінець Роман Миколайович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "04 Вересня 2023 в 17:36",
+        "provider": "Фасовка смазки",
+        "count": "116",
+        "price": "6.000 грн.",
+        "manager": "Выдача СКЛАД",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "10 Серпня 2023 в 17:53",
+        "provider": "Фасовка смазки",
+        "count": "121",
+        "price": "6.000 грн.",
+        "manager": "Зінець Роман Миколайович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "21 Липня 2023 в 10:41",
+        "provider": "Фасовка смазки",
+        "count": "112",
+        "price": "6.000 грн.",
+        "manager": "Зінець Роман Миколайович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "26 Травня 2023 в 15:10",
+        "provider": "Фасовка смазки",
+        "count": "210",
+        "price": "6.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "24 Травня 2023 в 13:21",
+        "provider": "Фасовка смазки",
+        "count": "150",
+        "price": "6.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "27 Квітня 2023 в 13:48",
+        "provider": "Фасовка смазки",
+        "count": "85",
+        "price": "8.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "22 Березня 2023 в 09:19",
+        "provider": "Фасовка смазки",
+        "count": "300",
+        "price": "7.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "26 Січня 2023 в 12:24",
+        "provider": "Фасовка смазки",
+        "count": "75",
+        "price": "6.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "24 Січня 2023 в 11:14",
+        "provider": "Фасовка смазки",
+        "count": "220",
+        "price": "6.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "30 Листопада 2022 в 10:47",
+        "provider": "Фасовка смазки",
+        "count": "351",
+        "price": "6.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "23 Серпня 2022 в 12:47",
+        "provider": "Фасовка смазки",
+        "count": "195",
+        "price": "6.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "02 Серпня 2022 в 14:59",
+        "provider": "Фасовка смазки",
+        "count": "309",
+        "price": "6.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "26 Липня 2022 в 17:59",
+        "provider": "Самороб",
+        "count": "60",
+        "price": "6.000 грн.",
+        "manager": "Зінець Роман Миколайович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "26 Травня 2022 в 12:10",
+        "provider": "Фасовка смазки",
+        "count": "110",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "05 Травня 2022 в 10:57",
+        "provider": "Фасовка смазки",
+        "count": "95",
+        "price": "6.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "04 Травня 2022 в 14:17",
+        "provider": "Фасовка смазки",
+        "count": "155",
+        "price": "6.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "27 Квітня 2022 в 13:18",
+        "provider": "Фасовка смазки",
+        "count": "44",
+        "price": "6.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "21 Квітня 2022 в 14:19",
+        "provider": "Фасовка смазки",
+        "count": "65",
+        "price": "6.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "29 Березня 2022 в 11:51",
+        "provider": "Акт інвентаризації №76",
+        "count": "21",
+        "price": "5.170 грн.",
+        "manager": "Владимир Олегович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "07 Лютого 2022 в 15:38",
+        "provider": "Фасовка смазки",
+        "count": "278",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "18 Січня 2022 в 09:51",
+        "provider": "Фасовка смазки",
+        "count": "186",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "15 Грудня 2021 в 11:37",
+        "provider": "Фасовка смазки",
+        "count": "200",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "23 Листопада 2021 в 13:45",
+        "provider": "Фасовка смазки",
+        "count": "186",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "18 Жовтня 2021 в 12:50",
+        "provider": "Фасовка смазки",
+        "count": "63",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "23 Вересня 2021 в 16:28",
+        "provider": "Самороб",
+        "count": "165",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "02 Вересня 2021 в 14:12",
+        "provider": "Фасовка смазки",
+        "count": "120",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "10 Червня 2021 в 14:43",
+        "provider": "Фасовка смазки",
+        "count": "330",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "06 Квітня 2021 в 16:35",
+        "provider": "Фасовка смазки",
+        "count": "245",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "23 Березня 2021 в 11:42",
+        "provider": "Фасовка смазки",
+        "count": "180",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "19 Лютого 2021 в 14:04",
+        "provider": "Фасовка смазки",
+        "count": "60",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "19 Лютого 2021 в 13:46",
+        "provider": "Фасовка смазки",
+        "count": "60",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "16 Лютого 2021 в 13:13",
+        "provider": "Фасовка смазки",
+        "count": "220",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "08 Січня 2021 в 15:52",
+        "provider": "Фасовка смазки",
+        "count": "208",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "16 Грудня 2020 в 14:07",
+        "provider": "Фасовка смазки",
+        "count": "135",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "16 Листопада 2020 в 17:59",
+        "provider": "Фасовка смазки",
+        "count": "135",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "09 Листопада 2020 в 13:40",
+        "provider": "Фасовка смазки",
+        "count": "75",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "30 Жовтня 2020 в 12:36",
+        "provider": "Фасовка смазки",
+        "count": "120",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
+    },
+    {
+        "date": "15 Вересня 2020 в 10:50",
+        "provider": "Фасовка смазки",
+        "count": "60",
+        "price": "5.000 грн.",
+        "manager": "Сеньків Олександр Омельянович",
+        "storage": "Склад (Василенка)"
     }
-    $("#excelDataTable").append(headerTr$);
+]
+function a(data) {
+    if (data.length == 0) {
+        return { err: true, err_desc: "no data" }
+    };
+    let year_freq = {};
+    data.forEach(function (item) {
+        let year = item.date.trim().split(" ")[2];
 
-    //this for loop will create the row data for the html table from the given json data.
-    for (var i = 0; i < myList.length; i++) {
-        var row$ = $('<tr/>');
-        for (var colIndex = 0; colIndex < columns.length; colIndex++) {
-            var cellValue = myList[i][columns[colIndex]];
+        if (year_freq[year]) {
+            year_freq[year].freq++;
+            year_freq[year].sum + +item.conut;
 
-            if (cellValue == null) {
-                cellValue = "";
-            }
-
-            row$.append($('<td/>').html(cellValue));
+        } else {
+            year_freq[year] = { freq: 1, amount: 0, sum: 0 };
+            year_freq[year].sum = +item.count
         }
-        $("#excelDataTable").append(row$);
-    }
-
-    //here we are adding the html file of the table and get the values then convert it to ms-excel formate.
-    let file = new Blob([html.outerHTML], {
-        type: "application/vnd.ms-excel"
     });
-    let url = URL.createObjectURL(file);
+    year_freq.forEach(function (item) {
+        item.amount = item.sum / item.sum;
+    })
+    console.log(year_freq)
+    return year_freq;
 
-    //this is the file name after downloading the excel file.
-    //you can change the text which is here "downloadedfile" 
-    //Note one thing dont remove the second part of this string ".xls" 
-    //other wise the file downloaded can not work.
-    var filename = "downloadedfile" + ".xls"
-
-    //here we are creating HTML <a> Tag which can be trigger to download the excel file.
-    var a = document.createElement('a');
-    a.id = "export";
-
-    document.body.appendChild(a);
-
-    //here we are checking if the bwoswer is IE or not if IE then we use window.navigator.msSaveBlob function otherwise 
-    //Go with Simple Blob file.
-    if (window.navigator && window.navigator.msSaveBlob) {
-        window.navigator.msSaveBlob(file, filename);
-        a.click();
-        document.body.removeChild(a);
-        document.body.removeChild(html);
-    } else {
-        a.download = filename;
-        a.href = url;
-        a.click();
-        document.body.removeChild(a);
-        document.body.removeChild(html);
-    }
-
-
-
-}
+};
+a(data);

@@ -177,23 +177,32 @@ window.addEventListener("load", () => {
 	let get = {
 		years_frequency: function (data) {
 			if (data.length == 0) {
-				return { err: true, err_desc: "no data" }
-			};
+				return { err: true, err_desc: "no data" };
+			}
+
 			let year_freq = {};
+
 			data.forEach(function (item) {
 				let year = item.date.trim().split(" ")[2];
-
 				if (year_freq[year]) {
-					year_freq[year]++;
+					year_freq[year].freq++;
+					year_freq[year].sum += Number(item.count);
 				} else {
-					year_freq[year] = 1;
+					year_freq[year] = { freq: 1, sum: Number(item.count) };
 				}
+
 			});
+
+			Object.keys(year_freq).forEach(function (item) {
+				year_freq[item].amount = Math.round(year_freq[item].sum / year_freq[item].freq);
+			});
+
+			console.log(year_freq);
+
 			return year_freq;
-
 		},
-		time_from_last_delivery: function (data) {
 
+		time_from_last_delivery: function (data) {
 			let month = {
 				"січня": 0,
 				"лютого": 1,
@@ -1450,10 +1459,13 @@ window.addEventListener("load", () => {
 						el: "td",
 						children: Object.keys(item.years_frequency).map((key) => {
 							return {
-								el: "td", children: [{ el: "p", style: { border: "1px solid black" }, text: key }, {
+								el: "td", children: [{
+									el: "p", style: { border: "1px solid black" },
+									text: key
+								}, {
 									el: "p", style: {
 										border: "1px solid black",
-									}, text: item.years_frequency[key]
+									}, text: `${item.years_frequency[key].freq} (${item.years_frequency[key].amount})`
 								}]
 							}
 						})
@@ -4374,7 +4386,6 @@ window.addEventListener("load", () => {
 		},
 		deliveries_statistics: async function processArticles() {
 			let articlesList = Object.keys(storage.data.addresses);
-
 			for (const art of articlesList) {
 				if (storage.data.addresses[art].isChecked) { continue; }
 
@@ -4396,7 +4407,7 @@ window.addEventListener("load", () => {
 				let deliveries = await load.deliveries({ id: searchRes[0].id });
 
 				deliveries = deliveries.filter(item => Number(item.count) > 0 && item.elaborationsCount === undefined);
-
+				if (deliveries.length === 0) { continue; }
 				deliveries.forEach(item => averageAmount += Number(item.count));
 				averageAmount /= deliveries.length;
 
