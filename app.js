@@ -1,427 +1,111 @@
-let data = [
-    {
-        "date": "18 Березня 2024 в 14:40",
-        "provider": "Самороб",
-        "count": "100",
-        "price": "7.000 грн.",
-        "manager": "Андрій Куцак",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "08 Березня 2024 в 10:56",
-        "provider": "Фасовка смазки",
-        "count": "100",
-        "price": "7.000 грн.",
-        "manager": "Андрій Куцак",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "21 Лютого 2024 в 13:43",
-        "provider": "Самороб",
-        "count": "100",
-        "price": "7.000 грн.",
-        "manager": "Андрій Куцак",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "08 Лютого 2024 в 12:13",
-        "provider": "Акт інвентаризації №559",
-        "count": "27",
-        "price": "6.350 грн.",
-        "manager": "Панчук Артем Васильович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "02 Січня 2024 в 17:32",
-        "provider": "Фасовка смазки",
-        "count": "111",
-        "price": "7.000 грн.",
-        "manager": "Андрій Куцак",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "07 Грудня 2023 в 11:13",
-        "provider": "Фасовка смазки",
-        "count": "123",
-        "price": "6.000 грн.",
-        "manager": "Андрій Куцак",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "06 Грудня 2023 в 17:57",
-        "provider": "Самороб",
-        "count": "65",
-        "price": "6.000 грн.",
-        "manager": "Андрій Куцак",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "04 Грудня 2023 в 20:04",
-        "provider": "Фасовка смазки",
-        "count": "54",
-        "price": "6.000 грн.",
-        "manager": "Андрій Куцак",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "16 Листопада 2023 в 14:09",
-        "provider": "Фасовка смазки",
-        "count": "83",
-        "price": "6.000 грн.",
-        "manager": "Зінець Роман Миколайович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "22 Вересня 2023 в 15:28",
-        "provider": "Фасовка смазки",
-        "count": "130",
-        "price": "6.000 грн.",
-        "manager": "Выдача СКЛАД",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "20 Вересня 2023 в 14:21",
-        "provider": "Фасовка смазки",
-        "count": "126",
-        "price": "6.000 грн.",
-        "manager": "Зінець Роман Миколайович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "05 Вересня 2023 в 10:09",
-        "provider": "Фасовка смазки",
-        "count": "130",
-        "price": "6.000 грн.",
-        "manager": "Зінець Роман Миколайович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "04 Вересня 2023 в 17:36",
-        "provider": "Фасовка смазки",
-        "count": "116",
-        "price": "6.000 грн.",
-        "manager": "Выдача СКЛАД",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "10 Серпня 2023 в 17:53",
-        "provider": "Фасовка смазки",
-        "count": "121",
-        "price": "6.000 грн.",
-        "manager": "Зінець Роман Миколайович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "21 Липня 2023 в 10:41",
-        "provider": "Фасовка смазки",
-        "count": "112",
-        "price": "6.000 грн.",
-        "manager": "Зінець Роман Миколайович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "26 Травня 2023 в 15:10",
-        "provider": "Фасовка смазки",
-        "count": "210",
-        "price": "6.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "24 Травня 2023 в 13:21",
-        "provider": "Фасовка смазки",
-        "count": "150",
-        "price": "6.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "27 Квітня 2023 в 13:48",
-        "provider": "Фасовка смазки",
-        "count": "85",
-        "price": "8.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "22 Березня 2023 в 09:19",
-        "provider": "Фасовка смазки",
-        "count": "300",
-        "price": "7.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "26 Січня 2023 в 12:24",
-        "provider": "Фасовка смазки",
-        "count": "75",
-        "price": "6.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "24 Січня 2023 в 11:14",
-        "provider": "Фасовка смазки",
-        "count": "220",
-        "price": "6.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "30 Листопада 2022 в 10:47",
-        "provider": "Фасовка смазки",
-        "count": "351",
-        "price": "6.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "23 Серпня 2022 в 12:47",
-        "provider": "Фасовка смазки",
-        "count": "195",
-        "price": "6.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "02 Серпня 2022 в 14:59",
-        "provider": "Фасовка смазки",
-        "count": "309",
-        "price": "6.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "26 Липня 2022 в 17:59",
-        "provider": "Самороб",
-        "count": "60",
-        "price": "6.000 грн.",
-        "manager": "Зінець Роман Миколайович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "26 Травня 2022 в 12:10",
-        "provider": "Фасовка смазки",
-        "count": "110",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "05 Травня 2022 в 10:57",
-        "provider": "Фасовка смазки",
-        "count": "95",
-        "price": "6.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "04 Травня 2022 в 14:17",
-        "provider": "Фасовка смазки",
-        "count": "155",
-        "price": "6.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "27 Квітня 2022 в 13:18",
-        "provider": "Фасовка смазки",
-        "count": "44",
-        "price": "6.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "21 Квітня 2022 в 14:19",
-        "provider": "Фасовка смазки",
-        "count": "65",
-        "price": "6.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "29 Березня 2022 в 11:51",
-        "provider": "Акт інвентаризації №76",
-        "count": "21",
-        "price": "5.170 грн.",
-        "manager": "Владимир Олегович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "07 Лютого 2022 в 15:38",
-        "provider": "Фасовка смазки",
-        "count": "278",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "18 Січня 2022 в 09:51",
-        "provider": "Фасовка смазки",
-        "count": "186",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "15 Грудня 2021 в 11:37",
-        "provider": "Фасовка смазки",
-        "count": "200",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "23 Листопада 2021 в 13:45",
-        "provider": "Фасовка смазки",
-        "count": "186",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "18 Жовтня 2021 в 12:50",
-        "provider": "Фасовка смазки",
-        "count": "63",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "23 Вересня 2021 в 16:28",
-        "provider": "Самороб",
-        "count": "165",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "02 Вересня 2021 в 14:12",
-        "provider": "Фасовка смазки",
-        "count": "120",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "10 Червня 2021 в 14:43",
-        "provider": "Фасовка смазки",
-        "count": "330",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "06 Квітня 2021 в 16:35",
-        "provider": "Фасовка смазки",
-        "count": "245",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "23 Березня 2021 в 11:42",
-        "provider": "Фасовка смазки",
-        "count": "180",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "19 Лютого 2021 в 14:04",
-        "provider": "Фасовка смазки",
-        "count": "60",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "19 Лютого 2021 в 13:46",
-        "provider": "Фасовка смазки",
-        "count": "60",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "16 Лютого 2021 в 13:13",
-        "provider": "Фасовка смазки",
-        "count": "220",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "08 Січня 2021 в 15:52",
-        "provider": "Фасовка смазки",
-        "count": "208",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "16 Грудня 2020 в 14:07",
-        "provider": "Фасовка смазки",
-        "count": "135",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "16 Листопада 2020 в 17:59",
-        "provider": "Фасовка смазки",
-        "count": "135",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "09 Листопада 2020 в 13:40",
-        "provider": "Фасовка смазки",
-        "count": "75",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "30 Жовтня 2020 в 12:36",
-        "provider": "Фасовка смазки",
-        "count": "120",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
-    },
-    {
-        "date": "15 Вересня 2020 в 10:50",
-        "provider": "Фасовка смазки",
-        "count": "60",
-        "price": "5.000 грн.",
-        "manager": "Сеньків Олександр Омельянович",
-        "storage": "Склад (Василенка)"
+let store = storage.data.addresses;
+let categorys = {};
+let places = {};
+
+Object.keys(store).forEach((key) => {
+    const category = key.split('.');
+    const zone = store[key]?.place?.split("-") ?? undefined;
+
+    if (!categorys[category[0]]) {
+        categorys[category[0]] = {};
     }
-]
-function a(data) {
-    if (data.length == 0) {
-        return { err: true, err_desc: "no data" }
-    };
-    let year_freq = {};
-    data.forEach(function (item) {
-        let year = item.date.trim().split(" ")[2];
+    if (!categorys[category[0]][category[1]]) {
+        categorys[category[0]][category[1]] = [];
+    }
+    if (!categorys[category[0]][category[1]].includes(category[2])) {
+        categorys[category[0]][category[1]].push(category[2]);
+    }
 
-        if (year_freq[year]) {
-            year_freq[year].freq++;
-            year_freq[year].sum + +item.conut;
+    if (zone === undefined) {
+        return;
+    }
+    const stilage = zone[1]?.split(".") ?? undefined;
+    if (!places[zone[0]]) {
+        places[zone[0]] = {};
+    }
+    if (!places[zone[0]][stilage[0]]) {
+        places[zone[0]][stilage[0]] = [];
+    }
+    if (!places[zone[0]][stilage[0]].includes(stilage[1])) {
+        places[zone[0]][stilage[0]].push(stilage[1]);
+    }
+});
 
-        } else {
-            year_freq[year] = { freq: 1, amount: 0, sum: 0 };
-            year_freq[year].sum = +item.count
+contentWraper.innerHTML = "";
+contentWraper.appendChild(get.elements({
+    el: "div",
+    className: "delivery-wraper",
+    children: [
+        {
+            el: "div",
+            className: "categorys_wrapper",
+            children: [
+                {
+                    el: "form",
+                    children: [
+                        {
+                            el: "p",
+                            className: "title",
+                            text: "Обери категорію"
+                        },
+                        {
+                            el: "select",
+                            event: "change",
+                            handler: function () {
+                                const value = this.value;
+                                const categoryWrapper = this.parentElement.querySelector(".category_wrapper");
+                                categoryWrapper.innerHTML = "";
+
+                                if (categorys[value]) {
+                                    const subcategories = Object.keys(categorys[value]);
+                                    if (subcategories.length > 0) {
+                                        const subcategorySelect = get.elements({
+                                            el: "select",
+                                            event: "change",
+                                            handler: function () {
+                                                const subValue = this.value;
+                                                const placesWrapper = this.parentElement.querySelector(".places_wrapper");
+                                                placesWrapper.innerHTML = "";
+
+                                                if (places[value] && places[value][subValue]) {
+                                                    placesWrapper.appendChild(get.elements({
+                                                        el: "div",
+                                                        className: "places_wrapper",
+                                                        children: places[value][subValue].map((item) => ({
+                                                            el: "option",
+                                                            text: item
+                                                        }))
+                                                    }));
+                                                }
+                                            },
+                                            children: subcategories.map((item) => ({
+                                                el: "option",
+                                                text: item
+                                            }))
+                                        });
+                                        categoryWrapper.appendChild(get.elements({
+                                            el: "div",
+                                            className: "category_wrapper",
+                                            children: [
+                                                {
+                                                    el: "p",
+                                                    className: "title",
+                                                    text: "Оберіть підкатегорію"
+                                                },
+                                                subcategorySelect
+                                            ]
+                                        }));
+                                    }
+                                }
+                            },
+                            children: Object.keys(categorys).map((item) => ({
+                                el: "option",
+                                text: item
+                            }))
+                        }
+                    ]
+                }
+            ]
         }
-    });
-    year_freq.forEach(function (item) {
-        item.amount = item.sum / item.sum;
-    })
-    console.log(year_freq)
-    return year_freq;
-
-};
-a(data);
+    ]
+}));

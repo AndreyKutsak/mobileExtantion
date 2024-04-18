@@ -496,6 +496,7 @@ window.addEventListener("load", () => {
 				});
 			}
 			if (data.children) {
+
 				data.children.forEach((child) => {
 					let childElement = this.elements(child);
 					element.appendChild(childElement);
@@ -525,6 +526,9 @@ window.addEventListener("load", () => {
 		},
 	};
 	let hendlers = {
+		append_select: function () {
+			console.log(this)
+		},
 		database: async function (data) {
 			let db;
 
@@ -1485,58 +1489,115 @@ window.addEventListener("load", () => {
 
 		},
 		deliveries_table: async function (data) {
-			let saved_articles = data.length;
-			let main_articles = Object.keys(storage.data.addresses).length
-			contentWraper.innerHTML = "";
-			contentWraper.appendChild(get.elements({
-				el: "div",
-				className: "delivery-wraper",
-				children: [
-					{
-						el: "div",
-						className: "title-wraper",
-						text: `Перевірено артикулів: ${saved_articles} з ${main_articles}`,
-					},
-					{
-						el: "div",
-						className: "categorys_wrapper",
-						children: [
-							{
-								el: "form",
-								children: [{
+			let store = storage.data.addresses;
+			let categorys = {};
+			let places = {};
 
-								}]
-							}
-						]
-					},
-					{
-						el: "div",
-						className: "btn-wrapper",
-						children: [
-							{
-								el: "button",
-								className: "check-btn btn",
-								text: "Розпочати перевірку Приходів",
-								event: "click",
-								hendler: load.deliveries_statistics
-							},
-							{
-								el: "button",
-								className: "download-btn btn",
-								text: "Скачати таблицю",
-								event: "click",
-								hendler: function () {
-									hendlers.database({
-										action: "get_data",
-										store_name: "deliveries_list",
-										callback: generate.deliveries_table_excel
-									})
-								}
-							}
-						]
-					}
-				]
-			}))
+			Object.keys(store).forEach((key) => {
+				const category = key.split('.');
+				const zone = store[key]?.place?.split("-") ?? undefined;
+
+				if (!categorys[category[0]]) {
+					categorys[category[0]] = {};
+				}
+				if (!categorys[category[0]][category[1]]) {
+					categorys[category[0]][category[1]] = [];
+				}
+				if (!categorys[category[0]][category[1]].includes(category[2])) {
+					categorys[category[0]][category[1]].push(category[2]);
+				}
+
+				if (zone === undefined) {
+					return;
+				}
+				const stilage = zone[1]?.split(".") ?? undefined;
+				if (!places[zone[0]]) {
+					places[zone[0]] = {};
+				}
+				if (!places[zone[0]][stilage[0]]) {
+					places[zone[0]][stilage[0]] = [];
+				}
+				if (!places[zone[0]][stilage[0]].includes(stilage[1])) {
+					places[zone[0]][stilage[0]].push(stilage[1]);
+				}
+			});
+
+
+			contentWraper.innerHTML = "";
+			function generateSelect(options, event, hendler) {
+				const select = {
+					el: "select",
+					event: event,
+					hendler: hendler,
+					children: options.map((item) => ({
+						el: "option",
+						text: item
+					}))
+				};
+				console.log(select, options)
+				return select;
+			}
+
+			function generateCategoryWrapper(categorys, places) {
+				const categoryWrapper = get.elements({
+					el: "div",
+					className: "categorys_wrapper",
+					children: [
+						{
+							el: "form",
+							children: [
+								{
+									el: "p",
+									className: "title",
+									text: "Обери категорію"
+								},
+								generateSelect(Object.keys(categorys), "change", function () {
+
+									const value = this.value;
+									const categoryWrapper = this.parentElement;
+									categoryWrapper.innerHTML = "";
+
+									if (categorys[value]) {
+										const subcategories = Object.keys(categorys[value]);
+										if (subcategories.length > 0) {
+											const subcategorySelect = generateSelect(subcategories, "change", function () {
+												const subValue = this.value;
+												const placesWrapper = this.parentElement;
+												placesWrapper.innerHTML = "";
+
+												if (places[value] && places[value][subValue]) {
+													placesWrapper.appendChild(generateSelect(places[value][subValue], "change"));
+												}
+											});
+											categoryWrapper.appendChild(get.elements({
+												el: "div",
+												className: "category_wrapper",
+												children: [
+													{
+														el: "p",
+														className: "title",
+														text: "Оберіть підкатегорію"
+													},
+													subcategorySelect
+												]
+											}));
+										}
+									}
+								})
+							]
+						}
+					]
+				});
+
+				return categoryWrapper;
+			}
+
+
+
+			contentWraper.innerHTML = "";
+			contentWraper.appendChild(generateCategoryWrapper(categorys, places));
+
+
 		},
 		message: function (data) {
 			let element = get.elements({
