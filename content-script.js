@@ -1524,21 +1524,19 @@ window.addEventListener("load", () => {
 
 
 			contentWraper.innerHTML = "";
-			function generateSelect(options, event, hendler) {
+			function generateSelect(options, event, handler) {
 				const select = {
 					el: "select",
 					event: event,
-					hendler: hendler,
+					hendler: handler,
 					children: options.map((item) => ({
 						el: "option",
 						text: item
 					}))
 				};
-
 				return select;
 			}
-
-			function generateCategoryWrapper(categorys, places) {
+			function generateCategoryWrapper(categorys) {
 				const categoryWrapper = get.elements({
 					el: "div",
 					className: "categorys_wrapper",
@@ -1553,55 +1551,133 @@ window.addEventListener("load", () => {
 								},
 								generateSelect(Object.keys(categorys), "change", function () {
 									const value = this.value;
-									const categoryWrapper = this.parentElement;
-									if (categorys[value]) {
-										const subcategories = Object.keys(categorys[value]);
-										if (subcategories.length > 0) {
-											const subcategorySelect = generateSelect(subcategories, "change", function () {
-												const subValue = this.value;
+									const categorysWrapper = this.parentElement;
+									const subCategorys = Object.keys(categorys[value]);
+									const subCategorySelect = generateSelect(subCategorys, "change", function () {
+										const sub_category_value = this.value;
+										const num_category_wrpper = this.parentElement;
+										const articles_list = Object.keys(categorys[value][sub_category_value]);
+										if (articles_list.length > 0) {
+											if (num_category_wrpper.querySelector(".articles_wrapper")) {
+												num_category_wrpper.querySelector(".articles_wrapper").remove();
+											}
 
-												if (categorys[value][subValue] && categorys[value][subValue]) {
-													categoryWrapper.appendChild(get.elements(generateSelect(categorys[value][subValue], "change", function () {
-														let value = this.value;
-														let wrapper = this.parentElement;
-
-													})));
-												}
+											const articlesSelect = generateSelect(articles_list, "change", function () {
+												const article_value = this.value;
 											});
-											categoryWrapper.appendChild(get.elements({
+											num_category_wrpper.appendChild(get.elements({
 												el: "div",
-												className: "category_wrapper",
+												className: "articles_wrapper",
 												children: [
 													{
 														el: "p",
 														className: "title",
-														text: "Оберіть підкатегорію",
-
-													},
-													subcategorySelect
+														text: "Обери артикул"
+													}, articlesSelect
 												]
 											}));
+
+
 										}
+									});
+									const subCategoryWrapper = get.elements({
+										el: "div",
+										className: "sub_categorys_wrapper",
+										children: [
+											{
+												el: "p",
+												className: "title",
+												text: "Обери підкатегорію"
+											}, subCategorySelect
+										]
+									});
+									const existingSubCategoryWrapper = categorysWrapper.querySelector(".sub_categorys_wrapper");
+									if (existingSubCategoryWrapper) {
+										existingSubCategoryWrapper.replaceWith(subCategoryWrapper);
+									} else {
+										categorysWrapper.appendChild(subCategoryWrapper);
 									}
-
-
 								})
-
 							]
 						}
 					]
 				});
 
 				return categoryWrapper;
-			}
+			};
+			function generatePlacesWrapper(places) {
+
+				const placesWrapper = contentWraper.querySelector("form");
+				const zone_keys = Object.keys(places);
+				if (zone_keys.length > 0) {
+					return get.elements({
+						el: "div",
+						className: "places_wrapper",
+						children: [{
+							el: "p",
+							className: "title",
+							text: "Обери зону"
+						}, generateSelect(zone_keys, "change", function () {
+							const selected_zone = this.value;
+							const zone_wrapper = this.parentElement;
+							const stilages = Object.keys(places[selected_zone]);
+							if (stilages) {
+								if (zone_wrapper.querySelector(".stilages_wrapper")) {
+									zone_wrapper.querySelector(".stilages_wrapper").remove();
+								}
+								zone_wrapper.appendChild(get.elements({
+									el: "div",
+									className: "stilages_wrapper",
+									children: [
+										{
+											el: "p",
+											className: "title",
+											text: "Обери стілаж"
+										}, generateSelect(stilages, "change", function () {
+											const selected_stilages = this.value;
+											const stilages_wrapper = this.parentElement;
+											const rows = Object.keys(places[selected_zone][selected_stilages]);
+											if (rows.length > 0) {
+												if (stilages_wrapper.querySelector(".rows_wrapper")) {
+													stilages_wrapper.querySelector(".rows_wrapper").remove();
+												}
+												stilages_wrapper.appendChild(get.elements({
+													el: "div",
+													className: "rows_wrapper",
+													children: [
+														{
+															el: "p",
+															className: "title",
+															text: "Обери ряд"
+														}, generateSelect(rows, "change", function () {
+															const selected_row = this.value;
+
+														})
+													]
+												}))
+											}
+										})
+									]
+								}))
+							}
+						})
+						]
+					})
+				}
+
+
+			};
 
 
 
 
-			contentWraper.appendChild(generateCategoryWrapper(categorys, places));
 
 
-		},
+
+			contentWraper.appendChild(generateCategoryWrapper(categorys));
+			contentWraper.appendChild(generatePlacesWrapper(places));
+		}
+		,
 		message: function (data) {
 			let element = get.elements({
 				el: "div",
@@ -4248,9 +4324,9 @@ window.addEventListener("load", () => {
 					let stilage = rows.map((item) => {
 						let td = Array.from(item.querySelectorAll("td"));
 						return {
-							id: td[0].textContent,
-							number: td[1].textContent,
-							zone: td[3].textContent,
+							id: td[0].textContent.trim(),
+							number: td[1].textContent.trim(),
+							zone: td[3].textContent.trim(),
 						};
 					});
 					return stilage;
@@ -4302,7 +4378,7 @@ window.addEventListener("load", () => {
 				places[key].forEach((item) => {
 					storage.address({
 						article: item.trim(),
-						place: Object.keys(places)[count],
+						place: Object.keys(places)[count].trim(),
 					});
 				});
 
