@@ -1485,18 +1485,16 @@ window.addEventListener("load", () => {
 
 		},
 		deliveries_table: async function (data) {
-			let saved_articles = data.length;
-			let main_articles = Object.keys(storage.data.addresses).length
+			let saved_data = { articles: [], stilages: [] }
+			let categories = data.map(function (item) {
+				let article = item.split(".")
+			});
+
 			contentWraper.innerHTML = "";
 			contentWraper.appendChild(get.elements({
 				el: "div",
 				className: "delivery-wraper",
 				children: [
-					{
-						el: "div",
-						className: "title-wraper",
-						text: `Перевірено артикулів: ${saved_articles} з ${main_articles}`,
-					},
 					{
 						el: "div",
 						className: "categorys_wrapper",
@@ -4327,7 +4325,6 @@ window.addEventListener("load", () => {
 								storage_article.save_area_count = Number(storage_article.save_area_count) - Number(quantity);
 							}
 							storage_article.last_goods_count = item.base_quantity;
-
 							if (storage_article.real_goods_count) {
 								storage_article.real_goods_count =
 									Number(storage_article.real_goods_count) - Number(quantity);
