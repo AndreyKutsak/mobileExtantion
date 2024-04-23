@@ -553,7 +553,7 @@ window.addEventListener("load", () => {
 
 				request.onsuccess = function (event) {
 					let stored_data = event.target.result;
-					console.log("Data retrieved:", stored_data);
+
 					if (callback) {
 						callback(stored_data);
 					}
@@ -1489,25 +1489,6 @@ window.addEventListener("load", () => {
 
 		},
 		deliveries_table: async function (data) {
-<<<<<<< HEAD
-			let saved_data = { articles: [], stilages: [] }
-			let categories = data.map(function (item) {
-				let article = item.split(".")
-			});
-
-			contentWraper.innerHTML = "";
-			contentWraper.appendChild(get.elements({
-				el: "div",
-				className: "delivery-wraper",
-				children: [
-					{
-						el: "div",
-						className: "categorys_wrapper",
-						children: [
-							{
-								el: "form",
-								children: [{
-=======
 			let store = storage.data.addresses;
 			let categorys = {};
 			let places = {};
@@ -1553,7 +1534,7 @@ window.addEventListener("load", () => {
 						text: item
 					}))
 				};
-				console.log(select, options)
+
 				return select;
 			}
 
@@ -1571,21 +1552,20 @@ window.addEventListener("load", () => {
 									text: "Обери категорію"
 								},
 								generateSelect(Object.keys(categorys), "change", function () {
-
 									const value = this.value;
 									const categoryWrapper = this.parentElement;
-									categoryWrapper.innerHTML = "";
-
 									if (categorys[value]) {
 										const subcategories = Object.keys(categorys[value]);
 										if (subcategories.length > 0) {
 											const subcategorySelect = generateSelect(subcategories, "change", function () {
 												const subValue = this.value;
-												const placesWrapper = this.parentElement;
-												placesWrapper.innerHTML = "";
 
-												if (places[value] && places[value][subValue]) {
-													placesWrapper.appendChild(generateSelect(places[value][subValue], "change"));
+												if (categorys[value][subValue] && categorys[value][subValue]) {
+													categoryWrapper.appendChild(get.elements(generateSelect(categorys[value][subValue], "change", function () {
+														let value = this.value;
+														let wrapper = this.parentElement;
+
+													})));
 												}
 											});
 											categoryWrapper.appendChild(get.elements({
@@ -1595,14 +1575,18 @@ window.addEventListener("load", () => {
 													{
 														el: "p",
 														className: "title",
-														text: "Оберіть підкатегорію"
+														text: "Оберіть підкатегорію",
+
 													},
 													subcategorySelect
 												]
 											}));
 										}
 									}
+
+
 								})
+
 							]
 						}
 					]
@@ -1613,10 +1597,9 @@ window.addEventListener("load", () => {
 
 
 
-			contentWraper.innerHTML = "";
+
 			contentWraper.appendChild(generateCategoryWrapper(categorys, places));
 
->>>>>>> a81e9604dc651bf2914326d417bc7a3cca2a2c1b
 
 		},
 		message: function (data) {
@@ -3900,6 +3883,8 @@ window.addEventListener("load", () => {
 				let goodsPhoto = item.querySelector(".detImg>a>img");
 				let goodsCount = Array.from(result.querySelectorAll(".detPr"));
 				let goodsDesc = Array.from(result.querySelectorAll(".titleDet"));
+				let goods_type = Array.from(item.querySelectorAll(".goodsDopInfoButton"));
+				console.log(goods_type)
 				data.id = get.article(goodsId[index].textContent).id;
 				data.article = get.article(goodsId[index].textContent).article;
 				data.photo = goodsPhoto.getAttribute("src");
@@ -3910,8 +3895,10 @@ window.addEventListener("load", () => {
 					goodsCount[index].textContent.trim()
 				).baseCount;
 				data.baseCount = get.goodsCount(goodsCount[index].textContent.trim());
+				data.goods_type = goods_type[0].textContent.trim();
 				this.storage.push(data);
 				storage.set_id(data);
+				console.log(data)
 			});
 
 			return get.mergeSort(this.storage);
@@ -4408,6 +4395,7 @@ window.addEventListener("load", () => {
 								storage_article.save_area_count = Number(storage_article.save_area_count) - Number(quantity);
 							}
 							storage_article.last_goods_count = item.base_quantity;
+
 							if (storage_article.real_goods_count) {
 								storage_article.real_goods_count =
 									Number(storage_article.real_goods_count) - Number(quantity);
@@ -4519,6 +4507,7 @@ window.addEventListener("load", () => {
 						last_delivery_date: lastDeliveryDate,
 						place: storage.data.addresses[art].place,
 						cell: storage.data.addresses[art].cell,
+						goods_type: searchRes.goods_type,
 						checking_date: get.date(),
 						years_frequency: get.years_frequency(deliveries),
 					}
