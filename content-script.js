@@ -526,10 +526,27 @@ window.addEventListener("load", () => {
 		show_avalible_artilces: function (categorys, places) {
 			let desc = document.querySelector(".description");
 			console.log(places, categorys)
-			let artilces = Object.keys(storage.data.addresses);
-			if (categorys === undefined) {
-
-			}
+			let articles = Object.keys(storage.data.addresses);
+			let count = 0;
+			if (categorys !== undefined) {
+				articles.forEach((item) => {
+					if (item.includes(categorys.category)) {
+						console.warn("category")
+						if (item.includes(categorys.sub_category)) {
+							console.warn("subcategory")
+							if (item.includes(categorys.article)) {
+								console.warn("article")
+								count++;
+								return;
+							}
+							count++;
+							return;
+						}
+						count++;
+					};
+				})
+			};
+			desc.textContent = `Кількість артикулів${count}`;
 		},
 
 
