@@ -217,20 +217,27 @@ window.addEventListener("load", () => {
 				"листопада": 10,
 				"грудня": 11,
 			};
-			let [day, delivery_month, year] = data.toLowerCase().split(" ");
-			let targetDate = new Date(year, month[delivery_month], day);
 			let currentDate = new Date();
+			let [day, delivery_month, year] = data.toLowerCase().split(" ");
+
+			if (data.includes("сьогодні")) {
+				return { years: 0, months: 0, days: 0 };
+			} else if (data.includes("вчора")) {
+				currentDate.setDate(currentDate.getDate() - 1);
+				[day, delivery_month, year] = [currentDate.getDate(), currentDate.getMonth(), currentDate.getFullYear()];
+			}
+
+			let targetDate = new Date(year, month[delivery_month], day);
 			let elapsedTime = currentDate.getTime() - targetDate.getTime();
 			const elapsedYears = Math.floor(elapsedTime / (1000 * 60 * 60 * 24 * 365));
 			const elapsedMonths = Math.floor(elapsedTime / (1000 * 60 * 60 * 24 * 30.44)) % 12;
 			const elapsedDays = Math.floor(elapsedTime / (1000 * 60 * 60 * 24)) % 30.44;
+
 			return {
 				years: elapsedYears,
 				months: elapsedMonths,
 				days: elapsedDays.toFixed(0),
-			}
-			console.log(elapsedYears, elapsedMonths, elapsedDays.toFixed(0));
-
+			};
 		},
 		Local_storage_size: function () {
 			let storage = localStorage.getItem('storage');
@@ -523,31 +530,72 @@ window.addEventListener("load", () => {
 		},
 	};
 	let hendlers = {
-		show_avalible_artilces: function (categorys, places) {
+		show_available_articles: function (categorys, places) {
 			let desc = document.querySelector(".description");
-			console.log(places, categorys)
 			let articles = Object.keys(storage.data.addresses);
-			let count = 0;
-			if (categorys !== undefined) {
+			let matchingArticles = [];
+
+			if (categorys && Object.keys(categorys).length !== 0) {
 				articles.forEach((item) => {
-					if (item.includes(categorys.category)) {
-						console.warn("category")
-						if (item.includes(categorys.sub_category)) {
-							console.warn("subcategory")
-							if (item.includes(categorys.article)) {
-								console.warn("article")
-								count++;
-								return;
-							}
-							count++;
-							return;
-						}
-						count++;
+					let category = item.split(".");
+					let isMatch = true;
+
+					// Check if categorys.category, categorys.sub_category, and categorys.article are defined and match
+					if (categorys.category !== undefined && Number(categorys.category) !== Number(category[0])) {
+						isMatch = false;
+					}
+					if (categorys.sub_category !== undefined && Number(categorys.sub_category) !== Number(category[1])) {
+						isMatch = false;
+					}
+					if (categorys.article !== undefined && Number(categorys.article) !== Number(category[2])) {
+						isMatch = false;
+					}
+
+					if (isMatch) {
+						matchingArticles.push(item);
+					}
+				});
+			}
+			if (places && Object.keys(places)) {
+				articles.forEach((item) => {
+					if (storage.data.addresses[item].place == undefined) return;
+					let zone = storage.data.addresses[item].place.split("-");
+					let place = zone[1].split(".");
+
+					let isMatch = true;
+					if (places.zone !== undefined && places.zone !== zone[0]) {
+						isMatch = false;
 					};
-				})
-			};
-			desc.textContent = `Кількість артикулів${count}`;
-		},
+					if (places.stilage !== undefined && places.stilage !== place[0]) {
+						isMatch = false;
+					};
+					if (places.row !== undefined && places.stilage !== place[1]) {
+						isMatch = false;
+					}
+					if (isMatch) {
+						matchingArticles.push(item);
+					}
+				});
+			}
+			let check_btn = get.elements({
+				el: "button",
+				className: "check_btn btn",
+				event: "click",
+				hendler: function () { load.deliveries_statistics(matchingArticles) },
+				text: 'Розпочати перевірку'
+			});
+
+			desc.textContent = `Кількість артикулів: ${matchingArticles.length}`;
+			console.log(matchingArticles, desc.parentElement.childNodes);
+			let existBtn = desc.parentElement.querySelector(".check_btn");
+			if (existBtn) existBtn.remove();
+			if (!desc.parentElement.querySelector(".check_btn")) desc.parentElement.appendChild(check_btn);
+
+		}
+
+
+		,
+
 
 
 		database: async function (data) {
@@ -585,7 +633,7 @@ window.addEventListener("load", () => {
 				};
 			}
 
-			function deliveries_table(data) {
+			async function deliveries_table(data) {
 				let indexDB = indexedDB.open("deliveries", 1);
 
 				indexDB.onerror = function (event) {
@@ -600,6 +648,9 @@ window.addEventListener("load", () => {
 						get_data(data, data.callback);
 					} else if (data.action == "save_data") {
 						save_data(data);
+					} else if (data.action == "clear_store") {
+						let transaction = db.transaction([data.store_name], "readwrite");
+						transaction.objectStore(data.store_name).clear();
 					}
 				};
 
@@ -610,7 +661,8 @@ window.addEventListener("load", () => {
 			}
 
 			await deliveries_table(data);
-		},
+		}
+		,
 
 		remove_elaboration_item: function () {
 			let date = this.dataset.date;
@@ -1416,6 +1468,7 @@ window.addEventListener("load", () => {
 									border: "1"
 								}
 							},
+							{ el: "td", text: "Ходови/Заказний", atr: { border: "1" } },
 							{
 								el: "td",
 								text: "Середня кількість поставки  товару", atr: {
@@ -1435,10 +1488,16 @@ window.addEventListener("load", () => {
 							},
 							{
 								el: "td",
+								text: "Дата Парсингу", atr: {
+									border: "1"
+								}
+							},
+							{
+								el: "td",
 								text: "Частота поставки", atr: {
 									border: "1"
 								}
-							}
+							},
 						]
 					}
 				]
@@ -1473,6 +1532,9 @@ window.addEventListener("load", () => {
 						text: String(item.count)
 					}, {
 						el: "td",
+						text: item.goods_type
+					}, {
+						el: "td",
 						text: Math.round(item.average_amount)
 					}, {
 						el: "td",
@@ -1480,6 +1542,10 @@ window.addEventListener("load", () => {
 					}, {
 						el: "td",
 						text: `${item.time_from_last_delivery.years} років ${item.time_from_last_delivery.months} місяців ${item.time_from_last_delivery.days} днів`
+					},
+					{
+						el: "td",
+						text: `${item.checking_date.day}.${item.checking_date.month}.${item.checking_date.year}`
 					}, {
 						el: "td",
 						children: Object.keys(item.years_frequency).map((key) => {
@@ -1510,11 +1576,21 @@ window.addEventListener("load", () => {
 
 		},
 		deliveries_table: async function (data) {
+			console.log(data)
+			let download_btn;
 			let store = storage.data.addresses;
 			let categorys = {};
 			let places = {};
 			let selected_place = {};
 			let selected_cateory = {};
+			if (data.length > 0) {
+				download_btn = get.elements({
+					el: "button",
+					text: "Завантажити таблицю",
+					event: "click",
+					hendler: function () { generate.deliveries_table_excel(data) }
+				})
+			}
 			Object.keys(store).forEach((key) => {
 				const category = key.split('.');
 				const zone = store[key]?.place?.split("-") ?? undefined;
@@ -1551,6 +1627,7 @@ window.addEventListener("load", () => {
 					hendler: handler,
 					children: options.map((item) => ({
 						el: "option",
+						value: item,
 						text: item
 					}))
 				};
@@ -1580,13 +1657,13 @@ window.addEventListener("load", () => {
 									const categorysWrapper = this.parentElement;
 									const subCategorys = Object.keys(categorys[value]);
 									selected_cateory.category = value;
-									hendlers.show_avalible_artilces(selected_cateory, selected_place);
+									hendlers.show_available_articles(selected_cateory, selected_place);
 									const subCategorySelect = generateSelect(subCategorys, "change", function () {
 										const sub_category_value = this.value;
 										const num_category_wrpper = this.parentElement;
 										const articles_list = Object.keys(categorys[value][sub_category_value]);
-										selected_cateory.sub_category = value;
-										hendlers.show_avalible_artilces(selected_cateory, selected_place);
+										selected_cateory.sub_category = sub_category_value;
+										hendlers.show_available_articles(selected_cateory, selected_place);
 										if (articles_list.length > 0) {
 											if (num_category_wrpper.querySelector(".articles_wrapper")) {
 												num_category_wrpper.querySelector(".articles_wrapper").remove();
@@ -1595,7 +1672,7 @@ window.addEventListener("load", () => {
 											const articlesSelect = generateSelect(articles_list, "change", function () {
 												const article_value = this.value;
 												selected_cateory.article = article_value;
-												hendlers.show_avalible_artilces(selected_cateory, selected_place);
+												hendlers.show_available_articles(selected_cateory, selected_place);
 											});
 											num_category_wrpper.appendChild(get.elements({
 												el: "div",
@@ -1652,7 +1729,7 @@ window.addEventListener("load", () => {
 							const zone_wrapper = this.parentElement;
 							const stilages = Object.keys(places[selected_zone]);
 							selected_place.zone = selected_zone;
-							hendlers.show_avalible_artilces(selected_cateory, selected_place);
+							hendlers.show_available_articles(selected_cateory, selected_place);
 							if (stilages) {
 								if (zone_wrapper.querySelector(".stilages_wrapper")) {
 									zone_wrapper.querySelector(".stilages_wrapper").remove();
@@ -1670,7 +1747,7 @@ window.addEventListener("load", () => {
 											const stilages_wrapper = this.parentElement;
 											const rows = Object.keys(places[selected_zone][selected_stilages]);
 											selected_place.stilage = selected_stilages;
-											hendlers.show_avalible_artilces(selected_cateory, selected_place);
+											hendlers.show_available_articles(selected_cateory, selected_place);
 											if (rows.length > 0) {
 												if (stilages_wrapper.querySelector(".rows_wrapper")) {
 													stilages_wrapper.querySelector(".rows_wrapper").remove();
@@ -1686,7 +1763,7 @@ window.addEventListener("load", () => {
 														}, generateSelect(rows, "change", function () {
 															const selected_row = this.value;
 															selected_place.row = selected_row;
-															hendlers.show_avalible_artilces(selected_cateory, selected_place);
+															hendlers.show_available_articles(selected_cateory, selected_place);
 														})
 													]
 												}))
@@ -1711,6 +1788,7 @@ window.addEventListener("load", () => {
 
 			contentWraper.appendChild(generateCategoryWrapper(categorys));
 			contentWraper.appendChild(generatePlacesWrapper(places));
+			contentWraper.appendChild(download_btn)
 		}
 		,
 		message: function (data) {
@@ -4576,11 +4654,13 @@ window.addEventListener("load", () => {
 			return this.storage;
 		},
 		deliveries_statistics: async function (data) {
-			let articlesList = Object.keys(storage.data.addresses);
+			generate.preloader({ status: "start" });
+			hendlers.database({ action: "clear_store", store_name: "deliveries_list" });
+			let articlesList = data;
 			for (const art of articlesList) {
-				if (storage.data.addresses[art].isChecked) { continue; }
 
-				console.log("Processing article:", art);
+				generate.preloader({ status: "update_status", desc: `Processing article: ${art}  ${articlesList.indexOf(art) + 1} / ${articlesList.length}` });
+
 
 				let averageAmount = 0,
 					lastDeliveryDate,
@@ -4618,15 +4698,14 @@ window.addEventListener("load", () => {
 						last_delivery_date: lastDeliveryDate,
 						place: storage.data.addresses[art].place,
 						cell: storage.data.addresses[art].cell,
-						goods_type: searchRes.goods_type,
+						goods_type: searchRes[0].goods_type,
 						checking_date: get.date(),
 						years_frequency: get.years_frequency(deliveries),
 					}
 				});
-
-				storage.data.addresses[art].isChecked = true;
 				storage.save();
 			}
+			generate.preloader({ status: "end" });
 		}
 		,
 		logOut: function () {
