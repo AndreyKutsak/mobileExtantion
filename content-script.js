@@ -281,9 +281,6 @@ window.addEventListener("load", () => {
 
 			return "Загальний обєм: " + totalSpace.toFixed(2) + " MB, Використано: " + usedSpace.toFixed(2) + " MB, Доступно: " + availableSpace.toFixed(2) + " MB";
 		},
-
-
-
 		elaboration_time: function (data) {
 			let date = get.date();
 			let hours = date.hours;
@@ -526,9 +523,16 @@ window.addEventListener("load", () => {
 		},
 	};
 	let hendlers = {
-		append_select: function () {
-			console.log(this)
+		show_avalible_artilces: function (categorys, places) {
+			let desc = document.querySelector(".description");
+			console.log(places, categorys)
+			let artilces = Object.keys(storage.data.addresses);
+			if (categorys === undefined) {
+
+			}
 		},
+
+
 		database: async function (data) {
 			let db;
 
@@ -1492,7 +1496,8 @@ window.addEventListener("load", () => {
 			let store = storage.data.addresses;
 			let categorys = {};
 			let places = {};
-
+			let selected_place = {};
+			let selected_cateory = {};
 			Object.keys(store).forEach((key) => {
 				const category = key.split('.');
 				const zone = store[key]?.place?.split("-") ?? undefined;
@@ -1521,8 +1526,6 @@ window.addEventListener("load", () => {
 					places[zone[0]][stilage[0]].push(stilage[1]);
 				}
 			});
-
-
 			contentWraper.innerHTML = "";
 			function generateSelect(options, event, handler) {
 				const select = {
@@ -1537,10 +1540,16 @@ window.addEventListener("load", () => {
 				return select;
 			}
 			function generateCategoryWrapper(categorys) {
+
 				const categoryWrapper = get.elements({
 					el: "div",
 					className: "categorys_wrapper",
 					children: [
+						{
+							el: "p",
+							className: "description",
+							text: ""
+						},
 						{
 							el: "form",
 							children: [
@@ -1553,10 +1562,14 @@ window.addEventListener("load", () => {
 									const value = this.value;
 									const categorysWrapper = this.parentElement;
 									const subCategorys = Object.keys(categorys[value]);
+									selected_cateory.category = value;
+									hendlers.show_avalible_artilces(selected_cateory, selected_place);
 									const subCategorySelect = generateSelect(subCategorys, "change", function () {
 										const sub_category_value = this.value;
 										const num_category_wrpper = this.parentElement;
 										const articles_list = Object.keys(categorys[value][sub_category_value]);
+										selected_cateory.sub_category = value;
+										hendlers.show_avalible_artilces(selected_cateory, selected_place);
 										if (articles_list.length > 0) {
 											if (num_category_wrpper.querySelector(".articles_wrapper")) {
 												num_category_wrpper.querySelector(".articles_wrapper").remove();
@@ -1564,6 +1577,8 @@ window.addEventListener("load", () => {
 
 											const articlesSelect = generateSelect(articles_list, "change", function () {
 												const article_value = this.value;
+												selected_cateory.article = article_value;
+												hendlers.show_avalible_artilces(selected_cateory, selected_place);
 											});
 											num_category_wrpper.appendChild(get.elements({
 												el: "div",
@@ -1606,8 +1621,6 @@ window.addEventListener("load", () => {
 				return categoryWrapper;
 			};
 			function generatePlacesWrapper(places) {
-
-				const placesWrapper = contentWraper.querySelector("form");
 				const zone_keys = Object.keys(places);
 				if (zone_keys.length > 0) {
 					return get.elements({
@@ -1621,6 +1634,8 @@ window.addEventListener("load", () => {
 							const selected_zone = this.value;
 							const zone_wrapper = this.parentElement;
 							const stilages = Object.keys(places[selected_zone]);
+							selected_place.zone = selected_zone;
+							hendlers.show_avalible_artilces(selected_cateory, selected_place);
 							if (stilages) {
 								if (zone_wrapper.querySelector(".stilages_wrapper")) {
 									zone_wrapper.querySelector(".stilages_wrapper").remove();
@@ -1637,6 +1652,8 @@ window.addEventListener("load", () => {
 											const selected_stilages = this.value;
 											const stilages_wrapper = this.parentElement;
 											const rows = Object.keys(places[selected_zone][selected_stilages]);
+											selected_place.stilage = selected_stilages;
+											hendlers.show_avalible_artilces(selected_cateory, selected_place);
 											if (rows.length > 0) {
 												if (stilages_wrapper.querySelector(".rows_wrapper")) {
 													stilages_wrapper.querySelector(".rows_wrapper").remove();
@@ -1651,7 +1668,8 @@ window.addEventListener("load", () => {
 															text: "Обери ряд"
 														}, generateSelect(rows, "change", function () {
 															const selected_row = this.value;
-
+															selected_place.row = selected_row;
+															hendlers.show_avalible_artilces(selected_cateory, selected_place);
 														})
 													]
 												}))
@@ -4540,7 +4558,7 @@ window.addEventListener("load", () => {
 
 			return this.storage;
 		},
-		deliveries_statistics: async function processArticles() {
+		deliveries_statistics: async function (data) {
 			let articlesList = Object.keys(storage.data.addresses);
 			for (const art of articlesList) {
 				if (storage.data.addresses[art].isChecked) { continue; }
