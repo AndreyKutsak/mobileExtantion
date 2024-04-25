@@ -15,47 +15,89 @@ window.addEventListener("load", () => {
 	});
 	let db;
 	const storage = {
-		data: {},
+		db: null,
 
-		init: function () {
-			const storedData = JSON.parse(localStorage.getItem("storage"));
-			this.data = storedData || {
-				listArray: {},
-				compareArray: {},
-				questions: [],
-				elaborations: {},
-				addresses: {},
-				orders: {},
-				history: [],
-				production: [],
-				settings: {},
-				id: {},
+		init: function (callback) {
+			const request = indexedDB.open("StorageDB", 1);
+
+			request.onerror = function (event) {
+				console.error("IndexedDB error: " + event.target.errorCode);
+			};
+
+			request.onsuccess = (event) => {
+				this.db = event.target.result;
+				const storedData = this.getData(callback);
+				this.data = storedData || {
+					listArray: {},
+					compareArray: {},
+					questions: [],
+					elaborations: {},
+					addresses: {},
+					orders: {},
+					history: [],
+					production: [],
+					settings: {},
+					id: {},
+				};
+			};
+
+			request.onupgradeneeded = function (event) {
+				const db = event.target.result;
+
+				if (!db.objectStoreNames.contains("storage")) {
+					db.createObjectStore("storage", { keyPath: "key" });
+				}
 			};
 		},
+
+		getData: function (callback) {
+			const transaction = this.db.transaction(["storage"], "readonly");
+			const objectStore = transaction.objectStore("storage");
+			const request = objectStore.get("data");
+
+			let storedData = null;
+
+			request.onerror = function (event) {
+				console.error("Error getting data from IndexedDB");
+				callback(storedData);
+			};
+
+			request.onsuccess = function (event) {
+				storedData = event.target.result ? event.target.result.value : null;
+				callback(storedData);
+			};
+		},
+
+		saveData: function (data) {
+			const transaction = this.db.transaction(["storage"], "readwrite");
+			const objectStore = transaction.objectStore("storage");
+			objectStore.put({ key: "data", value: data });
+		},
+
 		save: function () {
 			console.log("Сохранено");
-			localStorage.setItem("storage", JSON.stringify(this.data));
+			this.saveData(this.data);
 		},
+
 		set_id: function (data) {
 			let storage = this.data;
-			if (storage.id == undefined) {
+			if (storage.id === undefined) {
 				storage.id = {};
 			}
 			if (storage.id[data.id]) {
 				return;
 			}
-			if (storage.id[data.id] == undefined) {
+			if (storage.id[data.id] === undefined) {
 				storage.id[data.id] = data.article;
 				this.save();
 			}
 		},
+
 		address: function (data) {
 			let storage = this.data.addresses;
 			let article = data.article;
 			if (!article) {
-				console.error(
-					"Артикул є обов'язковим для отримання чи збереження даних"
-				);
+				console.error("Артикул є обов'язковим для отримання чи збереження даних");
 				return;
 			}
 			if (!storage[article]) {
@@ -64,7 +106,7 @@ window.addEventListener("load", () => {
 			}
 
 			if (data.place && data.place !== this.data.addresses[article].place) {
-				if (storage[article].place == undefined) {
+				if (storage[article].place === undefined) {
 					storage[article].place = data.place;
 				}
 				if (storage[article].place.includes(data.place)) {
@@ -91,12 +133,10 @@ window.addEventListener("load", () => {
 			}
 			if (
 				this.data.last_goods_count &&
-				this.data.last_goods_count !==
-				this.data.addresses[article].last_goods_count
+				this.data.last_goods_count !== this.data.addresses[article].last_goods_count
 			) {
 				console.log("good scount");
-				this.data.addresses[article].last_goods_count =
-					this.data.last_goods_count;
+				this.data.addresses[article].last_goods_count = this.data.last_goods_count;
 
 				this.save();
 			}
@@ -112,7 +152,11 @@ window.addEventListener("load", () => {
 		},
 	};
 
-	storage.init();
+	storage.init((storedData) => {
+		// Тепер ви можете використовувати дані після ініціалізації
+	});
+
+
 
 	let url = {
 		baza: "https://baza.m-p.in.ua/ajax/magaz.php",
@@ -534,12 +578,12 @@ window.addEventListener("load", () => {
 			let desc = document.querySelector(".description");
 			let articles = Object.keys(storage.data.addresses);
 			let matchingArticles = [];
-
+			console.log(articles.length)
 			if (categorys && Object.keys(categorys).length !== 0) {
 				articles.forEach((item) => {
 					let category = item.split(".");
 					let isMatch = true;
-
+					console.log(categorys.category !== undefined && Number(categorys.category) !== Number(category[0]))
 					// Check if categorys.category, categorys.sub_category, and categorys.article are defined and match
 					if (categorys.category !== undefined && Number(categorys.category) !== Number(category[0])) {
 						isMatch = false;
@@ -556,13 +600,13 @@ window.addEventListener("load", () => {
 					}
 				});
 			}
-			if (places && Object.keys(places)) {
+			if (places && Object.keys(places).length !== 0) {
 				articles.forEach((item) => {
 					if (storage.data.addresses[item].place == undefined) return;
 					let zone = storage.data.addresses[item].place.split("-");
 					let place = zone[1].split(".");
-
 					let isMatch = true;
+
 					if (places.zone !== undefined && places.zone !== zone[0]) {
 						isMatch = false;
 					};
@@ -1576,7 +1620,7 @@ window.addEventListener("load", () => {
 
 		},
 		deliveries_table: async function (data) {
-			console.log(data)
+
 			let download_btn;
 			let store = storage.data.addresses;
 			let categorys = {};
@@ -4181,7 +4225,7 @@ window.addEventListener("load", () => {
 					);
 					rowData.quantity = quantity.trim();
 					rowData.price = td[5].textContent.trim();
-					console.log(rowData)
+
 					this.storage.push(rowData);
 
 				}
@@ -4561,7 +4605,7 @@ window.addEventListener("load", () => {
 				for (const order_id of Object.keys(stored_data.orders).reverse()) {
 					if (stored_data.orders[order_id].is_new) {
 						let response = await this.order({ id: order_id });
-						console.log(response);
+
 						response.forEach((item) => {
 							if (item.questionsCount >= 0) {
 								return;
