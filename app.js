@@ -2,14 +2,14 @@ const storage = {
     db: null,
     data: {},
     init: function (data, callback) {
-        let request = indexedDB.open("Storage", 1);
+        let request = new IndexedDB.open("Storage", 1);
         request.onerror = function (event) {
             alert("Сталася помилка під час");
             console.error(`IndexedDB error ${event.trget.errorCode}`)
         };
         request.onsucess = function (event) {
             this.db = event.target.result;
-            const storedData = this.getData();
+            const storedData = this.getData(callback);
             this.data = storedData || {
                 listArray: {},
                 compareArray: {},
@@ -25,7 +25,6 @@ const storage = {
             };
         };
         request.onupgradeneeded = function (event) {
-            console.log(event)
             const db = event.target.result;
             const store_list = Object.keys(data.store);
             if (store_list.length > 0) {
@@ -35,14 +34,7 @@ const storage = {
                     }
                 })
             }
-            this.getData()
 
         }
-    },
-    getData: function (data) {
-        let transaction = this.db.transaction(Object.keys(data.store), "readonly");
-        let objectStore = transaction.objectStore(data.store);
-        let request = objectStore.getAll();
-
     }
-storage.init({ store: { listArray: ["article"], compareArray: ["artilce"], elaborations: "id", addresses: ["article", "id"], orders: ["id"], history: "id", production: "id", settings: "id", id: "id", main_data: "name" } })
+}
