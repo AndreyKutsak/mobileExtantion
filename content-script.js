@@ -22,7 +22,7 @@ window.addEventListener("load", () => {
 				keyPath: ["id", "article"],
 				index: {
 					article: { unique: true },
-					id: { unique: true }
+					id: { unique: false }
 				}
 			},
 			orders: {
@@ -72,8 +72,7 @@ window.addEventListener("load", () => {
 				};
 				request.onsuccess = function (event) {
 					data_base.db = event.target.result;
-					data_base.init_data(event);
-
+					data_base.init_data();
 					resolve(event);
 				};
 				request.onupgradeneeded = function (event) {
@@ -91,12 +90,13 @@ window.addEventListener("load", () => {
 							}
 						});
 					}
-
+					data_base.init_data();
 					resolve(event);
 
 				};
 
 			});
+			data_base.init_data();
 		},
 		save_all: function () {
 			return data_base.init().then(function () {
@@ -105,8 +105,9 @@ window.addEventListener("load", () => {
 
 				// Зберігання кожного ключа об'єкта даних в відповідному сторі
 				return Promise.all(Object.keys(data_base.data).map(function (storeName) {
+					console.log(storeName)
 					const store = transaction.objectStore(storeName);
-					return store.add(data_base.data[storeName]);
+					return store.add(data_base.data[storeName], data_base.params[storeName].keyPath);
 				}));
 			}).then(function (results) {
 				console.log("All data saved successfully:", results);
@@ -115,51 +116,38 @@ window.addEventListener("load", () => {
 			});
 		},
 
-		init_data: function (event) {
-			const store_list = Object.keys(data_base.params);
-			const db = event.target.result;
-			const transaction = db.transaction(store_list, "readonly");
+		init_data: function () {
+			const store_list = Object.keys(data_base.data || data_base.params);
 
-			transaction.oncomplete = function () {
-				const resultObject = {
-					listArray: {},
-					compareArray: {},
-					questions: [],
-					elaborations: {},
-					addresses: {},
-					orders: {},
-					history: [],
-					production: [],
-					settings: {},
-					id: {},
-				};
-
-				store_list.forEach(function (store_item) {
-					const store = db.transaction(store_item, "readonly").objectStore(store_item);
-					const index_list = Object.keys(data_base.params[store_item].index);
-					index_list.forEach(function (index_item) {
-						const index = store.index(index_item);
-						const request = index.getAll();
-						request.onerror = function (event) {
-							console.log("Error: " + event.target.errorCode);
-						};
-						request.onsuccess = function (event) {
-							const result = event.target.result;
-							if (result.length > 0) {
-								resultObject[store_item] = result.reduce((obj, item) => {
-									obj[item[index_item]] = item;
-									return obj;
-								}, {});
-							}
-						};
-					});
+			let resultObject = data_base.data || {};
+			store_list.forEach(function (store_item) {
+				const store = data_base.db.transaction(store_item, "readonly").objectStore(store_item);
+				const index_list = Object.keys(data_base.params[store_item].index);
+				index_list.forEach(function (index_item) {
+					const index = store.index(index_item);
+					const request = index.getAll();
+					request.onerror = function (event) {
+						console.log("Error: " + event.target.errorCode);
+					};
+					request.onsuccess = function (event) {
+						const result = event.target.result;
+						if (result.length > 0) {
+							resultObject[store_item] = result.reduce((obj, item) => {
+								obj[item[index_item]] = item;
+								console.log(obj)
+								return obj;
+							}, {});
+						}
+					};
 				});
+			});
 
-				// Отриманий об'єкт зберігається в data_base.data під вказаним ключем
-				data_base.data = resultObject;
-			};
-
+			// Отриманий об'єкт зберігається в data_base.data під вказаним ключем
+			data_base.data = resultObject;
+			console.log(data_base.data)
 		},
+
+
 
 		save_data: function (req) {
 			return data_base.init().then(function () {
@@ -625,7 +613,7 @@ window.addEventListener("load", () => {
 		let hendlers = {
 			show_available_articles: function (categorys, places) {
 				let desc = document.querySelector(".description");
-				let articles = Object.keys(storage.data.addresses);
+				let articles = Object.keys(data_base.data.addresses);
 				let matchingArticles = [];
 				console.log(articles.length)
 				if (categorys && Object.keys(categorys).length !== 0) {
@@ -651,8 +639,8 @@ window.addEventListener("load", () => {
 				}
 				if (places && Object.keys(places).length !== 0) {
 					articles.forEach((item) => {
-						if (storage.data.addresses[item].place == undefined) return;
-						let zone = storage.data.addresses[item].place.split("-");
+						if (data_base.data.addresses[item].place == undefined) return;
+						let zone = data_base.data.addresses[item].place.split("-");
 						let place = zone[1].split(".");
 						let isMatch = true;
 
@@ -759,7 +747,7 @@ window.addEventListener("load", () => {
 
 			remove_elaboration_item: function () {
 				let date = this.dataset.date;
-				delete storage.data.elaborations[date];
+				delete data_base.data.elaborations[date];
 				storage.save();
 				this.parentNode.remove();
 			},
@@ -817,11 +805,11 @@ window.addEventListener("load", () => {
 			},
 			add_to_list: function (item) {
 				let article = this.dataset.article;
-				if (storage.data.listArray[article]) {
+				if (data_base.data.listArray[article]) {
 					alert("Такий елемент вже є в списку");
 					return;
 				}
-				storage.data.listArray[article] = {
+				data_base.data.listArray[article] = {
 					photo: item.photo,
 					photoLG: item.photoLG,
 					head: item.head,
@@ -840,7 +828,7 @@ window.addEventListener("load", () => {
 					compareInp.classList.toggle("visible-inp");
 					return;
 				}
-				if (storage.data.compareArray[article]) {
+				if (data_base.data.compareArray[article]) {
 					alert("Такий елемент вже є в списку");
 					return;
 				}
@@ -848,7 +836,7 @@ window.addEventListener("load", () => {
 					alert("Введіть кількість");
 					return;
 				}
-				storage.data.compareArray[article] = {
+				data_base.data.compareArray[article] = {
 					photo: item.photo,
 					photoLG: item.photoLG,
 					head: item.head,
@@ -874,14 +862,14 @@ window.addEventListener("load", () => {
 			removeItem: function () {
 				let article = this.dataset.article;
 				let arr = this.dataset.arr;
-				delete storage.data[arr][article];
+				delete data_base.data[arr][article];
 				storage.save();
 				this.parentElement.remove();
 				generate.tasksCount();
 
 			},
 			getToProduction: function () {
-				if (storage.data.production.some((obj) => obj.id === this.dataset.id)) {
+				if (data_base.data.production.some((obj) => obj.id === this.dataset.id)) {
 					alert("Елемент вже є в списку!!!");
 					return;
 				}
@@ -896,7 +884,7 @@ window.addEventListener("load", () => {
 					alert("Введіть кількість більше нуля");
 					return;
 				}
-				storage.data.production.push({
+				data_base.data.production.push({
 					id: id,
 					count: count.value,
 					isProcesed: false,
@@ -923,10 +911,10 @@ window.addEventListener("load", () => {
 				let id = this.dataset.article;
 				this.textContent = "Оброблено";
 				this.parentNode.parentNode.style.backgroundColor = "#c2edc2";
-				storage.data[arr][id].isProcesed = true;
-				el = storage.data[arr][id];
-				delete storage.data[arr][id];
-				storage.data[arr][id] = el;
+				data_base.data[arr][id].isProcesed = true;
+				el = data_base.data[arr][id];
+				delete data_base.data[arr][id];
+				data_base.data[arr][id] = el;
 				itemWraper.parentNode.appendChild(itemWraper);
 				generate.tasksCount();
 				storage.save();
@@ -941,9 +929,9 @@ window.addEventListener("load", () => {
 			product: function () {
 				let parent = this.parentNode.parentNode;
 				let id = this.dataset.id;
-				storage.data.production.forEach((item, index) => {
+				data_base.data.production.forEach((item, index) => {
 					if (item.id === id) {
-						storage.data.production.splice(index, 1);
+						data_base.data.production.splice(index, 1);
 						parent.remove();
 					}
 				});
@@ -1066,7 +1054,7 @@ window.addEventListener("load", () => {
 							generate.requestCount(); 0
 							data.user_answer = elaborationInp.value;
 							data.delay = delay;
-							storage.data.elaborations[`${get.date().year}.${get.date().month}.${get.date().day}.${get.date().hours}:${get.date().minutes}:${get.date().seconds}`] = data;
+							data_base.data.elaborations[`${get.date().year}.${get.date().month}.${get.date().day}.${get.date().hours}:${get.date().minutes}:${get.date().seconds}`] = data;
 							storage.save();
 						} else {
 							alert("Помилка Щсь пішло не так!!");
@@ -1266,7 +1254,7 @@ window.addEventListener("load", () => {
 						alert("Введи правильні данні!!!");
 						return;
 					}
-					storage.data.addresses[article].cell_capacity = Number(capacity);
+					data_base.data.addresses[article].cell_capacity = Number(capacity);
 					storage.save();
 				}
 				else {
@@ -1276,41 +1264,41 @@ window.addEventListener("load", () => {
 			ignore_article: function () {
 				let article = this.dataset.article || false;
 				if (article) {
-					storage.data.addresses[article].is_ignored = true;
+					data_base.data.addresses[article].is_ignored = true;
 				} else {
-					storage.data.addresses[article] = false;
+					data_base.data.addresses[article] = false;
 					storage.save();
 				}
 			},
 			fill_cell: function () {
 
 				let article = this.dataset.article || false;
-				console.table(storage.data.addresses[article])
+				console.table(data_base.data.addresses[article])
 
 				if (article) {
 					if (
-						Number(storage.data.addresses[article].cell_capacity) >
-						Number(storage.data.addresses[article].last_goods_count)
+						Number(data_base.data.addresses[article].cell_capacity) >
+						Number(data_base.data.addresses[article].last_goods_count)
 					) {
-						storage.data.addresses[article].real_goods_count =
-							storage.data.addresses[article].last_goods_count;
-						storage.data.addresses[article].save_area_count = 0;
+						data_base.data.addresses[article].real_goods_count =
+							data_base.data.addresses[article].last_goods_count;
+						data_base.data.addresses[article].save_area_count = 0;
 						storage.save();
 					}
-					else if ((+storage.data.addresses[article].cell_capacity - +storage.data.addresses[article].real_goods_count) > +storage.data.addresses[article].save_area_count
+					else if ((+data_base.data.addresses[article].cell_capacity - +data_base.data.addresses[article].real_goods_count) > +data_base.data.addresses[article].save_area_count
 					) {
-						storage.data.addresses[article].real_goods_count = storage.data.addresses[article].real_goods_count + storage.data.addresses[article].save_area_count;
+						data_base.data.addresses[article].real_goods_count = data_base.data.addresses[article].real_goods_count + data_base.data.addresses[article].save_area_count;
 						storage.save();
 					}
 					else {
-						storage.data.addresses[article].real_goods_count =
-							storage.data.addresses[article].cell_capacity;
-						storage.data.addresses[article].save_area_count = Number(storage.data.addresses[article].last_goods_count) - Number(storage.data.addresses[article].real_goods_count);
+						data_base.data.addresses[article].real_goods_count =
+							data_base.data.addresses[article].cell_capacity;
+						data_base.data.addresses[article].save_area_count = Number(data_base.data.addresses[article].last_goods_count) - Number(data_base.data.addresses[article].real_goods_count);
 						storage.save();
 					}
 					this.textContent = "Заповнено";
 				}
-				console.table(storage.data.addresses[article])
+				console.table(data_base.data.addresses[article])
 
 			},
 			find_empty_cells: function () {
@@ -1318,9 +1306,9 @@ window.addEventListener("load", () => {
 			},
 			show_empty_cells: function () {
 				let empty_cells = [];
-				let articles_list = Object.keys(storage.data.addresses);
+				let articles_list = Object.keys(data_base.data.addresses);
 				articles_list.forEach((item) => {
-					let address = storage.data.addresses[item];
+					let address = data_base.data.addresses[item];
 
 					if (address.is_ignored || address.cell_capacity === undefined || address.save_area_count == undefined || address.save_area_count <= 0) {
 						return;
@@ -1333,7 +1321,7 @@ window.addEventListener("load", () => {
 					}
 				});
 
-				empty_cells.sort((a, b) => storage.data.addresses[a].place.trim().localeCompare(storage.data.addresses[b].place.trim()))
+				empty_cells.sort((a, b) => data_base.data.addresses[a].place.trim().localeCompare(data_base.data.addresses[b].place.trim()))
 
 				generate.empty_cells(empty_cells);
 			},
@@ -1372,7 +1360,7 @@ window.addEventListener("load", () => {
 				alert("Відбулася помилдка під час отримання інформації про   прихід");
 			},
 			copy_storage: function () {
-				let data = JSON.stringify(storage.data);
+				let data = JSON.stringify(data_base.data);
 				navigator.clipboard
 					.writeText(data)
 					.then(function () {
@@ -1383,17 +1371,17 @@ window.addEventListener("load", () => {
 					});
 			},
 			get_id: async function () {
-				let store = storage.data.addresses;
-				let stored_cell = storage.data.settings.cell;
-				let stored_id = storage.data.id;
+				let store = data_base.data.addresses;
+				let stored_cell = data_base.data.settings.cell;
+				let stored_id = data_base.data.id;
 				let cell_count = 0;
 				if (stored_cell == undefined) {
 					stored_cell = {};
-					storage.data.settings.cell = {};
+					data_base.data.settings.cell = {};
 					storage.save()
 				}
 				if (stored_id == undefined) {
-					storage.data.id = {};
+					data_base.data.id = {};
 					storage.save();
 				}
 
@@ -1671,7 +1659,7 @@ window.addEventListener("load", () => {
 			deliveries_table: async function (data) {
 
 				let download_btn;
-				let store = storage.data.addresses;
+				let store = data_base.data.addresses;
 				let categorys = {};
 				let places = {};
 				let selected_place = {};
@@ -1896,9 +1884,9 @@ window.addEventListener("load", () => {
 				let item_count = 1;
 				contentWraper.innerHTML = "";
 				let elaborations_list = get.elements({ el: "div", className: "elaborations-list-wrapper" });
-				if (Object.keys(storage.data.elaborations).length > 0) {
+				if (Object.keys(data_base.data.elaborations).length > 0) {
 
-					Object.values(storage.data.elaborations).reverse().forEach((item, index) => {
+					Object.values(data_base.data.elaborations).reverse().forEach((item, index) => {
 						console.log(item)
 						elaborations_list.appendChild(get.elements({
 							el: "div",
@@ -1910,7 +1898,7 @@ window.addEventListener("load", () => {
 									text: "X",
 									event: "click",
 									data: [{
-										date: Object.keys(storage.data.elaborations)[index]
+										date: Object.keys(data_base.data.elaborations)[index]
 									}],
 									hendler: hendlers.remove_elaboration_item,
 								}, {
@@ -1953,7 +1941,7 @@ window.addEventListener("load", () => {
 									children: [
 										{
 											el: "span",
-											text: Object.keys(storage.data.elaborations)[index]
+											text: Object.keys(data_base.data.elaborations)[index]
 										}
 									]
 
@@ -2066,7 +2054,7 @@ window.addEventListener("load", () => {
 					data.sort((a, b) => {
 						if (
 							!b.isProcesed &&
-							storage.data.production.find(
+							data_base.data.production.find(
 								(item) => item.id === a.id && !item.isProcesed
 							)
 						) {
@@ -2077,7 +2065,7 @@ window.addEventListener("load", () => {
 					data.forEach((item) => {
 						let isProcesed = "";
 						let val;
-						storage.data.production.forEach((a) => {
+						data_base.data.production.forEach((a) => {
 							if (a.id === item.id) {
 								isProcesed = "procesed";
 								val = a.count;
@@ -2633,16 +2621,16 @@ window.addEventListener("load", () => {
 					el: "div",
 					className: "compare-wraper",
 				});
-				if (Object.keys(storage.data.compareArray).length > 0) {
-					Object.keys(storage.data.compareArray)
+				if (Object.keys(data_base.data.compareArray).length > 0) {
+					Object.keys(data_base.data.compareArray)
 						.reverse()
 						.forEach((item) => {
 							let difference =
-								storage.data.compareArray[item].count.realCount -
-								(storage.data.compareArray[item].count.baseCount +
-									storage.data.compareArray[item].count.orderCount);
+								data_base.data.compareArray[item].count.realCount -
+								(data_base.data.compareArray[item].count.baseCount +
+									data_base.data.compareArray[item].count.orderCount);
 							let isProcesed = { text: "Обробити" };
-							if (storage.data.compareArray[item].isProcesed) {
+							if (data_base.data.compareArray[item].isProcesed) {
 								isProcesed.class = "success";
 								isProcesed.text = "Оброблено";
 							}
@@ -2676,14 +2664,14 @@ window.addEventListener("load", () => {
 									{
 										el: "a",
 										className: "item-image-link",
-										href: storage.data.compareArray[item].photoLG,
+										href: data_base.data.compareArray[item].photoLG,
 										event: "click",
 										hendler: hendlers.showImage,
 										children: [
 											{
 												el: "img",
 												className: "item-image",
-												src: storage.data.compareArray[item].photo,
+												src: data_base.data.compareArray[item].photo,
 											},
 										],
 									},
@@ -2695,11 +2683,11 @@ window.addEventListener("load", () => {
 											{
 												el: "p",
 												className: "compare-time",
-												text: `${storage.data.compareArray[item].addingDate.day
-													}.${storage.data.compareArray[item].addingDate.month}.${storage.data.compareArray[item].addingDate.year
-													}   ${storage.data.compareArray[item].addingDate.hours}:${storage.data.compareArray[item].addingDate.minutes
-													}:${storage.data.compareArray[item].addingDate.seconds
-													}| ${storage.data.addresses[item]?.place ?? "Ще не Збережено"
+												text: `${data_base.data.compareArray[item].addingDate.day
+													}.${data_base.data.compareArray[item].addingDate.month}.${data_base.data.compareArray[item].addingDate.year
+													}   ${data_base.data.compareArray[item].addingDate.hours}:${data_base.data.compareArray[item].addingDate.minutes
+													}:${data_base.data.compareArray[item].addingDate.seconds
+													}| ${data_base.data.addresses[item]?.place ?? "Ще не Збережено"
 													}`,
 											},
 											{
@@ -2709,17 +2697,17 @@ window.addEventListener("load", () => {
 													{
 														el: "p",
 														className: "item-count",
-														text: `По базі: ${storage.data.compareArray[item].count.baseCount}`,
+														text: `По базі: ${data_base.data.compareArray[item].count.baseCount}`,
 													},
 													{
 														el: "p",
 														className: "item-count",
-														text: `Резерв: ${storage.data.compareArray[item].count.orderCount}`,
+														text: `Резерв: ${data_base.data.compareArray[item].count.orderCount}`,
 													},
 													{
 														el: "p",
 														className: "item-count",
-														text: `Всього: ${storage.data.compareArray[item].count.realCount}`,
+														text: `Всього: ${data_base.data.compareArray[item].count.realCount}`,
 													},
 													{
 														el: "p",
@@ -2736,7 +2724,7 @@ window.addEventListener("load", () => {
 											{
 												el: "p",
 												className: "item-head",
-												text: storage.data.compareArray[item].head,
+												text: data_base.data.compareArray[item].head,
 											},
 											{
 												el: "button",
@@ -2758,15 +2746,15 @@ window.addEventListener("load", () => {
 				return generate.message("Немає розбіжностей!!!");
 			},
 			list: function () {
-				if (Object.keys(storage.data.listArray).length > 0) {
+				if (Object.keys(data_base.data.listArray).length > 0) {
 					let listWraper = get.elements({ el: "div", className: "list-wraper" });
-					Object.keys(storage.data.listArray)
+					Object.keys(data_base.data.listArray)
 						.reverse()
 						.forEach((item) => {
 
 							let isProcesedText = "Обробити",
 								isProcesedClass = ``;
-							if (storage.data.listArray[item].isProcesed) {
+							if (data_base.data.listArray[item].isProcesed) {
 								isProcesedText = "Оброблено";
 								isProcesedClass = "success";
 							}
@@ -2791,12 +2779,12 @@ window.addEventListener("load", () => {
 									{
 										el: "a",
 										className: "item-image-link",
-										href: storage.data.listArray[item].photoLG,
+										href: data_base.data.listArray[item].photoLG,
 										children: [
 											{
 												el: "img",
 												className: "item-image",
-												src: storage.data.listArray[item].photo,
+												src: data_base.data.listArray[item].photo,
 											},
 										],
 									},
@@ -2807,10 +2795,10 @@ window.addEventListener("load", () => {
 											{
 												el: "p",
 												className: "desc date-desc",
-												text: `${storage.data.listArray[item].addingDate.day}.${storage.data.listArray[item].addingDate.month
-													}.${storage.data.listArray[item].addingDate.year}  ${storage.data.listArray[item].addingDate.hours
-													}:${storage.data.listArray[item].addingDate.minutes}:${storage.data.listArray[item].addingDate.seconds
-													}|${storage.data.addresses[item]?.place ?? "Ще не Збережено"
+												text: `${data_base.data.listArray[item].addingDate.day}.${data_base.data.listArray[item].addingDate.month
+													}.${data_base.data.listArray[item].addingDate.year}  ${data_base.data.listArray[item].addingDate.hours
+													}:${data_base.data.listArray[item].addingDate.minutes}:${data_base.data.listArray[item].addingDate.seconds
+													}|${data_base.data.addresses[item]?.place ?? "Ще не Збережено"
 													} `,
 											},
 											{
@@ -2821,12 +2809,12 @@ window.addEventListener("load", () => {
 											{
 												el: "p",
 												className: "item-head",
-												text: `Кількість по базі: ${storage.data.listArray[item].count.baseCount}`,
+												text: `Кількість по базі: ${data_base.data.listArray[item].count.baseCount}`,
 											},
 											{
 												el: "p",
 												className: "item-head",
-												text: storage.data.listArray[item].head,
+												text: data_base.data.listArray[item].head,
 											},
 											{
 												el: "button",
@@ -2852,7 +2840,7 @@ window.addEventListener("load", () => {
 				if (data.length > 0) {
 					let searchInp = document.querySelector(".search-inp").value;
 					data.forEach((item) => {
-						let storage_item_data = storage.data.addresses[item.article];
+						let storage_item_data = data_base.data.addresses[item.article];
 
 						let reserve_count_class = "",
 							base_count_class = "";
@@ -3485,7 +3473,7 @@ window.addEventListener("load", () => {
 												el: "p",
 												className: "table-text",
 												text:
-													storage.data.addresses[
+													data_base.data.addresses[
 														get.elaborationArtice(item.goodsDesc)
 													]?.place || "Не збережено",
 											},
@@ -3582,23 +3570,23 @@ window.addEventListener("load", () => {
 				let listCount = 0,
 					compareCount = 0,
 					productionCount = 0;
-				if (Object.keys(storage.data?.compareArray ?? {}).length > 0) {
-					Object.keys(storage.data.compareArray).forEach((item) => {
-						if (!storage.data.compareArray[item].isProcesed) {
+				if (Object.keys(data_base.data?.compareArray ?? {}).length > 0) {
+					Object.keys(data_base.data.compareArray).forEach((item) => {
+						if (!data_base.data.compareArray[item].isProcesed) {
 							compareCount++;
 						}
 					});
 				}
-				if (Object.keys(storage.data?.listArray ?? {}).length > 0) {
-					Object.keys(storage.data.listArray).forEach((item) => {
-						if (!storage.data.listArray[item].isProcesed) {
+				if (Object.keys(data_base.data?.listArray ?? {}).length > 0) {
+					Object.keys(data_base.data.listArray).forEach((item) => {
+						if (!data_base.data.listArray[item].isProcesed) {
 							listCount++;
 						}
 					});
 				}
 
-				if (storage.data?.production ?? [] > 0) {
-					storage.data.production.forEach((item) => {
+				if (data_base.data?.production ?? [] > 0) {
+					data_base.data.production.forEach((item) => {
 						console.log(item.isProcesed);
 						if (!item.isProcessed) {
 							productionCount++;
@@ -3727,9 +3715,9 @@ window.addEventListener("load", () => {
 					);
 				}
 				let orders = { main_orders: 0, checked_orders: 0 };
-				orders.main_orders = Object.keys(storage.data.orders).length;
-				Object.keys(storage.data.orders).forEach((item) => {
-					if (!storage.data.orders[item].is_new) {
+				orders.main_orders = Object.keys(data_base.data.orders).length;
+				Object.keys(data_base.data.orders).forEach((item) => {
+					if (!data_base.data.orders[item].is_new) {
 						orders.checked_orders++;
 					}
 				});
@@ -3741,15 +3729,15 @@ window.addEventListener("load", () => {
 							{
 								el: "p",
 								className: "empty-cells-description",
-								text: `Перевірено Замовлень: ${orders.checked_orders} / ${orders.main_orders} | Остання перевірка була о ${storage.data.settings.last_check.hours}:${storage.data.settings.last_check.minutes}`,
+								text: `Перевірено Замовлень: ${orders.checked_orders} / ${orders.main_orders} | Остання перевірка була о ${data_base.data.settings.last_check.hours}:${data_base.data.settings.last_check.minutes}`,
 							},
 							{
 								el: "ul",
 								className: "empty-items-wraper",
 								children: data.map((item) => {
-									let real_count = storage.data.addresses[item].real_goods_count;
-									let cell_capacity = storage.data.addresses[item].cell_capacity;
-									let save_area = storage.data.addresses[item].save_area_count;
+									let real_count = data_base.data.addresses[item].real_goods_count;
+									let cell_capacity = data_base.data.addresses[item].cell_capacity;
+									let save_area = data_base.data.addresses[item].save_area_count;
 
 									let percent = get.percent({
 										num: real_count,
@@ -3771,7 +3759,7 @@ window.addEventListener("load", () => {
 													{
 														el: "span",
 														className: "empty-cell-place",
-														text: storage.data.addresses[item].place,
+														text: data_base.data.addresses[item].place,
 													},
 													{
 														el: "span",
@@ -3921,7 +3909,7 @@ window.addEventListener("load", () => {
 					});
 					let item_footer = this.querySelector(".item-footer");
 					item_footer.innerHTML = "";
-					let store = storage.data;
+					let store = data_base.data;
 					data.forEach((item) => {
 
 
@@ -4051,7 +4039,7 @@ window.addEventListener("load", () => {
 					}
 				} catch (error) {
 					console.error("Fetch error:", error);
-					storage.data.settings.error = {
+					data_base.data.settings.error = {
 						err_tyte: "load eroor",
 						err_desc: error.message,
 					};
@@ -4323,10 +4311,10 @@ window.addEventListener("load", () => {
 						rowData.id = th[1].textContent;
 						rowData.name = th[2].textContent;
 						rowData.place =
-							storage.data.addresses[th[3].textContent]?.place ??
+							data_base.data.addresses[th[3].textContent]?.place ??
 							"Ще не збережено";
 						rowData.cell =
-							storage.data.addresses[th[3].textContent]?.cell ??
+							data_base.data.addresses[th[3].textContent]?.cell ??
 							"Ще не збережено";
 						rowData.article = th[3].textContent;
 						rowData.img = td[0].querySelector("img").src;
@@ -4336,7 +4324,7 @@ window.addEventListener("load", () => {
 							componentData.shift();
 							obj.name = componentData[0].textContent.trim();
 							obj.place =
-								storage.data.addresses[componentData[1].textContent.trim()]
+								data_base.data.addresses[componentData[1].textContent.trim()]
 									?.place ?? "Ще не збережено";
 							obj.article = componentData[1].textContent.trim();
 							obj.count = componentData[3].textContent.trim();
@@ -4498,7 +4486,7 @@ window.addEventListener("load", () => {
 							this.storage.push(data);
 						} catch (error) {
 							console.error("Помилка обробки рядка:", error.message);
-							storage.data.settings.error = {
+							data_base.data.settings.error = {
 								err_tyte: "load eroor",
 								err_desc: error.message,
 							};
@@ -4589,29 +4577,32 @@ window.addEventListener("load", () => {
 
 								if (articles !== null && articles !== undefined) {
 									places[place] = articles;
+									articles.forEach((article) => {
+										data_base.save_data({
+											store_name: "addresses",
+											request: {
+												article: article.trim(),
+												id: "",
+												place: `${zoneKey}-${stilageItem}.${cell_name}`.trim(),
+											}
+										})
+
+									})
 								}
 
-								areas[zoneKey][stilageItem][cell_name] = articles;
+								//	areas[zoneKey][stilageItem][cell_name] = articles;
+
 							}
 						});
 					})
 				);
-
+				console.log(places);
 				for (key in places) {
-					let art = key.trim();
-					for (place in places[key]) {
-
-						data_base.data.addresses[place] = places[key][place].trim();
-						data_base.data.addresses[place].id = "";
-
-					}
-
-
-
+					console.log(areas)
 					if (count === Object.keys(places).length - 1) {
 						count = 0;
-						console.log(data_base.data)
-						data_base.save_all();
+						data_base.data.addresses = areas;
+
 						alert("Завершено");
 					} else {
 						count++;
@@ -4717,7 +4708,7 @@ window.addEventListener("load", () => {
 							await new Promise((resolve) => setTimeout(resolve, 250));
 						}
 					}
-					storage.data.settings.last_check = get.date();
+					data_base.data.settings.last_check = get.date();
 					preloader_indicator.remove();
 					storage.save();
 				}
@@ -4816,8 +4807,8 @@ window.addEventListener("load", () => {
 							average_amount: averageAmount,
 							time_from_last_delivery: timeFromLastDelivery,
 							last_delivery_date: lastDeliveryDate,
-							place: storage.data.addresses[art].place,
-							cell: storage.data.addresses[art].cell,
+							place: data_base.data.addresses[art].place,
+							cell: data_base.data.addresses[art].cell,
 							goods_type: searchRes[0].goods_type,
 							checking_date: get.date(),
 							years_frequency: get.years_frequency(deliveries),
@@ -4985,17 +4976,17 @@ window.addEventListener("load", () => {
 			],
 		};
 		function check_last_check() {
-			let last_check_time = storage.data.settings.last_check;
-			let orders_storage = storage.data.orders;
+			let last_check_time = data_base.data.settings.last_check;
+			let orders_storage = data_base.data.orders;
 			if (last_check_time == undefined) {
-				storage.data.settings.last_check = {
+				data_base.data.settings.last_check = {
 					year: 0,
 					month: 0,
 					day: 0,
 					hours: 0,
 					minutes: 0,
 				};
-				last_check_time = storage.data.settings.last_check;
+				last_check_time = data_base.data.settings.last_check;
 			}
 			let current_date = get.date();
 			if (
@@ -5031,7 +5022,7 @@ window.addEventListener("load", () => {
 		generate.requestCount();
 		generate.tasksCount();
 		document.addEventListener("click", function () {
-			console.log(storage.data)
+			console.log(data_base.data)
 		})
 	}
 });
