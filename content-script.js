@@ -34,9 +34,9 @@ const data_base = {
 			},
 		},
 		orders: {
-			keyPath: ["date"],
+			keyPath: ["id"],
 			index: {
-				date: { unique: true },
+				id: { unique: true },
 			},
 		},
 		elaborations: {
