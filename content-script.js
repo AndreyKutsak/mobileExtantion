@@ -43,6 +43,20 @@ window.addEventListener("load", () => {
           id: { unique: true },
         },
       },
+      compareArray: {
+        keyPath: ["article"],
+        index: {
+          id: { unique: false },
+        },
+      },
+      id: {
+        keyPath: ["id"],
+        index: {
+          id: {
+            unique: true,
+          },
+        },
+      },
       production: {
         keyPath: ["id"],
         index: {
@@ -56,7 +70,7 @@ window.addEventListener("load", () => {
         },
       },
       settings: {
-        keyPath: ["id"],
+        keyPath: ["name"],
         index: {
           id: { unique: true },
         },
@@ -337,58 +351,6 @@ window.addEventListener("load", () => {
           days: elapsedDays.toFixed(0),
         };
       },
-      Local_storage_size: function () {
-        let storage = localStorage.getItem("storage");
-        let test_string = storage || Math.random();
-        let capacity;
-        localStorage.clear();
-
-        try {
-          for (let i = 0; i < 100; i) {
-            localStorage.setItem("test_capacity", (test_string += test_string));
-          }
-        } catch {
-          capacity = localStorage.getItem("test_capacity").length * 2;
-          console.log("Перевірку сховища закінчено", capacity);
-          localStorage.clear();
-          localStorage.setItem("storage_capacity", capacity);
-          localStorage.setItem("storage", storage);
-        }
-
-        return capacity;
-      },
-      LocalStorageUsage: function (data) {
-        let storage_space = this.Local_storage_size();
-        let totalSpace;
-        let usedSpace = 0;
-        let availableSpace;
-        console.log(storage_space);
-
-        for (var i = 0; i < localStorage.length; i++) {
-          let key = localStorage.key(i);
-          let value = localStorage.getItem(key);
-          usedSpace += (key.length + value.length) * 2;
-        }
-
-        totalSpace = storage_space / (1024 * 1024);
-        usedSpace =
-          (localStorage.getItem("storage").length * 2) / (1024 * 1024);
-        availableSpace = storage_space - usedSpace;
-        availableSpace = availableSpace / (1024 * 1024);
-        if (data !== undefined) {
-          return storage_space;
-        }
-
-        return (
-          "Загальний обєм: " +
-          totalSpace.toFixed(2) +
-          " MB, Використано: " +
-          usedSpace.toFixed(2) +
-          " MB, Доступно: " +
-          availableSpace.toFixed(2) +
-          " MB"
-        );
-      },
       elaboration_time: function (data) {
         let date = get.date();
         let hours = date.hours;
@@ -592,7 +554,6 @@ window.addEventListener("load", () => {
           element.addEventListener(data.event, (event) => {
             event.stopPropagation();
             data.hendler.call(element, event);
-            console.log(event.currentTarget);
           });
         }
         if (data.children) {
@@ -3952,11 +3913,7 @@ window.addEventListener("load", () => {
                 event: "click",
                 hendler: hendlers.copy_storage,
               },
-              {
-                el: "div",
-                className: "history-item  localStorage-usage",
-                text: get.LocalStorageUsage(),
-              },
+
               {
                 el: "div",
                 className: "history-item  deliveries_table",
@@ -4913,10 +4870,8 @@ window.addEventListener("load", () => {
               },
             ],
           });
-          let stored_data = storage.get_data({ store_name: "addresses" });
-          stored_data.then(function (data) {
-            console.log(data);
-          });
+          let stored_data = data_base.data;
+          console.log(stored_data.addresses);
           if (Object.keys(stored_data.addresses).length == 0) {
             alert("Адреса товару ще не збережені!!!");
             return;
@@ -5005,7 +4960,7 @@ window.addEventListener("load", () => {
           }
           data_base.data.settings.last_check = get.date();
           preloader_indicator.remove();
-          storage.save_data({
+          data_base.save_data({
             store_name: "settings",
             id: "last_check",
             request: data_base.data.settings.last_check,
@@ -5141,10 +5096,7 @@ window.addEventListener("load", () => {
     setInterval(() => {
       generate.requestCount();
     }, interval.elaboration);
-    // checking empty cells
-    setInterval(() => {
-      load.get_goods_count();
-    }, interval.cell_goods_count);
+
     let buttons = {
       el: "div",
       className: "btn-wraper",
@@ -5323,7 +5275,7 @@ window.addEventListener("load", () => {
         }
       }
     }
-
+    check_last_check();
     let btnWraper = get.elements(buttons);
     document.body.appendChild(searchWraper);
     document.body.appendChild(contentWraper);
