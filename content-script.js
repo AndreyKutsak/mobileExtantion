@@ -205,10 +205,8 @@ const data_base = {
 
 	save_data: function (req) {
 		const transaction = data_base.db.transaction([req.store_name], "readwrite");
-
 		const store = transaction.objectStore(req.store_name);
-
-		const request = store.put(req.request);
+		let request = store.put(req.request);
 		request.onerror = function (event) {
 			console.log(event.target.error);
 		};
@@ -3067,13 +3065,13 @@ function main() {
 					}
 					if (storage_item_data == undefined) {
 						storage_item_data = {};
-						storage_item_data.id = item.id;
+
 						storage_item_data.article = item.article;
 						storage_item_data.last_goods_count = item.baseCount.baseCount;
 						data_base.save_data({
 							store_name: "addresses",
 							article: item.article,
-							id: item.id,
+
 							request: storage_item_data,
 						});
 					}
@@ -3086,16 +3084,15 @@ function main() {
 						data_base.save_data({
 							store_name: "addresses",
 							article: item.article,
-							id: item.id,
+
 							request: storage_item_data,
 						});
 					}
-
+					storage_item_data.id = item.id;
 					storage_item_data["last_goods_count"] = item.baseCount.baseCount; // Додати ключ без передачі у save_data
 					data_base.save_data({
 						store_name: "addresses",
-						article: item.article,
-						id: item.id,
+
 						request: storage_item_data,
 					});
 
@@ -5327,7 +5324,7 @@ function main() {
 		],
 	};
 	function check_last_check() {
-		let last_check_time = data_base.data.settings.last_check.last_check;
+		let last_check_time = data_base.data.settings.last_check?.last_check;
 		let orders_storage = data_base.data.orders;
 		if (last_check_time == undefined) {
 			data_base.data.settings.last_check = {
@@ -5337,7 +5334,7 @@ function main() {
 				hours: 0,
 				minutes: 0,
 			};
-			last_check_time = data_base.data.settings.last_check.last_check;
+			last_check_time = data_base.data.settings.last_check?.last_check;
 		}
 		let current_date = get.date();
 		if (

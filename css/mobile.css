@@ -403,6 +403,8 @@ button.html5-qrcode-element {
   padding: 15px;
   bottom: 250%;
   left: 50%;
+  width: 100%;
+  max-width: 320px;
   transform: translate(-50%, 0);
   background-color: #fff;
   border-radius: 5px;
