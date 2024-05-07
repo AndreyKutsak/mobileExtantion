@@ -656,39 +656,94 @@ button.html5-qrcode-element {
 
         .order-wraper {
           .order-item {
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            padding: 5px 10px;
-
-            img.goods-image {
-              width: 18%;
+            margin-bottom: 30px;
+            .manager_desc {
+              font-weight: 800;
             }
+            .main_item_desc {
+              display: flex;
+              justify-content: flex-start;
+              align-items: center;
+              .options_wrapper {
+                display: flex;
 
-            .text-wraper {
-              font-family: $descriptions;
-              padding-left: 15px;
-              min-width: 80%;
-
-              .position-name {
-                font-size: 16px;
-                font-weight: 800;
-                margin-bottom: 10px;
-                color: $black;
+                justify-content: flex-start;
+                margin: 10px 5px;
+                input {
+                  display: inline-block;
+                  min-height: 100%;
+                  width: 100%;
+                  outline: none;
+                  border: 2px solid $itemShadow;
+                  border-radius: 2px;
+                  padding: 5px 10px;
+                }
+                .send_seal_btn {
+                  background-color: $actionBtnBg;
+                  padding: 5px;
+                  border-top-left-radius: 2px;
+                  border-bottom-left-radius: 2px;
+                }
               }
+            }
+            .text-wraper {
+              padding: 0 5px 0 15px;
+              margin-bottom: 10px;
+              width: 80%;
 
-              .order-article,
-              .position-quantity {
-                padding: 5px 10px;
-                color: $white;
+              .order-article {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-family: $headers;
                 font-size: 16px;
-                font-weight: 600;
-                margin-bottom: 10px;
+                font-weight: 700;
+                color: $white;
+                background-color: $actionBtnBg;
+                margin-bottom: 15px;
+                padding: 5px;
+                border-radius: 5px;
 
                 span {
                   padding: 0 5px;
                 }
               }
+
+              .position-name {
+                font-family: $descriptions;
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 15px;
+              }
+
+              .position-quantity {
+                font-family: $descriptions;
+                font-size: 14px;
+                font-weight: 800;
+                background-color: $actionBtnBg;
+                padding: 5px;
+                border-radius: 5px;
+                color: $white;
+              }
+            }
+          }
+          .order_comment_form {
+            position: relative;
+            width: 100%;
+            .order_comment {
+              resize: none;
+              width: 100%;
+              min-height: 120px;
+              padding: 5px 10px;
+            }
+            .send_comment {
+              position: absolute;
+              top: 50%;
+              transform: translateY(-50%);
+              right: 25px;
+              background-color: $actionBtnBg;
+              padding: 10px;
+              border-radius: 5px;
             }
           }
         }
@@ -859,11 +914,36 @@ button.html5-qrcode-element {
 
         .order-wraper {
           .order-item {
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
             margin-bottom: 30px;
+            .manager_desc {
+              font-weight: 800;
+            }
+            .main_item_desc {
+              display: flex;
+              justify-content: flex-start;
+              align-items: center;
+              .options_wrapper {
+                display: flex;
 
+                justify-content: flex-start;
+                margin: 10px 5px;
+                input {
+                  display: inline-block;
+                  min-height: 100%;
+                  width: 100%;
+                  outline: none;
+                  border: 2px solid $itemShadow;
+                  border-radius: 2px;
+                  padding: 5px 10px;
+                }
+                .send_seal_btn {
+                  background-color: $actionBtnBg;
+                  padding: 5px;
+                  border-top-left-radius: 2px;
+                  border-bottom-left-radius: 2px;
+                }
+              }
+            }
             .text-wraper {
               padding: 0 5px 0 15px;
               margin-bottom: 10px;
@@ -903,6 +983,25 @@ button.html5-qrcode-element {
                 border-radius: 5px;
                 color: $white;
               }
+            }
+          }
+          .order_comment_form {
+            position: relative;
+            width: 100%;
+            .order_comment {
+              resize: none;
+              width: 100%;
+              min-height: 120px;
+              padding: 5px 10px;
+            }
+            .send_comment {
+              position: absolute;
+              top: 50%;
+              transform: translateY(-50%);
+              right: 25px;
+              background-color: $actionBtnBg;
+              padding: 10px;
+              border-radius: 5px;
             }
           }
         }

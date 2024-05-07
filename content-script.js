@@ -789,11 +789,7 @@ function main() {
 			let order_num = this.dataset.order_num;
 			let seal_goods = this.dataset.seal_goods;
 			let seal_number = this.value;
-			console.log({
-				order: order_num,
-				goods: seal_goods,
-				warranty: seal_number,
-			});
+
 			load.seal_number({
 				body: { order: order_num, goods: seal_goods, warranty: seal_number },
 			});
@@ -1041,7 +1037,7 @@ function main() {
 					body: { id: id, text: area.value },
 				})
 				.then((result) => {
-					console.log(result);
+
 					if (result.body.textContent == "ok") {
 						area.remove();
 						this.remove();
@@ -1209,9 +1205,9 @@ function main() {
 				return;
 			}
 			let isOrder = wrapper.querySelector(".orders-wraper");
-			console.log(input.value[0]);
+
 			generate.preloader({ status: "start" });
-			console.log(is_order_number);
+
 			if (isOrder || (!is_order_number && input.value[0] != "0")) {
 				load.orders({ status: input.value }).then((data) => {
 					wrapper.appendChild(generate.orders(data));
@@ -1260,7 +1256,7 @@ function main() {
 		},
 		// orders hendlers
 		order: function (e) {
-			console.log(this, e.target);
+
 			let itemFooter = this.querySelector(".row-footer");
 			let items = Array.from(
 				document.querySelectorAll(".row-footer .order-wraper,.item-preloader")
@@ -1371,6 +1367,11 @@ function main() {
 						Number(data_base.data.addresses[article].last_goods_count) -
 						Number(data_base.data.addresses[article].real_goods_count);
 				}
+				data_base.save_data({
+					store_name: "addresses",
+					article: article,
+					request: data_base.data.addresses[article],
+				})
 				this.textContent = "Заповнено";
 			}
 			console.table(data_base.data.addresses[article]);
@@ -1476,11 +1477,7 @@ function main() {
 					return;
 				}
 				if (Object.values(stored_id).includes(Object.keys(store)[index])) {
-					console.log(
-						element,
-						Object.keys(store)[index],
-						store[Object.keys(store)[index]]
-					);
+
 					return;
 				}
 				if (stored_cell[element.cell] == undefined) {
@@ -1493,7 +1490,7 @@ function main() {
 			generate.preloader({ status: "start" });
 			for (const cellKey in stored_cell) {
 				cell_count++;
-				console.log(cell_count);
+
 				if (stored_cell[cellKey].is_checked) {
 					continue;
 				}
@@ -2044,7 +2041,7 @@ function main() {
 				Object.values(data_base.data.elaborations)
 					.reverse()
 					.forEach((item, index) => {
-						console.log(item, index);
+
 						elaborations_list.appendChild(
 							get.elements({
 								el: "div",
@@ -2257,7 +2254,7 @@ function main() {
 						if (a.id === item.id) {
 							isProcesed = "procesed";
 							val = a.count;
-							console.log(val, a.count);
+
 						}
 					});
 
@@ -2669,9 +2666,23 @@ function main() {
 			let orderWraper = get.elements({
 				el: "div",
 				className: "order-wraper",
+				children: [
+					{
+						el: "div",
+						className: "order-item",
+						children: [
+							{
+								el: "p",
+								className: "manager_desc",
+								text: `Менеджер: ${data[0].order_manager}`,
+							}
+						]
+					}
+				]
 			});
 			if (data.length > 0) {
 				data.forEach((item) => {
+
 					order_id = item.order_id;
 					let options_inp = [];
 					let seal_number = item.seal_number || "";
@@ -2696,22 +2707,23 @@ function main() {
 								className: "send_seal_btn",
 								event: "click",
 								hendler: hendlers.add_seal_number,
+								children: [
+									{
+										el: "img",
+										src: get.url(src.ico.send),
+
+									}
+								]
 							}
 						);
 					}
-					storage.address({
-						article: item.articleAndPlace.article,
-						place: item.articleAndPlace.place,
-					});
+
 					let orderItem = get.elements({
 						el: "div",
 						className: "order-item",
 						children: [
-							{
-								el: "p",
-								className: "manager_desc",
-								text: `Менеджер: ${item.order_manager}`,
-							},
+
+
 							{
 								el: "div",
 								className: "main_item_desc",
@@ -2945,7 +2957,7 @@ function main() {
 			return generate.message("Немає розбіжностей!!!");
 		},
 		list: function () {
-			console.log(data_base.data.listArray);
+
 			if (Object.keys(data_base.data.listArray).length > 0) {
 				let listWraper = get.elements({
 					el: "div",
@@ -5315,7 +5327,7 @@ function main() {
 		],
 	};
 	function check_last_check() {
-		let last_check_time = data_base.data.settings.last_check;
+		let last_check_time = data_base.data.settings.last_check.last_check;
 		let orders_storage = data_base.data.orders;
 		if (last_check_time == undefined) {
 			data_base.data.settings.last_check = {
@@ -5325,7 +5337,7 @@ function main() {
 				hours: 0,
 				minutes: 0,
 			};
-			last_check_time = data_base.data.settings.last_check;
+			last_check_time = data_base.data.settings.last_check.last_check;
 		}
 		let current_date = get.date();
 		if (
@@ -5338,7 +5350,7 @@ function main() {
 				}
 			});
 		}
-
+		console.log(last_check_time)
 		if (last_check_time) {
 			let hours_difference = current_date.hours - last_check_time.hours;
 			let minutes_difference = current_date.minutes - last_check_time.minutes;
