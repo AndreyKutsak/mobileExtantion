@@ -29,7 +29,7 @@ const data_base = {
 		addresses: {
 			keyPath: ["id", "article"],
 			index: {
-				article: { unique: true },
+				article: { unique: false },
 				id: { unique: false },
 			},
 		},
@@ -204,26 +204,47 @@ const data_base = {
 	},
 
 	save_data: function (req) {
+		console.log(req.request);
 		const transaction = data_base.db.transaction([req.store_name], "readwrite");
 		const store = transaction.objectStore(req.store_name);
-		let request = store.put(req.request);
-		request.onerror = function (event) {
-			console.log(event.target.error);
+
+		// Check if the element exists
+		const getRequest = store.get(req.request.artilce || req.request.id);
+		getRequest.onsuccess = function (event) {
+			const existingRecord = event.target.result;
+			if (existingRecord) {
+				// Update existing data
+				const updateRequest = store.put(req.request);
+				updateRequest.onerror = function (event) {
+					console.log("Error updating data:", event.target.error);
+				};
+				updateRequest.onsuccess = function (event) {
+					console.log("Data updated successfully:", event.target.result);
+				};
+			} else {
+				// Create new record
+				const addRequest = store.add(req.request);
+				addRequest.onerror = function (event) {
+					console.log("Error adding new data:", event.target.error);
+				};
+				addRequest.onsuccess = function (event) {
+					console.log("New data added successfully:", event.target.result);
+				};
+			}
 		};
-		request.onsuccess = function (event) {
-			let key = data_base.params[req.store_name].keyPath[0];
-			if (req.store_name === "addresses") key = "article";
-
-			data_base.data[req.store_name][key] = req.request;
-
+		getRequest.onerror = function (event) {
+			console.log("Error checking for existing data:", event.target.error);
 		};
 	},
+
 	update_data: function (req) {
 		console.log(req.request)
 		const transaction = data_base.db.transaction(req.store_name);
 		const store = transaction.objectStore(req.store_name);
-		const request = store.put(req.request);
+		const request = store.get(req.key);
+		request.onsuccess = function (event) {
 
+		}
 		request.onerror = function (event) {
 			console.log(event);
 		};
@@ -4855,81 +4876,52 @@ function main() {
 							if (str !== null) {
 								articles = str.match(new RegExp(regExp.article, "gim"));
 							}
+							places[place] = articles;
 
-							if (articles !== null && articles !== undefined) {
-								places[place] = articles;
-
-								articles.forEach((article) => {
-									let item =
-										data_base.data.addresses[article.trim()] ||
-										data_base.data.addresses;
-
-									if (item != undefined) {
-										if (item.id == undefined) {
-											item.id = "";
-										}
-										if (item.cell == undefined) {
-											item.cell = "";
-										}
-										if (item.real_goods_count == undefined) {
-											item.real_goods_count = "";
-										}
-										if (item.cell_capacity == undefined) {
-											item.cell_capacity = "";
-										}
-										if (item.last_goods_count == undefined) {
-											item.last_goods_count = "";
-										}
-										if (item.place == undefined) {
-											item.place =
-												`${zoneKey}-${stilageItem}.${cell_name}`.trim();
-										}
-										if (
-											item.place !=
-											`${zoneKey}-${stilageItem}.${cell_name}`.trim()
-										) {
-											item.place +
-												` | ${zoneKey}-${stilageItem}.${cell_name}`.trim();
-										}
-									} else {
-										item[article] = {};
-										item[article].article = article.trim();
-										item[article].id = "";
-										item[article].cell_capacity = "";
-										item[article].place = "";
-										item[article].cell = "";
-										item[article].real_goods_count = "";
-										item[article].last_goods_count = "";
-									}
-									data_base.save_data({
-										store_name: "addresses",
-										request: {
-											article: article.trim(),
-											id: item.id,
-											place: item.place,
-											cell: item.cell,
-											cell_capacity: item.cell_capacity,
-											last_goods_count: item.last_goods_count,
-											real_goods_count: item.real_goods_count,
-										},
-									});
-								});
-							}
 						}
 					});
 				})
 			);
 			console.log(places);
 			for (key in places) {
+				console.log(key, places[key]);
 				if (count === Object.keys(places).length - 1) {
 					count = 0;
-					data_base.data.addresses = areas;
+
 
 					alert("Завершено");
 				} else {
 					count++;
+					if (places[key] == undefined) {
+						continue
+					}
+					places[key].forEach((item) => {
+						let article = item.trim()
+						if (article == undefined) {
+							return
+						}
+						if (data_base.data.addresses[article] == undefined) {
+							data_base.data.addresses[article] = {
+								article: article,
+								id: "",
+								place: ""
+							};
+						}
+
+						data_base.data.addresses[article].place += `${key} | `;
+						data_base.save_data({
+							store_name: "addresses",
+							request: data_base.data.addresses[article],
+						})
+
+					})
+
+
 				}
+
+
 			}
+
 
 			return areas;
 		},

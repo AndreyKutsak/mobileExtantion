@@ -1,24 +1,40 @@
 {
 	"name": "baza Mobile",
 	"short_name": "baza",
-	"version": "1.0.2",
+	"version": "1.1.2",
 	"description": "mobile version baza",
-	"permissions": ["activeTab", "tabs", "alarms", "notifications"],
+	"permissions": [
+		"activeTab",
+		"tabs",
+		"alarms",
+		"notifications"
+	],
 	"background": {
 		"service_worker": "background.js",
 		"persistance": true
 	},
 	"web_accessible_resources": [
 		{
-			"resources": ["img/*"],
-			"matches": ["https://baza.m-p.in.ua/*"]
+			"resources": [
+				"img/*"
+			],
+			"matches": [
+				"https://baza.m-p.in.ua/*"
+			]
 		}
 	],
 	"content_scripts": [
 		{
-			"matches": ["https://baza.m-p.in.ua/*"],
-			"js": ["content-script.js", "html5-qrcode.min.js"],
-			"css": ["css/mobile.css"]
+			"matches": [
+				"https://baza.m-p.in.ua/*"
+			],
+			"js": [
+				"content-script.js",
+				"html5-qrcode.min.js"
+			],
+			"css": [
+				"css/mobile.css"
+			]
 		}
 	],
 	"manifest_version": 3
