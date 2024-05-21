@@ -94,7 +94,6 @@ const data_base = {
 			request.onsuccess = function (event) {
 				data_base.db = event.target.result;
 				data_base.init_data().then(function () {
-
 					main();
 				});
 				resolve(event);
@@ -132,15 +131,42 @@ const data_base = {
 			"readwrite"
 		);
 
-		// Зберігання кожного ключа об'єкта даних в відповідному сторі
 		return Promise.all(
 			Object.keys(data_base.data).map(function (storeName) {
 				console.log(storeName);
 				const store = transaction.objectStore(storeName);
-				return store.add(
-					data_base.data[storeName],
-					data_base.params[storeName].keyPath
-				);
+
+				const promises = data_base.data[storeName].map(item => {
+					return new Promise((resolve, reject) => {
+						const key = data_base.params[storeName].keyPath.map(key => item[key]);
+						const getRequest = store.get(key);
+						getRequest.onsuccess = function (event) {
+							const existingRecord = event.target.result;
+							if (existingRecord) {
+								const updateRequest = store.put(item);
+								updateRequest.onsuccess = function () {
+									resolve();
+								};
+								updateRequest.onerror = function (event) {
+									reject(event.target.error);
+								};
+							} else {
+								const addRequest = store.add(item);
+								addRequest.onsuccess = function () {
+									resolve();
+								};
+								addRequest.onerror = function (event) {
+									reject(event.target.error);
+								};
+							}
+						};
+						getRequest.onerror = function (event) {
+							reject(event.target.error);
+						};
+					});
+				});
+
+				return Promise.all(promises);
 			})
 		);
 	},
@@ -208,12 +234,10 @@ const data_base = {
 		const transaction = data_base.db.transaction([req.store_name], "readwrite");
 		const store = transaction.objectStore(req.store_name);
 
-		// Check if the element exists
-		const getRequest = store.get(req.request.artilce || req.request.id);
+		const getRequest = store.get(req.request.article || req.request.id);
 		getRequest.onsuccess = function (event) {
 			const existingRecord = event.target.result;
 			if (existingRecord) {
-				// Update existing data
 				const updateRequest = store.put(req.request);
 				updateRequest.onerror = function (event) {
 					console.log("Error updating data:", event.target.error);
@@ -222,7 +246,6 @@ const data_base = {
 					console.log("Data updated successfully:", event.target.result);
 				};
 			} else {
-				// Create new record
 				const addRequest = store.add(req.request);
 				addRequest.onerror = function (event) {
 					console.log("Error adding new data:", event.target.error);
@@ -239,26 +262,39 @@ const data_base = {
 
 	update_data: function (req) {
 		console.log(req.request)
-		const transaction = data_base.db.transaction(req.store_name);
+		const transaction = data_base.db.transaction([req.store_name], "readwrite");
 		const store = transaction.objectStore(req.store_name);
-		const request = store.get(req.key);
-		request.onsuccess = function (event) {
-
-		}
-		request.onerror = function (event) {
-			console.log(event);
+		const getRequest = store.get(req.key);
+		getRequest.onsuccess = function (event) {
+			const existingRecord = event.target.result;
+			if (existingRecord) {
+				const updateRequest = store.put(req.request);
+				updateRequest.onsuccess = function () {
+					console.log("Data updated successfully");
+				};
+				updateRequest.onerror = function (event) {
+					console.log("Error updating data:", event.target.error);
+				};
+			} else {
+				console.log("Record not found");
+			}
+		};
+		getRequest.onerror = function (event) {
+			console.log("Error getting data:", event.target.error);
 		};
 	},
+
 	delete_item: function (req) {
 		return new Promise(function (resolve, reject) {
 			const transaction = data_base.db.transaction(req.store_name, "readwrite");
 			const objectStore = transaction.objectStore(req.store_name);
-			const request = objectStore.delete([req.request]); // Видаляємо запис за ключем
+			const request = objectStore.delete(req.request);
 			request.onsuccess = function (event) {
-				console.log(event)
+				console.log("Data deleted successfully:", event.target.result);
 				return resolve(event.target.result);
 			};
 			request.onerror = function (event) {
+				console.log("Error deleting data:", event.target.error);
 				return reject(event);
 			};
 		});
@@ -273,16 +309,18 @@ const data_base = {
 				const index = store.index(req.index);
 				const request = index.get(req.request);
 				request.onerror = function (event) {
-					console.log(event, "error");
+					console.log("Error getting data:", event.target.error);
 					return reject(event);
 				};
 				request.onsuccess = function (event) {
 					return resolve(event.target.result);
 				};
 			});
+
 		});
 	},
 };
+
 function main() {
 	let url = {
 		baza: "https://baza.m-p.in.ua/ajax/magaz.php",
