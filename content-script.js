@@ -130,7 +130,6 @@ const data_base = {
 			Object.keys(data_base.data),
 			"readwrite"
 		);
-
 		return Promise.all(
 			Object.keys(data_base.data).map(function (storeName) {
 				console.log(storeName);
@@ -233,54 +232,59 @@ const data_base = {
 		console.log(req.request);
 		const transaction = data_base.db.transaction([req.store_name], "readwrite");
 		const store = transaction.objectStore(req.store_name);
+		const index = store.index(req.index_name);
+		const getRequest = index.get(req.request[req.index_name]);
 
-		const getRequest = store.get(req.request.article || req.request.id);
 		getRequest.onsuccess = function (event) {
 			const existingRecord = event.target.result;
+			console.log(existingRecord);
 			if (existingRecord) {
+				console.log("Record found, updating...");
+				// Оновлюємо запис без його попереднього видалення
 				const updateRequest = store.put(req.request);
+
 				updateRequest.onerror = function (event) {
 					console.log("Error updating data:", event.target.error);
 				};
 				updateRequest.onsuccess = function (event) {
+
 					console.log("Data updated successfully:", event.target.result);
 				};
 			} else {
 				const addRequest = store.add(req.request);
 				addRequest.onerror = function (event) {
+					console.log(event);
 					console.log("Error adding new data:", event.target.error);
 				};
 				addRequest.onsuccess = function (event) {
+
 					console.log("New data added successfully:", event.target.result);
 				};
 			}
 		};
+
 		getRequest.onerror = function (event) {
 			console.log("Error checking for existing data:", event.target.error);
 		};
 	},
 
 	update_data: function (req) {
-		console.log(req.request)
-		const transaction = data_base.db.transaction([req.store_name], "readwrite");
-		const store = transaction.objectStore(req.store_name);
-		const getRequest = store.get(req.key);
-		getRequest.onsuccess = function (event) {
-			const existingRecord = event.target.result;
-			if (existingRecord) {
-				const updateRequest = store.put(req.request);
-				updateRequest.onsuccess = function () {
-					console.log("Data updated successfully");
-				};
-				updateRequest.onerror = function (event) {
-					console.log("Error updating data:", event.target.error);
-				};
-			} else {
-				console.log("Record not found");
-			}
+		const transaction = data_base.db.transaction(req.store_name, "readwrite");
+		const objectStore = transaction.objectStore(req.store_name);
+		const request = objectStore.get(req.request.article); // Отримуємо запис за ключем
+		request.onerror = function (event) {
+			console.log(event);
 		};
-		getRequest.onerror = function (event) {
-			console.log("Error getting data:", event.target.error);
+		request.onsuccess = function (event) {
+			const data = event.target.result;
+			console.log(data);
+			if (data) {
+				const keys = Object.keys(req.request);
+				keys.forEach(function (key) {
+					data[key] = req.request[key];
+				});
+				objectStore.put(data); // Оновлюємо запис зміненими даними
+			}
 		};
 	},
 
@@ -700,11 +704,6 @@ function main() {
 				articles.forEach((item) => {
 					let category = item.split(".");
 					let isMatch = true;
-					console.log(
-						categorys.category !== undefined &&
-						Number(categorys.category) !== Number(category[0])
-					);
-					// Check if categorys.category, categorys.sub_category, and categorys.article are defined and match
 					if (
 						categorys.category !== undefined &&
 						Number(categorys.category) !== Number(category[0])
@@ -1174,6 +1173,7 @@ function main() {
 
 						data_base.save_data({
 							store_name: "elaborations",
+							index_name: "date",
 							date: `${get.date().year}.${get.date().month}.${get.date().day}.${get.date().hours
 								}:${get.date().minutes}:${get.date().seconds}`,
 							request: data,
@@ -1374,6 +1374,7 @@ function main() {
 
 				data_base.save_data({
 					store_name: "addresses",
+					index_name: "article",
 					request: {
 						article: article,
 						cell_capacity: Number(capacity),
@@ -1390,6 +1391,7 @@ function main() {
 			} else {
 				data_base.save_data({
 					store_name: "addresses",
+					index_name: "article",
 					request: {
 						article: article,
 						is_ignored: true,
@@ -1399,39 +1401,57 @@ function main() {
 		},
 		fill_cell: function () {
 			let article = this.dataset.article || false;
-			console.table(data_base.data.addresses[article]);
 
 			if (article) {
 				if (
-					Number(data_base.data.addresses[article].cell_capacity) >
-					Number(data_base.data.addresses[article].last_goods_count)
+					data_base.data.addresses[article].last_goods_count > 0 && data_base.data.addresses[article].cell_capacity > 0 &&
+					data_base.data.addresses[article].save_area_count == 0 && data_base.data.addresses[article].real_goods_count == 0
+				) {
+					if (data_base.data.addresses[article].cell_capacity > data_base.data.addresses[article].last_goods_count) {
+						data_base.data.addresses[article].real_goods_count = data_base.data.addresses[article].last_goods_count;
+						data_base.data.addresses[article].save_area_count = 0;
+					}
+					else if (data_base.data.addresses[article].cell_capacity < data_base.data.addresses[article].last_goods_count) {
+						data_base.data.addresses[article].real_goods_count = data_base.data.addresses[article].cell_capacity;
+						data_base.data.addresses[article].save_area_count = data_base.data.addresses[article].last_goods_count - data_base.data.addresses[article].cell_capacity
+					}
+				}
+				else if (
+					data_base.data.addresses[article].cell_capacity >
+					data_base.data.addresses[article].last_goods_count
 				) {
 					data_base.data.addresses[article].real_goods_count =
 						data_base.data.addresses[article].last_goods_count;
 					data_base.data.addresses[article].save_area_count = 0;
+					console.log("save_area_count 0")
 				} else if (
-					+data_base.data.addresses[article].cell_capacity -
-					+data_base.data.addresses[article].real_goods_count >
-					+data_base.data.addresses[article].save_area_count
+					(data_base.data.addresses[article].cell_capacity -
+						data_base.data.addresses[article].real_goods_count) >
+					data_base.data.addresses[article].save_area_count
 				) {
 					data_base.data.addresses[article].real_goods_count =
 						data_base.data.addresses[article].real_goods_count +
 						data_base.data.addresses[article].save_area_count;
+					console.log("summ save areacount and real count")
 				} else {
 					data_base.data.addresses[article].real_goods_count =
 						data_base.data.addresses[article].cell_capacity;
 					data_base.data.addresses[article].save_area_count =
 						Number(data_base.data.addresses[article].last_goods_count) -
 						Number(data_base.data.addresses[article].real_goods_count);
+					console.log("real count = cell capacity")
 				}
+
 				data_base.save_data({
 					store_name: "addresses",
+					index_name: "article",
 					article: article,
 					request: data_base.data.addresses[article],
 				})
 				this.textContent = "Заповнено";
-			}
-			console.table(data_base.data.addresses[article]);
+
+			} console.log(data_base.data.addresses[article]);
+
 		},
 		find_empty_cells: function () {
 			load.get_goods_count.call(load);
@@ -3129,8 +3149,8 @@ function main() {
 						storage_item_data.last_goods_count = item.baseCount.baseCount;
 						data_base.save_data({
 							store_name: "addresses",
+							index_name: "article",
 							article: item.article,
-
 							request: storage_item_data,
 						});
 					}
@@ -3143,7 +3163,7 @@ function main() {
 						data_base.save_data({
 							store_name: "addresses",
 							article: item.article,
-
+							index_name: "article",
 							request: storage_item_data,
 						});
 					}
@@ -3151,7 +3171,7 @@ function main() {
 					storage_item_data["last_goods_count"] = item.baseCount.baseCount; // Додати ключ без передачі у save_data
 					data_base.save_data({
 						store_name: "addresses",
-
+						index_name: "article",
 						request: storage_item_data,
 					});
 
@@ -3275,58 +3295,7 @@ function main() {
 										text: "Заповнити Комірку",
 										event: "click",
 										data: [{ article: item.article }],
-										hendler: function () {
-											let article = item.article;
-											if (
-												Number(
-													data_base.data.addresses[article].cell_capacity
-												) >
-												Number(
-													data_base.data.addresses[article].last_goods_count
-												)
-											) {
-												data_base.data.addresses[article].real_goods_count =
-													data_base.data.addresses[article].last_goods_count;
-												data_base.data.addresses[article].save_area_count = 0;
-												data_base.save_data({
-													store_name: "addresses",
-													article: article,
-													id: item.id,
-													request: data_base.data.addresses[article],
-												});
-											} else if (
-												+data_base.data.addresses[article].cell_capacity -
-												+data_base.data.addresses[article].real_goods_count >
-												+data_base.data.addresses[article].save_area_count
-											) {
-												data_base.data.addresses[article].real_goods_count =
-													data_base.data.addresses[article].real_goods_count +
-													data_base.data.addresses[article].save_area_count;
-												data_base.save_data({
-													store_name: "addresses",
-													article: article,
-													id: item.id,
-													request: data_base.data.addresses[article],
-												});
-											} else {
-												data_base.data.addresses[article].real_goods_count =
-													data_base.data.addresses[article].cell_capacity;
-												data_base.data.addresses[article].save_area_count =
-													Number(
-														data_base.data.addresses[article].last_goods_count
-													) -
-													Number(
-														data_base.data.addresses[article].real_goods_count
-													);
-												data_base.save_data({
-													store_name: "addresses",
-													article: article,
-													id: item.id,
-													request: data_base.data.addresses[article],
-												});
-											}
-											this.textContent = "Заповнено";
-										},
+										hendler: hendlers.fill_cell,
 									},
 									{
 										el: "butoon",
@@ -3345,10 +3314,11 @@ function main() {
 										value: storage_item_data?.cell_capacity,
 										event: "input",
 										hendler: function () {
-											storage_item_data["cell_capacity"] = this.value;
+											storage_item_data["cell_capacity"] = +this.value;
 											data_base.save_data({
 												store_name: "addresses",
 												article: item.article,
+												index_name: "article",
 												id: item.id,
 												request: storage_item_data,
 											});
@@ -4220,6 +4190,11 @@ function main() {
 								{
 									el: "p",
 									className: "item-desc",
+									text: "Артикул",
+								},
+								{
+									el: "p",
+									className: "item-desc",
 									text: "Назва товару",
 								},
 								{
@@ -4249,66 +4224,82 @@ function main() {
 				data.forEach((item) => {
 					let item_article = store?.id[item.id] || 0;
 					console.log(item_article);
-					item_wraper.appendChild(
-						get.elements({
-							el: "div",
-							className: "item",
-							children: [
-								{
-									el: "p",
-									className: "item-desc",
-									text: item.desc,
-								},
-								{
-									el: "p",
-									className: "item-desc",
-									text: item.place,
-								},
-								{
-									el: "p",
-									className: "item-desc",
-									text: item.count,
-								},
-								{
-									el: "button",
-									className: "btn fill_cell_btn",
-									text: "Заповнити комірку",
+					data_base.get_data({
+						store_name: "addresses",
+						index: "id",
+						request: item.id,
+					}).then((a) => {
+						if (a === undefined) return;
+						item_wraper.appendChild(
+							get.elements({
+								el: "div",
+								className: "item",
+								children: [
+									{
+										el: "p",
+										className: "item-desc",
+										text: a.article,
+									},
+									{
+										el: "p",
+										className: "item-desc",
+										text: item.desc,
+									},
+									{
+										el: "p",
+										className: "item-desc",
+										text: item.place,
+									},
+									{
+										el: "p",
+										className: "item-desc",
+										text: item.count,
+									},
+									{
+										el: "button",
+										className: "btn fill_cell_btn",
+										text: "Заповнити комірку",
 
-									data: [{ article: item_article }],
-									event: "click",
-									hendler: hendlers.fill_cell,
-								},
-								{
-									el: "div",
-									className: "indicator-wrapper",
-									children: [
-										{
-											el: "div",
-											className: "fill-indicator",
-											style: {
-												width: `${get.percent({
-													main:
-														store.addresses[item_article]?.cell_capacity || 0,
-													num:
-														store.addresses[item_article]?.real_goods_count ||
-														0,
-												})}%`,
-											},
-											children: [
-												{
-													el: "span",
-													className: "indicator-desc",
-													text: `${store.addresses[item_article]?.real_goods_count || 0
-														} / ${store.addresses[item_article]?.cell_capacity || 0
-														}`,
+										data: [{ article: a.article }],
+										event: "click",
+										hendler: hendlers.fill_cell,
+									},
+									{
+										el: "div",
+										className: "indicator-wrapper",
+										children: [
+											{
+												el: "div",
+												className: "fill-indicator",
+												style: {
+													width: `${get.percent({
+														main:
+															store.addresses[item_article]?.cell_capacity || 0,
+														num:
+															store.addresses[item_article]?.real_goods_count ||
+															0,
+													})}%`,
 												},
-											],
-										},
-									],
-								},
-							],
-						})
-					);
+												children: [
+													{
+														el: "span",
+														className: "indicator-desc",
+														text: `${store.addresses[item_article]?.real_goods_count || 0
+															} / ${store.addresses[item_article]?.cell_capacity || 0
+															}`,
+													},
+												],
+											},
+										],
+									},
+								],
+							})
+						);
+					}).catch(function (err) {
+						console.log(err);
+
+					})
+
 				});
 				console.log(item_wraper);
 				item_footer.appendChild(item_wraper);
@@ -4942,13 +4933,21 @@ function main() {
 							data_base.data.addresses[article] = {
 								article: article,
 								id: "",
-								place: ""
+								place: "",
+								cell_capacity: 0,
+								cell: "",
+								real_goods_count: 0,
+								last_goods_count: 0,
+								save_area_count: 0,
 							};
 						}
-
+						if (data_base.data.addresses[article].place.includes(key)) {
+							return;
+						}
 						data_base.data.addresses[article].place += `${key} | `;
 						data_base.save_data({
 							store_name: "addresses",
+							index_name: "article",
 							request: data_base.data.addresses[article],
 						})
 
@@ -5014,6 +5013,7 @@ function main() {
 						};
 						data_base.save_data({
 							store_name: "orders",
+							index_name: "id",
 							id: order_id,
 							request: stored_data.orders[order_id],
 						});
@@ -5060,6 +5060,7 @@ function main() {
 						}
 						data_base.save_data({
 							store_name: "addresses",
+							index_name: "article",
 							article: article,
 							request: storage_article,
 						});
@@ -5067,6 +5068,7 @@ function main() {
 					stored_data.orders[order_id].is_new = false;
 					data_base.save_data({
 						store_name: "orders",
+						index_name: "id",
 						id: order_id,
 						request: stored_data.orders[order_id],
 					});
@@ -5079,6 +5081,7 @@ function main() {
 			preloader_indicator.remove();
 			data_base.save_data({
 				store_name: "settings",
+				index_name: "name",
 				name: "last_check",
 				request: data_base.data.settings,
 			});
@@ -5421,5 +5424,5 @@ function main() {
 	generate.requestCount();
 	generate.tasksCount();
 	check_last_check();
-	console.log(data_base.data)
+
 }
