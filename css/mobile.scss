@@ -450,7 +450,7 @@ button.html5-qrcode-element {
   width: 100%;
   .check_wrapper {
     position: absolute;
-    padding: 15px;
+    padding: 25px 15px;
     bottom: 250%;
     left: 50%;
     width: 100%;
@@ -461,6 +461,17 @@ button.html5-qrcode-element {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
     opacity: 1;
     transition: 0.4s;
+    .close_btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      cursor: pointer;
+      font-family: $headers;
+      font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: $danger;
+    }
     .check_text {
       font-family: $headers;
       font-size: 12px;

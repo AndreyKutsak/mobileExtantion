@@ -400,7 +400,7 @@ button.html5-qrcode-element {
 }
 .btn-wraper .check_wrapper {
   position: absolute;
-  padding: 15px;
+  padding: 25px 15px;
   bottom: 250%;
   left: 50%;
   width: 100%;
@@ -411,6 +411,17 @@ button.html5-qrcode-element {
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
   opacity: 1;
   transition: 0.4s;
+}
+.btn-wraper .check_wrapper .close_btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  cursor: pointer;
+  font-family: "Roboto", "Helvetica Neue", sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #ff7070;
 }
 .btn-wraper .check_wrapper .check_text {
   font-family: "Roboto", "Helvetica Neue", sans-serif;

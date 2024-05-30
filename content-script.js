@@ -132,7 +132,7 @@ const data_base = {
 		);
 		return Promise.all(
 			Object.keys(data_base.data).map(function (storeName) {
-				console.log(storeName);
+
 				const store = transaction.objectStore(storeName);
 
 				const promises = data_base.data[storeName].map(item => {
@@ -229,15 +229,17 @@ const data_base = {
 	},
 
 	save_data: function (req) {
-		console.log(req.request);
+
 		const transaction = data_base.db.transaction([req.store_name], "readwrite");
 		const store = transaction.objectStore(req.store_name);
+
 		const index = store.index(req.index_name);
-		const getRequest = index.get(req.request[req.index_name]);
+
+		const getRequest = index.get(req.request[req.index_name] || req.index_name);
 
 		getRequest.onsuccess = function (event) {
 			const existingRecord = event.target.result;
-			console.log(existingRecord);
+
 			if (existingRecord) {
 				console.log("Record found, updating...");
 				// Оновлюємо запис без його попереднього видалення
@@ -290,16 +292,62 @@ const data_base = {
 
 	delete_item: function (req) {
 		return new Promise(function (resolve, reject) {
+			console.log("Starting delete transaction for store:", req.store_name);
 			const transaction = data_base.db.transaction(req.store_name, "readwrite");
 			const objectStore = transaction.objectStore(req.store_name);
-			const request = objectStore.delete(req.request);
-			request.onsuccess = function (event) {
-				console.log("Data deleted successfully:", event.target.result);
-				return resolve(event.target.result);
+			const index = objectStore.index(req.index_name);
+			// Перевірка існування запису перед видаленням
+			const getRequest = index.get(req.request);
+
+			getRequest.onsuccess = function (event) {
+				if (event.target.result) {
+					const record = event.target.result;
+					console.log("Record found:", record);
+
+
+					const keyPath = data_base.params[req.store_name].keyPath;
+					let key;
+					if (Array.isArray(keyPath)) {
+						key = keyPath.map(k => record[k]);
+					} else {
+						key = record[keyPath];
+					}
+
+
+					const deleteRequest = objectStore.delete(key);
+
+					deleteRequest.onsuccess = function (event) {
+						console.log("Data deleted successfully:", event.target.result);
+						resolve(event.target.result);
+					};
+
+					deleteRequest.onerror = function (event) {
+						console.log("Error deleting data:", event.target.error);
+						reject(event.target.error);
+					};
+				} else {
+					console.log("Record not found, cannot delete.");
+					reject("Record not found");
+				}
 			};
-			request.onerror = function (event) {
-				console.log("Error deleting data:", event.target.error);
-				return reject(event);
+
+			getRequest.onerror = function (event) {
+				console.log("Error finding record:", event.target.error);
+				reject(event.target.error);
+			};
+
+			transaction.oncomplete = function () {
+				console.log("Transaction completed successfully");
+			};
+
+			transaction.onerror = function (event) {
+				console.log("Transaction error:", event.target.error);
+				reject(event.target.error);
+			};
+
+			transaction.onabort = function (event) {
+				console.log("Transaction aborted:", event.target.error);
+				reject(event.target.error);
 			};
 		});
 	},
@@ -838,6 +886,8 @@ function main() {
 			data_base.delete_item({ store_name: "elaborations", request: date }).then(function () {
 				delete data_base.data.elaborations[date];
 				el.remove();
+			}).catch(function (error) {
+				console.log(error)
 			})
 
 		},
@@ -912,6 +962,7 @@ function main() {
 			data_base.save_data({
 				store_name: "listArray",
 				article: article,
+				index_name: "article",
 				request: data_base.data.listArray[article],
 			});
 			generate.tasksCount();
@@ -948,6 +999,7 @@ function main() {
 			data_base.save_data({
 				store_name: "compareArray",
 				article: article,
+				index_name: "article",
 				request: data_base.data.compareArray[article],
 			});
 			compareInp.classList.toggle("visible-inp");
@@ -966,6 +1018,13 @@ function main() {
 			delete data_base.data[arr][article];
 
 			this.parentElement.remove();
+			data_base.delete_item({
+				store_name: arr,
+				index_name: "article",
+				request: article,
+			}).catch(function (error) {
+				console.log(error)
+			})
 			generate.tasksCount();
 		},
 		getToProduction: function () {
@@ -992,6 +1051,7 @@ function main() {
 			data_base.save_data({
 				store_name: "production",
 				id: id,
+				index_name: "id",
 				request: data_base.data.production[id]
 			})
 
@@ -1021,6 +1081,12 @@ function main() {
 			delete data_base.data[arr][id];
 			data_base.data[arr][id] = el;
 			itemWraper.parentNode.appendChild(itemWraper);
+			data_base.save_data({
+				store_name: arr,
+
+				index_name: "article",
+				request: data_base.data[arr][id],
+			})
 			generate.tasksCount();
 		},
 		production: function () {
@@ -1036,10 +1102,11 @@ function main() {
 			Object.values(data_base.data.production).forEach((item, index) => {
 				if (item.id === id) {
 					delete data_base.data.production[item.id];
-					data_base.delete_item({ store_name: "production", request: item.id }).then(function () {
+					data_base.delete_item({ store_name: "production", index_name: "id", request: item.id }).then(function () {
 						parent.remove();
-					}).catch(function () {
-						alert()
+					}).catch(function (err) {
+						console.log(err)
+						alert("Не вдалося видалити елемент")
 					})
 
 				}
@@ -4033,7 +4100,7 @@ function main() {
 						{
 							el: "p",
 							className: "empty-cells-description",
-							text: `Перевірено Замовлень: ${orders.checked_orders} / ${orders.main_orders} | Остання перевірка була о ${data_base.data.settings.last_check.last_check.hours}:${data_base.data.settings.last_check.last_check.minutes}`,
+							text: `Перевірено Замовлень: ${orders.checked_orders} / ${orders.main_orders} | Остання перевірка була о ${data_base.data.settings.last_check.hours}:${data_base.data.settings.last_check.minutes}`,
 						},
 						{
 							el: "ul",
@@ -4223,13 +4290,8 @@ function main() {
 				let store = data_base.data;
 				data.forEach((item) => {
 					let item_article = store?.id[item.id] || 0;
-					console.log(item_article);
-					data_base.get_data({
-						store_name: "addresses",
-						index: "id",
-						request: item.id,
-					}).then((a) => {
-						if (a === undefined) return;
+					Object.keys(data_base.data.addresses).forEach((a) => {
+						if (data_base.data.addresses[a].id !== item.id) return;
 						item_wraper.appendChild(
 							get.elements({
 								el: "div",
@@ -4238,7 +4300,7 @@ function main() {
 									{
 										el: "p",
 										className: "item-desc",
-										text: a.article,
+										text: a,
 									},
 									{
 										el: "p",
@@ -4260,7 +4322,7 @@ function main() {
 										className: "btn fill_cell_btn",
 										text: "Заповнити комірку",
 
-										data: [{ article: a.article }],
+										data: [{ article: a }, { added_count: Number(item.count) }],
 										event: "click",
 										hendler: hendlers.fill_cell,
 									},
@@ -4295,10 +4357,12 @@ function main() {
 								],
 							})
 						);
-					}).catch(function (err) {
-						console.log(err);
 
 					})
+
+
+
+
 
 				});
 				console.log(item_wraper);
@@ -4502,7 +4566,7 @@ function main() {
 				let goods_type = Array.from(
 					item.querySelectorAll(".goodsDopInfoButton")
 				);
-				console.log(goods_type);
+
 				data.id = get.article(goodsId[index].textContent).id;
 				data.article = get.article(goodsId[index].textContent).article;
 				data.photo = goodsPhoto.getAttribute("src");
@@ -5367,7 +5431,16 @@ function main() {
 				hours: 0,
 				minutes: 0,
 			};
-			last_check_time = data_base.data.settings.last_check?.last_check;
+			last_check_time = data_base.data.settings.last_check;
+
+			data_base.save_data({
+				store_name: "settings",
+				index_name: "name",
+				request: {
+					name: "last_check", last_check_time: data_base.data.settings.last_check,
+				}
+			});
+
 		}
 		let current_date = get.date();
 		if (
@@ -5380,7 +5453,7 @@ function main() {
 				}
 			});
 		}
-		console.log(last_check_time)
+
 		if (last_check_time) {
 			let hours_difference = current_date.hours - last_check_time.hours;
 			let minutes_difference = current_date.minutes - last_check_time.minutes;
@@ -5394,6 +5467,15 @@ function main() {
 					className: "check_wrapper hide_check_wrapper",
 					children: [
 						{
+							el: "span",
+							className: "close_btn",
+							text: "X",
+							event: "click",
+							hendler: function () {
+								this.parentElement.remove();
+							}
+						},
+						{
 							el: "p",
 							className: "check_text",
 							text: "Пройшло більше  30хв. від останньої перевірки. Може подивимося шо там по коміркам?",
@@ -5404,6 +5486,7 @@ function main() {
 							text: "Давай подивимося",
 							event: "click",
 							hendler: function () {
+
 								check_wrapper.classList.add("hide_check_wrapper");
 								hendlers.find_empty_cells();
 							},
@@ -5424,5 +5507,4 @@ function main() {
 	generate.requestCount();
 	generate.tasksCount();
 	check_last_check();
-
 }
