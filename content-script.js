@@ -1549,9 +1549,9 @@ function main() {
 
 			empty_cells.sort((a, b) => {
 				console.log(a, b, data_base.data.addresses[a])
-				data_base.data.addresses[a].place
-					.trim()
-					.localeCompare(data_base.data.addresses[b].place.trim())
+				data_base.data.addresses[a] ? place
+					.trim() || `Місце не збережено`
+						.localeCompare(data_base.data.addresses[b].place.trim())
 			})
 
 
