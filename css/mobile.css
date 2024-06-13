@@ -1250,4 +1250,17 @@ button.html5-qrcode-element {
 .elaborations-list-wrapper .list-item .item-desc span::after {
   content: " ";
   clear: both;
+}
+
+.download_btn {
+  display: block;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background-color: rgb(126, 255, 185);
+  color: rgb(255, 255, 255);
+  width: 100%;
+  max-width: 250px;
+  margin: 0px auto;
 }/*# sourceMappingURL=mobile.css.map */
