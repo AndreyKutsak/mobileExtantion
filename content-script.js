@@ -1547,11 +1547,13 @@ function main() {
 				}
 			});
 
-			empty_cells.sort((a, b) =>
+			empty_cells.sort((a, b) => {
+				console.log(a, b, data_base.data.addresses[a])
 				data_base.data.addresses[a].place
 					.trim()
 					.localeCompare(data_base.data.addresses[b].place.trim())
-			);
+			})
+
 
 			generate.empty_cells(empty_cells);
 		},
