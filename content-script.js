@@ -1548,11 +1548,11 @@ function main() {
 			});
 
 			empty_cells.sort((a, b) => {
-				console.log(a, b, data_base.data.addresses[a])
-				data_base.data.addresses[a] ? place
-					.trim() || `Місце не збережено`
-						.localeCompare(data_base.data.addresses[b].place.trim())
-			})
+				let placeA = data_base.data.addresses[a]?.place?.trim() ?? "";
+				let placeB = data_base.data.addresses[b]?.place?.trim() ?? "";
+				return placeA.localeCompare(placeB);
+			});
+
 
 
 			generate.empty_cells(empty_cells);
@@ -1922,6 +1922,7 @@ function main() {
 			if (data.length > 0) {
 				download_btn = get.elements({
 					el: "button",
+					className: "download_btn btn",
 					text: "Завантажити таблицю",
 					event: "click",
 					hendler: function () {
