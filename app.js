@@ -1,36 +1,41 @@
-save_data: function (req) {
-  console.log(req.request);
-  const transaction = data_base.db.transaction([req.store_name], "readwrite");
-  const store = transaction.objectStore(req.store_name);
+function compareStrings(str1, str2, percentage) {
+  function levenshteinDistance(a, b) {
+    const matrix = [];
 
-  const getRequest = store.get(req.request.article || req.request.id);
-  getRequest.onsuccess = function (event) {
-    const existingRecord = event.target.result;
-    if (existingRecord) {
-      const deleteRequest = store.delete(req.request.article || req.request.id);
-      deleteRequest.onerror = function (event) {
-        console.log("Error updating data:", event.target.error);
-      };
-      deleteRequest.onsuccess = function (event) {
-        const writeRequest = store.put(req.request);
-        writeRequest.onerror = function (event) {
-          console.log("Error updating data:", event.target.error);
-        };
-        writeRequest.onsuccess = function (event) {
-          console.log("Data updated successfully:", event.target.result);
-        };
-      };
-    } else {
-      const addRequest = store.add(req.request);
-      addRequest.onerror = function (event) {
-        console.log("Error adding new data:", event.target.error);
-      };
-      addRequest.onsuccess = function (event) {
-        console.log("New data added successfully:", event.target.result);
-      };
+    // Initialize the matrix
+    for (let i = 0; i <= b.length; i++) {
+      matrix[i] = [i];
     }
-  };
-  getRequest.onerror = function (event) {
-    console.log("Error checking for existing data:", event.target.error);
-  };
-},
+    for (let j = 0; j <= a.length; j++) {
+      matrix[0][j] = j;
+    }
+
+    // Calculate the Levenshtein distance
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1, // substitution
+            Math.min(matrix[i][j - 1] + 1, // insertion
+              matrix[i - 1][j] + 1) // deletion
+          );
+        }
+      }
+    }
+
+    return matrix[b.length][a.length];
+  }
+
+  const distance = levenshteinDistance(str1, str2);
+  const maxLength = Math.max(str1.length, str2.length);
+  const similarity = ((maxLength - distance) / maxLength) * 100;
+
+  return similarity >= percentage;
+}
+
+// Приклади використання:
+console.log(compareStrings("kitten", "kittidng", 70)); // false
+console.log(compareStrings("kitten", "kitten", 100)); // true
+console.log(compareStrings("kitten", "kittens", 80)); // true

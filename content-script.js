@@ -435,6 +435,43 @@ function main() {
 		cell_goods_count: 1000 * 30 * 60,
 	};
 	let get = {
+		compareStrings: function (str1, str2, percentage) {
+			console.log(str1, str2, percentage);
+			function levenshteinDistance(a, b) {
+				const matrix = [];
+
+				// Initialize the matrix
+				for (let i = 0; i <= b.length; i++) {
+					matrix[i] = [i];
+				}
+				for (let j = 0; j <= a.length; j++) {
+					matrix[0][j] = j;
+				}
+
+				// Calculate the Levenshtein distance
+				for (let i = 1; i <= b.length; i++) {
+					for (let j = 1; j <= a.length; j++) {
+						if (b.charAt(i - 1) === a.charAt(j - 1)) {
+							matrix[i][j] = matrix[i - 1][j - 1];
+						} else {
+							matrix[i][j] = Math.min(
+								matrix[i - 1][j - 1] + 1, // substitution
+								Math.min(matrix[i][j - 1] + 1, // insertion
+									matrix[i - 1][j] + 1) // deletion
+							);
+						}
+					}
+				}
+
+				return matrix[b.length][a.length];
+			}
+
+			const distance = levenshteinDistance(str1, str2);
+			const maxLength = Math.max(str1.length, str2.length);
+			const similarity = ((maxLength - distance) / maxLength) * 100;
+
+			return similarity >= percentage;
+		},
 		years_frequency: function (data) {
 			if (data.length == 0) {
 				return { err: true, err_desc: "no data" };
@@ -1323,27 +1360,22 @@ function main() {
 		search: function () {
 			let input = this.parentNode.querySelector(".search-inp");
 			let wrapper = document.querySelector(".wraper");
-			let is_order_number = isNaN(input.value);
+			let is_order_number = get.compareStrings(input.value, `${Object.keys(data_base.data.orders)[0]}`, 30);
 			if (input.value.length < 2) {
 				alert("Довжина пошукового запиту має бути 2-х символів");
 				return;
 			}
-			let isOrder = wrapper.querySelector(".orders-wraper");
+
 
 			generate.preloader({ status: "start" });
-
-			if (isOrder || (!is_order_number && input.value[0] != "0")) {
+			console.log(is_order_number, data_base.data.orders)
+			if (is_order_number) {
 				load.orders({ status: input.value }).then((data) => {
 					wrapper.appendChild(generate.orders(data));
 				});
 				return;
 			}
-			if (isOrder) {
-				load.orders({ text: input.value }).then((data) => {
-					wrapper.appendChild(generate.orders(data));
-				});
-				return;
-			}
+
 
 			let search_sell = 0;
 			let result = load.search({
@@ -3206,6 +3238,9 @@ function main() {
 					console.log(storage_item_data);
 					let reserve_count_class = "",
 						base_count_class = "";
+					if (item.questionsCount !== undefined) {
+						return;
+					}
 					if (item.baseCount.baseCount < 1) {
 						base_count_class = "danger";
 					}
