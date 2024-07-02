@@ -5152,11 +5152,7 @@ function main() {
 				name: "last_check",
 				request: data_base.data.settings,
 			});
-			// } catch {
-			// 	alert(
-			// 		"Відбулася помилка під час парсингу замовлень для актуалізації залишків в комірці!!!"
-			// 	);
-			// }
+
 		},
 		deliverys_list: async function () {
 			this.storage = [];
@@ -5453,6 +5449,12 @@ function main() {
 			Object.keys(orders_storage).forEach((item) => {
 				if (orders_storage[item].order_date.day !== current_date.day) {
 					delete orders_storage[item];
+					data_base.delete_item({
+						store_name: "orders",
+						index_name: "id",
+						request: item
+
+					})
 				}
 			});
 		}
