@@ -1,41 +1,22 @@
-function compareStrings(str1, str2, percentage) {
-  function levenshteinDistance(a, b) {
-    const matrix = [];
+let random_order_num = 15000;
+let input = {}
+let testValues = [
+  { value: "25000", expected: true },
+  { value: "05000", expected: false },
+  { value: "15000.5", expected: false },
+  { value: "25000.5", expected: false },
+  { value: "35000", expected: false },
+  { value: "10000", expected: true },
+  { value: "abc", expected: false }
+];
 
-    // Initialize the matrix
-    for (let i = 0; i <= b.length; i++) {
-      matrix[i] = [i];
-    }
-    for (let j = 0; j <= a.length; j++) {
-      matrix[0][j] = j;
-    }
+testValues.forEach(test => {
+  input.value = test.value;
+  let is_order_number =
+    input.value[0] !== "0" &&
+    !input.value.includes(".") &&
+    !isNaN(Number(input.value)) &&
+    (Number(input.value) >= random_order_num - 10000 && Number(input.value) <= random_order_num + 10000);
 
-    // Calculate the Levenshtein distance
-    for (let i = 1; i <= b.length; i++) {
-      for (let j = 1; j <= a.length; j++) {
-        if (b.charAt(i - 1) === a.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
-        } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1, // substitution
-            Math.min(matrix[i][j - 1] + 1, // insertion
-              matrix[i - 1][j] + 1) // deletion
-          );
-        }
-      }
-    }
-
-    return matrix[b.length][a.length];
-  }
-
-  const distance = levenshteinDistance(str1, str2);
-  const maxLength = Math.max(str1.length, str2.length);
-  const similarity = ((maxLength - distance) / maxLength) * 100;
-
-  return similarity >= percentage;
-}
-
-// Приклади використання:
-console.log(compareStrings("kitten", "kittidng", 70)); // false
-console.log(compareStrings("kitten", "kitten", 100)); // true
-console.log(compareStrings("kitten", "kittens", 80)); // true
+  console.log(`Value: ${test.value}, Result: ${is_order_number}, Expected: ${test.expected}`);
+});
