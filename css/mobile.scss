@@ -1209,6 +1209,18 @@ button.html5-qrcode-element {
         background-color: $actionBtnBg;
         color: $white;
       }
+
+      .danger {
+        background-color: $cell_danger;
+      }
+
+      .warrning {
+        background-color: $cell_warning;
+      }
+
+      .success {
+        background-color: $cell_success;
+      }
     }
   }
 

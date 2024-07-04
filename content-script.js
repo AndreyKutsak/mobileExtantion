@@ -4110,9 +4110,15 @@ function main() {
 							text: `Перевірено Замовлень: ${orders.checked_orders} / ${orders.main_orders} | Остання перевірка була о ${data_base.data.settings.last_check.hours}:${data_base.data.settings.last_check.minutes}`,
 						},
 						{
+							el: "p",
+							text: `Кількість пустих комірок: ${data.length}`,
+						},
+						{
 							el: "ul",
 							className: "empty-items-wraper",
 							children: data.map((item) => {
+								let cell_bg = "";
+
 								let real_count =
 									data_base.data.addresses[item].real_goods_count;
 								let cell_capacity =
@@ -4123,13 +4129,23 @@ function main() {
 									num: real_count,
 									main: cell_capacity,
 								});
+								if (percent <= 0) {
+									cell_bg = "danger"
+								}
+								else if (percent > 25) {
+									cell_bg = "warrning"
+								}
+								else if (percent >= 50) {
+									cell_bg = "success"
+								}
+								console.log(cell_bg, percent)
 								return {
 									el: "li",
-									className: "empty-cell-item",
+									className: `empty-cell-item ${cell_bg}`,
 									children: [
 										{
 											el: "p",
-											className: "empty-cell-description",
+											className: `empty-cell-description`,
 											children: [
 												{
 													el: "span",

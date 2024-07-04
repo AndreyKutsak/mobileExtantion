@@ -1084,6 +1084,15 @@ button.html5-qrcode-element {
   background-color: #1cc879;
   color: #fff;
 }
+.wraper .empty-cells-wraper .empty-items-wraper .danger {
+  background-color: #ffacac;
+}
+.wraper .empty-cells-wraper .empty-items-wraper .warrning {
+  background-color: #feffc8;
+}
+.wraper .empty-cells-wraper .empty-items-wraper .success {
+  background-color: #d3fdd3;
+}
 .wraper .search-empty_cells {
   display: block;
   font-family: "Roboto", "Helvetica Neue", sans-serif;
