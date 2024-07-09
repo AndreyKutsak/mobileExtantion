@@ -5151,6 +5151,16 @@ function main() {
 							article: article,
 							request: storage_article,
 						});
+						data_base.save_data({
+							store_name: "history",
+							index_name: "id",
+							id: `${order_id}:/${article}`,
+							request: {
+								id: `${order_id}:/${article}`,
+								article: article,
+								quantity: quantity,
+							}
+						})
 					});
 					stored_data.orders[order_id].is_new = false;
 					data_base.save_data({
@@ -5159,6 +5169,7 @@ function main() {
 						id: order_id,
 						request: stored_data.orders[order_id],
 					});
+
 
 					await new Promise((resolve) => setTimeout(resolve, 250));
 				}
