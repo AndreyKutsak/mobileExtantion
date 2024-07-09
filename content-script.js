@@ -1328,7 +1328,7 @@ function main() {
 			let is_order_number = input.value[0] !== "0" &&
 				!input.value.includes(".") &&
 				!isNaN(Number(input.value)) &&
-				(Number(input.value) - random_order_num <= 10000 && Number(input.value) + random_order_num >= 10000);
+				input.value[0] === random_order_num[0] && input.value[1] === random_order_num[1] && input.value[2] === random_order_num[2];
 
 			if (input.value.length < 2) {
 				alert("Довжина пошукового запиту має бути 2-х символів");
