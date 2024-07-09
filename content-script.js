@@ -4129,7 +4129,7 @@ function main() {
 									num: real_count,
 									main: cell_capacity,
 								});
-								if (percent <= 0) {
+								if (percent <= 25) {
 									cell_bg = "danger"
 								}
 								else if (percent > 25) {
@@ -5028,7 +5028,7 @@ function main() {
 								save_area_count: 0,
 							};
 						}
-						if (data_base.data.addresses[article].place.includes(key)) {
+						if (data_base.data.addresses[article]?.place?.includes(key) ?? false) {
 							return;
 						}
 						data_base.data.addresses[article].place += `${key} | `;
