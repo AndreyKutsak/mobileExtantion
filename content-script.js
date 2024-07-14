@@ -1328,8 +1328,7 @@ function main() {
 			let is_order_number = input.value[0] !== "0" &&
 				!input.value.includes(".") &&
 				!isNaN(Number(input.value)) &&
-				input.value[0] === random_order_num[0] && input.value[1] === random_order_num[1] && input.value[2] === random_order_num[2];
-
+				input.value[0] === random_order_num[0] && input.value[1] === random_order_num[1];
 			if (input.value.length < 2) {
 				alert("Довжина пошукового запиту має бути 2-х символів");
 				return;
@@ -1337,7 +1336,7 @@ function main() {
 
 
 			generate.preloader({ status: "start" });
-			console.log(input.value, is_order_number, random_order_num - Number(input.value));
+			console.log(input.value, is_order_number, random_order_num);
 			if (is_order_number) {
 				load.orders({ status: input.value }).then((data) => {
 					wrapper.appendChild(generate.orders(data));
@@ -3526,6 +3525,52 @@ function main() {
 									},
 								],
 							},
+							{
+								el: "div",
+								className: "history-wrapper",
+								event: "click",
+								children: [
+									{
+										el: "p",
+										className: "history-desc",
+										text: "Показати історію забору з комірки."
+									}
+								],
+								hendler: function () {
+
+
+									let childs = this.children.length;
+									if (childs > 1) {
+										Array.from(this.children).forEach((child) => {
+											if (child.classList.contains("history-desc")) return;
+											child.remove();
+										});
+										return;
+									}
+									Object.keys(data_base.data.history).reverse().forEach((key) => {
+										console.log(key)
+										if (key.includes(item.article)) {
+											console.log(key.match(regExp.num))
+											this.appendChild(get.elements({
+												el: "p",
+												className: "history-desc",
+												children: [
+													{
+														el: "span",
+														text: `Замовлення: ${key.match(regExp.num)[0]}`
+													},
+													{
+														el: "span",
+														text: `${data_base.data.history[key].quantity}`
+													}
+
+												]
+											}))
+										}
+									})
+
+								}
+							},
 							{ el: "div", className: "item-footer" },
 						],
 					});
@@ -5092,11 +5137,14 @@ function main() {
 					td[4].textContent !== "******"
 				) {
 					let order_id = td[0].textContent.trim();
+					let order_number = td[1].textContent.trim();
+
 					if (!stored_data.orders[order_id]) {
 						stored_data.orders[order_id] = {
 							id: order_id,
 							is_new: true,
 							order_date: get.date(),
+							order_num: order_number,
 						};
 						data_base.save_data({
 							store_name: "orders",
@@ -5151,14 +5199,17 @@ function main() {
 							article: article,
 							request: storage_article,
 						});
+						console.log(stored_data.orders[order_id])
+						console.log(stored_data.orders[order_id].order_num)
 						data_base.save_data({
 							store_name: "history",
 							index_name: "id",
-							id: `${order_id}:/${article}`,
+							id: `${stored_data.orders[order_id].order_num}:/${article}`,
 							request: {
-								id: `${order_id}:/${article}`,
+								id: `${stored_data.orders[order_id].order_num}:/${article}`,
 								article: article,
 								quantity: quantity,
+
 							}
 						})
 					});

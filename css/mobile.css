@@ -376,6 +376,26 @@ button.html5-qrcode-element {
 .search-result-wraper .success {
   background-color: #7effb9;
 }
+.search-result-wraper .history-wrapper {
+  padding: 10px;
+}
+.search-result-wraper .history-wrapper .history-desc {
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #a7c9e8;
+  border-bottom: 2px solid rgb(0, 0, 0);
+}
+.search-result-wraper .history-wrapper .history-desc:first-child {
+  display: block;
+  text-align: center;
+  background-color: transparent;
+  border: none;
+}
 
 .production-wraper .production-item-wraper {
   padding: 10px 5px;
