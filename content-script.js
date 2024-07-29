@@ -1468,7 +1468,6 @@ function main() {
 		},
 		fill_cell: function () {
 			let article = this.dataset.article || false;
-
 			if (article) {
 				if (
 					data_base.data.addresses[article].last_goods_count > 0 && data_base.data.addresses[article].cell_capacity > 0 &&
@@ -1522,6 +1521,40 @@ function main() {
 		},
 		find_empty_cells: function () {
 			load.get_goods_count.call(load);
+		},
+		show_wroted_cells: function () {
+			let cells = {};
+			Object.keys(data_base.data.addresses).forEach((item) => {
+				if (data_base.data.addresses[item].cell_capacity) {
+					console.log(item)
+					cells[item] = data_base.data.addresses[item];
+				}
+			})
+			let wrapper = document.querySelector(".empty-cells-wraper");
+			if (Object.keys(cells).length > 0) {
+				wrapper.innerHTML = "";
+				wrapper.appendChild(get.elements({
+					el: "p",
+					className: "cells-header",
+					text: `Записані Комірки: ${Object.keys(cells).length}шт.`
+				}))
+				wrapper.appendChild(get.elements({
+
+					el: "div",
+					className: "wroted_cells_wrapper",
+					children: Object.keys(cells).map((item) => {
+						return {
+							el: "div",
+							className: "wroted_cell_item",
+							text: item
+						}
+					})
+				}))
+			}
+			else {
+				wrapper.innerHTML = "";
+				wrapper.appendChild(generate.message("Немає Комірок з записаною Ємністю"))
+			}
 		},
 		show_empty_cells: function () {
 			let empty_cells = [];
@@ -4149,6 +4182,19 @@ function main() {
 					el: "div",
 					className: "empty-cells-wraper",
 					children: [
+						{
+							el: "div",
+							className: "cells-header",
+							children: [
+								{
+									el: "button",
+									className: "btn",
+									text: "Записані комірки",
+									event: "click",
+									hendler: hendlers.show_wroted_cells
+								},
+							]
+						},
 						{
 							el: "p",
 							className: "empty-cells-description",
