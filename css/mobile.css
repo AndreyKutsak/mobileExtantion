@@ -7,6 +7,10 @@
 button {
   border: none;
   background-color: transparent;
+  transition: 0.4s;
+}
+button:active {
+  transform: scale(0.8);
 }
 
 img {
@@ -1292,4 +1296,27 @@ button.html5-qrcode-element {
   width: 100%;
   max-width: 250px;
   margin: 0px auto;
+}
+
+.empty-cells-wraper {
+  padding: 5px;
+  margin-bottom: 10px;
+}
+.empty-cells-wraper .btn {
+  padding: 10px 15px;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+.empty-cells-wraper .suc {
+  background-color: #1cc879;
+}
+.empty-cells-wraper .empt {
+  background-color: #ffacac;
+}
+.empty-cells-wraper .warn {
+  background-color: #ffe792;
 }/*# sourceMappingURL=mobile.css.map */

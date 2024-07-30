@@ -236,15 +236,12 @@ const data_base = {
 		const index = store.index(req.index_name);
 
 		const getRequest = index.get(req.request[req.index_name] || req.index_name);
-
 		getRequest.onsuccess = function (event) {
 			const existingRecord = event.target.result;
-
 			if (existingRecord) {
 				console.log("Record found, updating...");
 				// Оновлюємо запис без його попереднього видалення
 				const updateRequest = store.put(req.request);
-
 				updateRequest.onerror = function (event) {
 					console.log("Error updating data:", event.target.error);
 				};
@@ -1541,14 +1538,80 @@ function main() {
 				wrapper.appendChild(get.elements({
 
 					el: "div",
-					className: "wroted_cells_wrapper",
+					className: "wroted_cells_wrapper empty-items-wraper",
 					children: Object.keys(cells).map((item) => {
-						return {
-							el: "div",
-							className: "wroted_cell_item",
-							text: item
+						if (data_base.data.addresses[item].cell_capacity) {
+							let cell_bg = "";
+
+							let real_count =
+								data_base.data.addresses[item].real_goods_count;
+							let cell_capacity =
+								data_base.data.addresses[item].cell_capacity;
+							let save_area = data_base.data.addresses[item].save_area_count;
+
+							let percent = get.percent({
+								num: real_count,
+								main: cell_capacity,
+							});
+							if (percent <= 25) {
+								cell_bg = "danger"
+							}
+							else if (percent > 25) {
+								cell_bg = "warrning"
+							}
+							else if (percent >= 50) {
+								cell_bg = "success"
+							}
+							console.log(cell_bg, percent)
+
+
+
+							return {
+								el: "li",
+								className: `empty-cell-item ${cell_bg}`,
+								children: [
+									{
+										el: "p",
+										className: `empty-cell-description`,
+										children: [
+											{
+												el: "span",
+												className: "empty-cell-article",
+												text: item,
+											},
+											{
+												el: "span",
+												className: "empty-cell-place",
+												text: data_base.data.addresses[item].place,
+											},
+											{
+												el: "span",
+												className: "empty-cell-data",
+												text: `Ємність комірки:${cell_capacity} Реальна кількість: ${real_count} Заповнено на: (${percent.toFixed(
+													1
+												)}%)`,
+											},
+											{
+												el: "span",
+												className: "empty-cell-data",
+												text: `Товару в зоні збереження:${save_area}`,
+											},
+										],
+									},
+									{
+										el: "button",
+										className: "add-btn",
+										text: "Заповнити комірку",
+										event: "click",
+										data: [{ article: item }],
+										hendler: hendlers.fill_cell,
+									},
+								],
+							};
 						}
-					})
+					}),
+
+
 				}))
 			}
 			else {
@@ -4188,11 +4251,24 @@ function main() {
 							children: [
 								{
 									el: "button",
-									className: "btn",
+									className: "btn suc",
 									text: "Записані комірки",
 									event: "click",
 									hendler: hendlers.show_wroted_cells
 								},
+								{
+									el: "button",
+									className: "btn empt",
+									text: "Пусті Комірки",
+									event: "click",
+									hendler: hendlers.show_emp_cells
+								}, {
+									el: "button",
+									className: "btn warn",
+									text: "Товар Закінчується",
+									event: "click",
+									hendler: hendlers.show_expired
+								}
 							]
 						},
 						{
@@ -5214,12 +5290,14 @@ function main() {
 						console.log(article);
 						let storage_article = stored_data.addresses[article];
 						let quantity = item.quantity.match(regExp.num)[0];
-						if (storage_article == null || storage_article == undefined) {
+						if (storage_article == null || storage_article == undefined || storage_article.cell_capacity == 0 || storage_article.cell_capacity == undefined) {
+							console.log(`${article} комірку або ще не заповено або відбулася помилка`)
 							return;
 						}
 						if (
 							storage_article.save_area_count == undefined ||
-							storage_article.save_area_count == null
+							storage_article.save_area_count == null ||
+							storage_article.save_area_count < 0
 						) {
 							storage_article.save_area_count = 0;
 						}
@@ -5231,7 +5309,6 @@ function main() {
 								Number(storage_article.save_area_count) - Number(quantity);
 						}
 						storage_article.last_goods_count = item.base_quantity;
-
 						if (storage_article.real_goods_count) {
 							storage_article.real_goods_count =
 								Number(storage_article.real_goods_count) - Number(quantity);
@@ -5640,4 +5717,5 @@ function main() {
 	generate.requestCount();
 	generate.tasksCount();
 	check_last_check();
+	console.log(data_base.data)
 }
