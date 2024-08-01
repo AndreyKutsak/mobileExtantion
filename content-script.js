@@ -3434,7 +3434,7 @@ function main() {
 										className: "cell-capacity-desc",
 										text: `Кількість товару в комірці ${storage_item_data?.real_goods_count || 0
 											} шт. з можливих ${storage_item_data?.cell_capacity || 0
-											} шт.`,
+											} шт. В зоні збереження ${storage_item_data?.save_area_count || 0} .шт`,
 									},
 									{
 										el: "p",
@@ -5253,7 +5253,7 @@ function main() {
 				if (td.length < 5) {
 					return;
 				}
-				if (
+				if (td[0].style.backgroundColor == "#fcf304" && td[3].style.backgroundColor == "#fcf304" && td[2].textContent == "****** (***** *****)" ||
 					td[3].textContent === "чекає відправки" &&
 					td[2].textContent !== "****** (***** *****)" &&
 					td[4].textContent !== "******"
