@@ -5253,7 +5253,7 @@ function main() {
 				if (td.length < 5) {
 					return;
 				}
-				if (td[0].style.backgroundColor == "#fcf304" && td[3].style.backgroundColor == "#fcf304" || td[3].style.backgroundColor == "rgb(252, 243, 4)" && td[2].textContent == "****** (***** *****)" ||
+				if (td[0].style.backgroundColor == "#fcf304" || td[0].style.backgroundColor == "#rgb(252, 243, 4)" && td[3].style.backgroundColor == "#fcf304" || td[3].style.backgroundColor == "rgb(252, 243, 4)" && td[2].textContent == "****** (***** *****)" ||
 					td[3].textContent === "чекає відправки" &&
 					td[2].textContent !== "****** (***** *****)" &&
 					td[4].textContent !== "******"
