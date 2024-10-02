@@ -1825,7 +1825,57 @@ function main() {
   });
 
   let generate = {
-    barcodes: function () {},
+    barcodes: async function () {
+      let data = {};
+      let zones = await load.fetch({
+        url: url.stilages,
+        method: "POST",
+      });
+      let zones_names = Array.from(zones.querySelectorAll("tr"));
+      zones_names.shift();
+      zones_names.forEach((tr) => {
+        let td = Array.from(tr.querySelectorAll("td"));
+        let zone_name = td[1].textContent;
+        data[zone_name] = {
+          id: td[0].textContent,
+        };
+      });
+      contentWraper.innerHTML = "";
+      contentWraper.appendChild(
+        get.elements({
+          el: "div",
+          className: "main-barcode_wrapper",
+          children: [
+            { el: "h2", className: "barcode-title", text: "Друк Штрихкодів" },
+            {
+              el: "p",
+              className: "select_desc",
+            },
+            {
+              el: "select",
+              className: "barcode_select",
+              event: "change",
+              hendlers: function (event) {
+                let zone_name = event.target.value;
+              },
+              children: Object.keys(data).map((name, index) => {
+                if (index == 0) {
+                  return (
+                    {
+                      el: "option",
+                      text: "Виберіть Зону",
+                      value: false,
+                    },
+                    { el: "option", text: name, value: name }
+                  );
+                }
+                return { el: "option", text: name, value: name };
+              }),
+            },
+          ],
+        })
+      );
+    },
     deliveries_table_excel: function (data) {
       let a = get.elements({
         el: "a",
@@ -2479,6 +2529,7 @@ function main() {
       }
     },
     production: function (data) {
+      console.log(data);
       if (data.length > 0) {
         let descNames = [
           "Назва",
