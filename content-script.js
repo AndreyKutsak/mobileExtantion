@@ -1827,6 +1827,30 @@ function main() {
   let generate = {
     barcodes: async function () {
       let data = {};
+      let settings = {
+        el: "div",
+        className: "main-setings-wrapper",
+        children: [
+          {
+            el: "form",
+            className: "setings_wrorm",
+            children: [
+              {
+                el: "p",
+                className: "setting_form_desc",
+                text: "Вкажіть параметри стікера",
+              },
+              {
+                el: "div",
+                className: "item_wrapper",
+                children: [
+                  { el: "input", type: "checkbox", id: "cell_barcode" },
+                ],
+              },
+            ],
+          },
+        ],
+      };
       let zones = await load.fetch({
         url: url.stilages,
         method: "POST",
