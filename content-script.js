@@ -1466,6 +1466,9 @@ function main() {
 		fill_cell: function () {
 			let article = this.dataset.article || false;
 			if (article) {
+				if (data_base.data.addresses[article].save_area_count < 0) {
+					data_base.data.addresses[article].save_area_count = 0;
+				}
 				if (
 					data_base.data.addresses[article].last_goods_count > 0 && data_base.data.addresses[article].cell_capacity > 0 &&
 					data_base.data.addresses[article].save_area_count == 0 && data_base.data.addresses[article].real_goods_count == 0
@@ -1512,6 +1515,39 @@ function main() {
 					request: data_base.data.addresses[article],
 				})
 				this.textContent = "Заповнено";
+				let cell_capacity_display = this.parentElement.parentElement.querySelector(".cell-capacity-display");
+				Array.from(cell_capacity_display.children).forEach(function (child) {
+					child.remove();
+				});
+				cell_capacity_display.appendChild(get.elements({
+					el: "div",
+					className: "cell-capacity-display",
+					children: [
+						{
+							el: "p",
+							className: "cell-capacity-desc",
+							text: `Кількість товару в комірці ${data_base.data.addresses[article]?.real_goods_count || 0
+								} шт. з можливих ${data_base.data.addresses[article]?.cell_capacity || 0
+								} шт. В зоні збереження ${data_base.data.addresses[article]?.save_area_count || 0} .шт`,
+						},
+						{
+							el: "p",
+							className: "cell-capacity-bar-wraper",
+							children: [
+								{
+									el: "div",
+									className: "cell-capacity-bar",
+									style: {
+										width: `${get.percent({
+											main: data_base.data.addresses[article]?.cell_capacity || 0,
+											num: data_base.data.addresses[article]?.real_goods_count || 0,
+										})}%`,
+									},
+								},
+							],
+						},
+					],
+				},))
 
 			} console.log(data_base.data.addresses[article]);
 
@@ -5296,8 +5332,7 @@ function main() {
 						}
 						if (
 							storage_article.save_area_count == undefined ||
-							storage_article.save_area_count == null ||
-							storage_article.save_area_count < 0
+							storage_article.save_area_count == null
 						) {
 							storage_article.save_area_count = 0;
 						}
@@ -5314,7 +5349,7 @@ function main() {
 								Number(storage_article.real_goods_count) - Number(quantity);
 							storage_article.save_area_count =
 								Number(storage_article.last_goods_count) -
-								Number(storage_article.real_goods_count);
+								Number(storage_article.real_goods_count) || 0;
 						}
 						data_base.save_data({
 							store_name: "addresses",
