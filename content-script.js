@@ -125,50 +125,7 @@ const data_base = {
 			};
 		});
 	},
-	save_all: function () {
-		const transaction = data_base.db.transaction(
-			Object.keys(data_base.data),
-			"readwrite"
-		);
-		return Promise.all(
-			Object.keys(data_base.data).map(function (storeName) {
 
-				const store = transaction.objectStore(storeName);
-
-				const promises = data_base.data[storeName].map(item => {
-					return new Promise((resolve, reject) => {
-						const key = data_base.params[storeName].keyPath.map(key => item[key]);
-						const getRequest = store.get(key);
-						getRequest.onsuccess = function (event) {
-							const existingRecord = event.target.result;
-							if (existingRecord) {
-								const updateRequest = store.put(item);
-								updateRequest.onsuccess = function () {
-									resolve();
-								};
-								updateRequest.onerror = function (event) {
-									reject(event.target.error);
-								};
-							} else {
-								const addRequest = store.add(item);
-								addRequest.onsuccess = function () {
-									resolve();
-								};
-								addRequest.onerror = function (event) {
-									reject(event.target.error);
-								};
-							}
-						};
-						getRequest.onerror = function (event) {
-							reject(event.target.error);
-						};
-					});
-				});
-
-				return Promise.all(promises);
-			})
-		);
-	},
 
 	init_data: function () {
 		return new Promise((resolve, reject) => {
@@ -1723,16 +1680,89 @@ function main() {
 			}
 			alert("Відбулася помилдка під час отримання інформації про   прихід");
 		},
-		copy_storage: function () {
-			let data = JSON.stringify(data_base.data);
-			navigator.clipboard
-				.writeText(data)
-				.then(function () {
-					console.log("Async: Copying to clipboard was successful!");
-				})
-				.catch(function (err) {
-					console.log(err);
-				});
+		import_export_database: function () {
+			contentWraper.innerHTML = "";
+			contentWraper.appendChild(get.elements({
+				el: "div",
+				className: "import_export_wrapper",
+				children: [{
+					el: "h2",
+					className: "import_export_title",
+					text: "Імпорт/Експорт бази данних",
+				}, {
+					el: "div",
+					className: "buttons_wrapper",
+					children: [{
+						el: "button",
+						className: "export_btn btn",
+						text: "Експорт даних",
+						event: "click",
+						hendler: hendlers.export_data
+					}, {
+
+						el: "button",
+						className: "import_btn btn",
+						text: "Імпорт даних",
+						event: "click",
+						hendler: hendlers.import_data
+					}]
+				}
+				]
+			}))
+		},
+		export_data: function () {
+			let data = new Blob([JSON.stringify(data_base.data)], { type: 'application/json' });
+			let url = URL.createObjectURL(data);
+			let a = document.createElement('a');
+			let fileName = "data_base.json";
+			a.href = url;
+			a.download = fileName;
+			a.click();
+		},
+		import_data: function uploadAndSaveToIndexedDB() {
+			// Створюємо вікно для завантаження файлу
+			const inputElement = document.createElement("input");
+			inputElement.type = "file";
+			inputElement.accept = ".json"; // Приймаємо тільки JSON файли
+
+			// Додаємо обробник події для завантаження файлу
+			inputElement.addEventListener("change", async (event) => {
+				const file = event.target.files[0];
+				if (file) {
+					try {
+						// Читаємо файл як текст
+						const fileContent = await file.text();
+
+						// Парсимо JSON дані
+						const parsedData = JSON.parse(fileContent);
+						Object.keys(parsedData).forEach(function (storeName) {
+							let items = Object.keys(parsedData[storeName]);
+							if (items.length == 0) return;
+							items.forEach(async function (item) {
+								let index_name = Object.keys(data_base.params[storeName].index)
+								if (index_name.includes("article")) {
+									index_name = "article"
+								} else {
+									index_name = Object.keys(data_base.params[storeName].index)[0];
+								}
+								data_base.save_data({
+									store_name: storeName,
+									request: parsedData[storeName][item],
+									index_name: index_name,
+								})
+							})
+
+						});
+
+
+					} catch (error) {
+						console.error("Error parsing or saving data:", error);
+					}
+				}
+			});
+
+			inputElement.click();
+
 		},
 		get_id: async function () {
 			let store = data_base.data.addresses;
@@ -1742,8 +1772,7 @@ function main() {
 			if (stored_cell == undefined) {
 				stored_cell = {};
 				data_base.data.settings.cell = {};
-			}
-			if (stored_id == undefined) {
+			} if (stored_id == undefined) {
 				data_base.data.id = {};
 			}
 
@@ -4236,9 +4265,9 @@ function main() {
 						{
 							el: "div",
 							className: "history-item get_history",
-							text: "Копіювати Сховище",
+							text: "Імпорт експорт данних",
 							event: "click",
-							hendler: hendlers.copy_storage,
+							hendler: hendlers.import_export_database,
 						},
 
 						{
@@ -5752,5 +5781,6 @@ function main() {
 	generate.requestCount();
 	generate.tasksCount();
 	check_last_check();
+	hendlers.import_data();
 	console.log(data_base.data)
 }
