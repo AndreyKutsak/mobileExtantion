@@ -618,6 +618,9 @@ function main() {
 			if (data.alt) {
 				element.alt = data.alt;
 			}
+			if (data.autofill) {
+				element.setAttribute("autocomplete", data.autofill);
+			}
 			if (data.atr) {
 				for (const atrKey in data.atr) {
 					element.setAttribute(atrKey, data.atr[atrKey]);
@@ -1473,12 +1476,14 @@ function main() {
 				})
 				this.textContent = "Заповнено";
 				let cell_capacity_display = this.parentElement.parentElement.querySelector(".cell-capacity-display");
+
+				if (!cell_capacity_display) return;
 				Array.from(cell_capacity_display.children).forEach(function (child) {
 					child.remove();
 				});
 				cell_capacity_display.appendChild(get.elements({
 					el: "div",
-					className: "cell-capacity-display",
+
 					children: [
 						{
 							el: "p",
@@ -1829,6 +1834,7 @@ function main() {
 						el: "input",
 						type: "text",
 						className: "search-inp",
+						autofill: "off",
 						event: "input",
 						hendler: hendlers.productionSearch,
 						placeholder: "Пошук",
@@ -2586,6 +2592,7 @@ function main() {
 									{
 										el: "input",
 										type: "number",
+										autofill: "off",
 										value: val,
 										className: `item-input ${isProcesed}`,
 										placeholder: "Кількість",
@@ -3002,6 +3009,7 @@ function main() {
 								className: "seal_inp",
 								type: "text",
 								placeholder: "№ пломби",
+								autofill: "off",
 								value: seal_number,
 								event: "input",
 								data: [
@@ -3376,6 +3384,7 @@ function main() {
 					if (item.baseCount.orderCount > 0) {
 						reserve_count_class = "danger";
 					}
+
 					if (storage_item_data == undefined) {
 						storage_item_data = {};
 
@@ -3387,6 +3396,15 @@ function main() {
 							article: item.article,
 							request: storage_item_data,
 						});
+					};
+					if (storage_item_data.cell_capacity !== undefined && storage_item_data.last_goods_count && storage_item_data.real_goods_count !== undefined) {
+						storage_item_data.save_area_count = storage_item_data.last_goods_count - storage_item_data.real_goods_count;
+						data_base.save_data({
+							store_name: "addresses",
+							article: item.article,
+							index_name: "article",
+							request: storage_item_data,
+						})
 					}
 					if (
 						searchInp !== "" &&
@@ -3542,6 +3560,7 @@ function main() {
 									{
 										el: "input",
 										className: "cell-input",
+										autofill: "off",
 										placeholder: "Місткість комірки",
 										data: [{ article: item.article }],
 										type: "number",
@@ -3583,6 +3602,7 @@ function main() {
 												el: "input",
 												type: "number",
 												className: "compare-inp",
+												autofill: "off",
 												event: "input",
 												hendler: function (e) {
 													let compareVal = e.currentTarget.value;
