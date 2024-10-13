@@ -407,6 +407,7 @@ function main() {
 		goodsCount:
 			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.|пар\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.|пар\.)/g,
 	};
+	let barcode_data = {};
 	let src = {
 		ico: {
 			recycle: "img/recycle-bin-ico.svg",
@@ -770,12 +771,31 @@ function main() {
 						]
 					}, {
 						el: "div", className: "settings_item", children: [{
-							el: ""
-						}, {}]
+							el: "input",
+							type: "checkbox",
+							id: "add_cell_barcode_checkbox",
+							checked: false
+						}, {
+							el: "label",
+							for: "add_cell_barcode_checkbox",
+							text: "Додати коди комірки"
+						}]
+					}
+					, {
+						el: "div", className: "settings_item", children: [{
+							el: "input",
+							type: "checkbox",
+							id: "add_article_checkbox",
+							checked: false
+						}, {
+							el: "label",
+							for: "add_article_checkbox",
+							text: "Додати артикул"
+						}]
 					}
 				]
 			}
-
+			contentWraper.appendChild(get.elements(settings_marcup));
 		},
 		show_available_articles: function (categorys, places) {
 			let desc = document.querySelector(".description");
@@ -2068,13 +2088,17 @@ function main() {
 												hendlers.generate_barcodes(data[zone_name].stilages_list[event.target.value]);
 											},
 											children: Object.keys(data[zone_name].stilages_list).map(function (stilage, index) {
-												if (index == 0) {
-													return ({ el: "option", text: "Виберіть Стілаж", value: false }, {
-														el: "option", text: stilage, value: stilage
-													})
-												};
-												return ({ el: "option", text: stilage, value: stilage });
-											})
+												if (index === 0) {
+													console.log(index, stilage);
+													return [
+														{ el: "option", text: "Виберіть Стілаж", value: false },
+														{ el: "option", text: stilage, value: stilage }
+													];
+												}
+												return { el: "option", text: stilage, value: stilage };
+											}).flat()
+
+
 										}
 
 									]
