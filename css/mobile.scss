@@ -1478,3 +1478,28 @@ button.html5-qrcode-element {
     background-color: $procesed;
   }
 }
+.import_export_wrapper {
+  padding: 10px;
+  .import_export_title {
+    font-family: sans-serif;
+    font-size: 18px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .buttons_wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    .btn {
+      border-radius: 5px;
+      padding: 10px 15px;
+      margin: 5px;
+      color: $white;
+      font-size: 14px;
+      font-weight: 600;
+      background-color: $actionBtnBg;
+    }
+  }
+}

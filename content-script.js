@@ -125,50 +125,7 @@ const data_base = {
 			};
 		});
 	},
-	save_all: function () {
-		const transaction = data_base.db.transaction(
-			Object.keys(data_base.data),
-			"readwrite"
-		);
-		return Promise.all(
-			Object.keys(data_base.data).map(function (storeName) {
 
-				const store = transaction.objectStore(storeName);
-
-				const promises = data_base.data[storeName].map(item => {
-					return new Promise((resolve, reject) => {
-						const key = data_base.params[storeName].keyPath.map(key => item[key]);
-						const getRequest = store.get(key);
-						getRequest.onsuccess = function (event) {
-							const existingRecord = event.target.result;
-							if (existingRecord) {
-								const updateRequest = store.put(item);
-								updateRequest.onsuccess = function () {
-									resolve();
-								};
-								updateRequest.onerror = function (event) {
-									reject(event.target.error);
-								};
-							} else {
-								const addRequest = store.add(item);
-								addRequest.onsuccess = function () {
-									resolve();
-								};
-								addRequest.onerror = function (event) {
-									reject(event.target.error);
-								};
-							}
-						};
-						getRequest.onerror = function (event) {
-							reject(event.target.error);
-						};
-					});
-				});
-
-				return Promise.all(promises);
-			})
-		);
-	},
 
 	init_data: function () {
 		return new Promise((resolve, reject) => {
@@ -185,6 +142,7 @@ const data_base = {
 
 					const indexPromises = index_list.map(function (index_item) {
 						return new Promise((resolveIndex, rejectIndex) => {
+
 							const index = store.index(index_item);
 							const request = index.getAll();
 
@@ -228,6 +186,7 @@ const data_base = {
 	},
 
 	save_data: function (req) {
+
 		const transaction = data_base.db.transaction([req.store_name], "readwrite");
 		const store = transaction.objectStore(req.store_name);
 
@@ -244,6 +203,7 @@ const data_base = {
 					console.log("Error updating data:", event.target.error);
 				};
 				updateRequest.onsuccess = function (event) {
+
 					console.log("Data updated successfully:", event.target.result);
 				};
 			} else {
@@ -253,6 +213,7 @@ const data_base = {
 					console.log("Error adding new data:", event.target.error);
 				};
 				addRequest.onsuccess = function (event) {
+
 					console.log("New data added successfully:", event.target.result);
 				};
 			}
@@ -297,13 +258,15 @@ const data_base = {
 					const record = event.target.result;
 					console.log("Record found:", record);
 
+
 					const keyPath = data_base.params[req.store_name].keyPath;
 					let key;
 					if (Array.isArray(keyPath)) {
-						key = keyPath.map((k) => record[k]);
+						key = keyPath.map(k => record[k]);
 					} else {
 						key = record[keyPath];
 					}
+
 
 					const deleteRequest = objectStore.delete(key);
 
@@ -359,6 +322,7 @@ const data_base = {
 					return resolve(event.target.result);
 				};
 			});
+
 		});
 	},
 };
@@ -425,6 +389,7 @@ function main() {
 		cell_goods_count: 1000 * 30 * 60,
 	};
 	let get = {
+
 		years_frequency: function (data) {
 			if (data.length == 0) {
 				return { err: true, err_desc: "no data" };
@@ -872,16 +837,14 @@ function main() {
 		remove_elaboration_item: function () {
 			let date = this.dataset.date;
 			let el = this.parentNode;
-			console.log(date);
-			data_base
-				.delete_item({ store_name: "elaborations", request: date })
-				.then(function () {
-					delete data_base.data.elaborations[date];
-					el.remove();
-				})
-				.catch(function (error) {
-					console.log(error);
-				});
+			console.log(date)
+			data_base.delete_item({ store_name: "elaborations", request: date }).then(function () {
+				delete data_base.data.elaborations[date];
+				el.remove();
+			}).catch(function (error) {
+				console.log(error)
+			})
+
 		},
 		send_seal_number: function () {
 			let order_num = this.dataset.order_num;
@@ -1010,23 +973,17 @@ function main() {
 			delete data_base.data[arr][article];
 
 			this.parentElement.remove();
-			data_base
-				.delete_item({
-					store_name: arr,
-					index_name: "article",
-					request: article,
-				})
-				.catch(function (error) {
-					console.log(error);
-				});
+			data_base.delete_item({
+				store_name: arr,
+				index_name: "article",
+				request: article,
+			}).catch(function (error) {
+				console.log(error)
+			})
 			generate.tasksCount();
 		},
 		getToProduction: function () {
-			if (
-				Object.values(data_base.data.production).some(
-					(obj) => obj.id === this.dataset.id
-				)
-			) {
+			if (Object.values(data_base.data.production).some((obj) => obj.id === this.dataset.id)) {
 				alert("Елемент вже є в списку!!!");
 				return;
 			}
@@ -1050,8 +1007,8 @@ function main() {
 				store_name: "production",
 				id: id,
 				index_name: "id",
-				request: data_base.data.production[id],
-			});
+				request: data_base.data.production[id]
+			})
 
 			count.disabled = true;
 			parent.classList.add("procesed");
@@ -1084,7 +1041,7 @@ function main() {
 
 				index_name: "article",
 				request: data_base.data[arr][id],
-			});
+			})
 			generate.tasksCount();
 		},
 		production: function () {
@@ -1100,19 +1057,13 @@ function main() {
 			Object.values(data_base.data.production).forEach((item, index) => {
 				if (item.id === id) {
 					delete data_base.data.production[item.id];
-					data_base
-						.delete_item({
-							store_name: "production",
-							index_name: "id",
-							request: item.id,
-						})
-						.then(function () {
-							parent.remove();
-						})
-						.catch(function (err) {
-							console.log(err);
-							alert("Не вдалося видалити елемент");
-						});
+					data_base.delete_item({ store_name: "production", index_name: "id", request: item.id }).then(function () {
+						parent.remove();
+					}).catch(function (err) {
+						console.log(err)
+						alert("Не вдалося видалити елемент")
+					})
+
 				}
 			});
 
@@ -1164,6 +1115,7 @@ function main() {
 					body: { id: id, text: area.value },
 				})
 				.then((result) => {
+
 					if (result.body.textContent == "ok") {
 						area.remove();
 						this.remove();
@@ -1327,16 +1279,15 @@ function main() {
 			let input = this.parentNode.querySelector(".search-inp");
 			let wrapper = document.querySelector(".wraper");
 			let random_order_num = Object.keys(data_base.data.orders)[0];
-			let is_order_number =
-				input.value[0] !== "0" &&
+			let is_order_number = input.value[0] !== "0" &&
 				!input.value.includes(".") &&
 				!isNaN(Number(input.value)) &&
-				input.value[0] === random_order_num[0] &&
-				input.value[1] === random_order_num[1];
+				input.value[0] === random_order_num[0] && input.value[1] === random_order_num[1];
 			if (input.value.length < 2) {
 				alert("Довжина пошукового запиту має бути 2-х символів");
 				return;
 			}
+
 
 			generate.preloader({ status: "start" });
 			console.log(input.value, is_order_number, random_order_num);
@@ -1346,6 +1297,7 @@ function main() {
 				});
 				return;
 			}
+
 
 			let search_sell = 0;
 			let result = load.search({
@@ -1382,6 +1334,7 @@ function main() {
 		},
 		// orders hendlers
 		order: function (e) {
+
 			let itemFooter = this.querySelector(".row-footer");
 			let items = Array.from(
 				document.querySelectorAll(".row-footer .order-wraper,.item-preloader")
@@ -1474,52 +1427,42 @@ function main() {
 					data_base.data.addresses[article].save_area_count = 0;
 				}
 				if (
-					data_base.data.addresses[article].last_goods_count > 0 &&
-					data_base.data.addresses[article].cell_capacity > 0 &&
-					data_base.data.addresses[article].save_area_count == 0 &&
-					data_base.data.addresses[article].real_goods_count == 0
+					data_base.data.addresses[article].last_goods_count > 0 && data_base.data.addresses[article].cell_capacity > 0 &&
+					data_base.data.addresses[article].save_area_count == 0 && data_base.data.addresses[article].real_goods_count == 0
 				) {
-					if (
-						data_base.data.addresses[article].cell_capacity >
-						data_base.data.addresses[article].last_goods_count
-					) {
-						data_base.data.addresses[article].real_goods_count =
-							data_base.data.addresses[article].last_goods_count;
+					if (data_base.data.addresses[article].cell_capacity > data_base.data.addresses[article].last_goods_count) {
+						data_base.data.addresses[article].real_goods_count = data_base.data.addresses[article].last_goods_count;
 						data_base.data.addresses[article].save_area_count = 0;
-					} else if (
-						data_base.data.addresses[article].cell_capacity <
-						data_base.data.addresses[article].last_goods_count
-					) {
-						data_base.data.addresses[article].real_goods_count =
-							data_base.data.addresses[article].cell_capacity;
-						data_base.data.addresses[article].save_area_count =
-							data_base.data.addresses[article].last_goods_count -
-							data_base.data.addresses[article].cell_capacity;
 					}
-				} else if (
+					else if (data_base.data.addresses[article].cell_capacity < data_base.data.addresses[article].last_goods_count) {
+						data_base.data.addresses[article].real_goods_count = data_base.data.addresses[article].cell_capacity;
+						data_base.data.addresses[article].save_area_count = data_base.data.addresses[article].last_goods_count - data_base.data.addresses[article].cell_capacity
+					}
+				}
+				else if (
 					data_base.data.addresses[article].cell_capacity >
 					data_base.data.addresses[article].last_goods_count
 				) {
 					data_base.data.addresses[article].real_goods_count =
 						data_base.data.addresses[article].last_goods_count;
 					data_base.data.addresses[article].save_area_count = 0;
-					console.log("save_area_count 0");
+					console.log("save_area_count 0")
 				} else if (
-					data_base.data.addresses[article].cell_capacity -
-					data_base.data.addresses[article].real_goods_count >
+					(data_base.data.addresses[article].cell_capacity -
+						data_base.data.addresses[article].real_goods_count) >
 					data_base.data.addresses[article].save_area_count
 				) {
 					data_base.data.addresses[article].real_goods_count =
 						data_base.data.addresses[article].real_goods_count +
 						data_base.data.addresses[article].save_area_count;
-					console.log("summ save areacount and real count");
+					console.log("summ save areacount and real count")
 				} else {
 					data_base.data.addresses[article].real_goods_count =
 						data_base.data.addresses[article].cell_capacity;
 					data_base.data.addresses[article].save_area_count =
 						Number(data_base.data.addresses[article].last_goods_count) -
 						Number(data_base.data.addresses[article].real_goods_count);
-					console.log("real count = cell capacity");
+					console.log("real count = cell capacity")
 				}
 
 				data_base.save_data({
@@ -1527,53 +1470,44 @@ function main() {
 					index_name: "article",
 					article: article,
 					request: data_base.data.addresses[article],
-				});
+				})
 				this.textContent = "Заповнено";
-				let cell_capacity_display =
-					this.parentElement.parentElement.querySelector(
-						".cell-capacity-display"
-					);
-				if (!cell_capacity_display) return;
+				let cell_capacity_display = this.parentElement.parentElement.querySelector(".cell-capacity-display");
 				Array.from(cell_capacity_display.children).forEach(function (child) {
 					child.remove();
 				});
-				cell_capacity_display.appendChild(
-					get.elements({
-						el: "div",
-
-						children: [
-							{
-								el: "p",
-								className: "cell-capacity-desc",
-								text: `Кількість товару в комірці ${data_base.data.addresses[article]?.real_goods_count || 0
-									} шт. з можливих ${data_base.data.addresses[article]?.cell_capacity || 0
-									} шт. В зоні збереження ${data_base.data.addresses[article]?.save_area_count || 0
-									} .шт`,
-							},
-							{
-								el: "p",
-								className: "cell-capacity-bar-wraper",
-								children: [
-									{
-										el: "div",
-										className: "cell-capacity-bar",
-										style: {
-											width: `${get.percent({
-												main:
-													data_base.data.addresses[article]?.cell_capacity || 0,
-												num:
-													data_base.data.addresses[article]?.real_goods_count ||
-													0,
-											})}%`,
-										},
+				cell_capacity_display.appendChild(get.elements({
+					el: "div",
+					className: "cell-capacity-display",
+					children: [
+						{
+							el: "p",
+							className: "cell-capacity-desc",
+							text: `Кількість товару в комірці ${data_base.data.addresses[article]?.real_goods_count || 0
+								} шт. з можливих ${data_base.data.addresses[article]?.cell_capacity || 0
+								} шт. В зоні збереження ${data_base.data.addresses[article]?.save_area_count || 0} .шт`,
+						},
+						{
+							el: "p",
+							className: "cell-capacity-bar-wraper",
+							children: [
+								{
+									el: "div",
+									className: "cell-capacity-bar",
+									style: {
+										width: `${get.percent({
+											main: data_base.data.addresses[article]?.cell_capacity || 0,
+											num: data_base.data.addresses[article]?.real_goods_count || 0,
+										})}%`,
 									},
-								],
-							},
-						],
-					})
-				);
-			}
-			console.log(data_base.data.addresses[article]);
+								},
+							],
+						},
+					],
+				},))
+
+			} console.log(data_base.data.addresses[article]);
+
 		},
 		find_empty_cells: function () {
 			load.get_goods_count.call(load);
@@ -1582,98 +1516,100 @@ function main() {
 			let cells = {};
 			Object.keys(data_base.data.addresses).forEach((item) => {
 				if (data_base.data.addresses[item].cell_capacity) {
-					console.log(item);
+					console.log(item)
 					cells[item] = data_base.data.addresses[item];
 				}
-			});
+			})
 			let wrapper = document.querySelector(".empty-cells-wraper");
 			if (Object.keys(cells).length > 0) {
 				wrapper.innerHTML = "";
-				wrapper.appendChild(
-					get.elements({
-						el: "p",
-						className: "cells-header",
-						text: `Записані Комірки: ${Object.keys(cells).length}шт.`,
-					})
-				);
-				wrapper.appendChild(
-					get.elements({
-						el: "div",
-						className: "wroted_cells_wrapper empty-items-wraper",
-						children: Object.keys(cells).map((item) => {
-							if (data_base.data.addresses[item].cell_capacity) {
-								let cell_bg = "";
+				wrapper.appendChild(get.elements({
+					el: "p",
+					className: "cells-header",
+					text: `Записані Комірки: ${Object.keys(cells).length}шт.`
+				}))
+				wrapper.appendChild(get.elements({
 
-								let real_count =
-									data_base.data.addresses[item].real_goods_count;
-								let cell_capacity =
-									data_base.data.addresses[item].cell_capacity;
-								let save_area = data_base.data.addresses[item].save_area_count;
+					el: "div",
+					className: "wroted_cells_wrapper empty-items-wraper",
+					children: Object.keys(cells).map((item) => {
+						if (data_base.data.addresses[item].cell_capacity) {
+							let cell_bg = "";
 
-								let percent = get.percent({
-									num: real_count,
-									main: cell_capacity,
-								});
-								if (percent <= 25) {
-									cell_bg = "danger";
-								} else if (percent > 25) {
-									cell_bg = "warrning";
-								} else if (percent >= 50) {
-									cell_bg = "success";
-								}
-								console.log(cell_bg, percent);
+							let real_count =
+								data_base.data.addresses[item].real_goods_count;
+							let cell_capacity =
+								data_base.data.addresses[item].cell_capacity;
+							let save_area = data_base.data.addresses[item].save_area_count;
 
-								return {
-									el: "li",
-									className: `empty-cell-item ${cell_bg}`,
-									children: [
-										{
-											el: "p",
-											className: `empty-cell-description`,
-											children: [
-												{
-													el: "span",
-													className: "empty-cell-article",
-													text: item,
-												},
-												{
-													el: "span",
-													className: "empty-cell-place",
-													text: data_base.data.addresses[item].place,
-												},
-												{
-													el: "span",
-													className: "empty-cell-data",
-													text: `Ємність комірки:${cell_capacity} Реальна кількість: ${real_count} Заповнено на: (${percent.toFixed(
-														1
-													)}%)`,
-												},
-												{
-													el: "span",
-													className: "empty-cell-data",
-													text: `Товару в зоні збереження:${save_area}`,
-												},
-											],
-										},
-										{
-											el: "button",
-											className: "add-btn",
-											text: "Заповнити комірку",
-											event: "click",
-											data: [{ article: item }],
-											hendler: hendlers.fill_cell,
-										},
-									],
-								};
+							let percent = get.percent({
+								num: real_count,
+								main: cell_capacity,
+							});
+							if (percent <= 25) {
+								cell_bg = "danger"
 							}
-						}),
-					})
-				);
-			} else {
+							else if (percent > 25) {
+								cell_bg = "warrning"
+							}
+							else if (percent >= 50) {
+								cell_bg = "success"
+							}
+							console.log(cell_bg, percent)
+
+
+
+							return {
+								el: "li",
+								className: `empty-cell-item ${cell_bg}`,
+								children: [
+									{
+										el: "p",
+										className: `empty-cell-description`,
+										children: [
+											{
+												el: "span",
+												className: "empty-cell-article",
+												text: item,
+											},
+											{
+												el: "span",
+												className: "empty-cell-place",
+												text: data_base.data.addresses[item].place,
+											},
+											{
+												el: "span",
+												className: "empty-cell-data",
+												text: `Ємність комірки:${cell_capacity} Реальна кількість: ${real_count} Заповнено на: (${percent.toFixed(
+													1
+												)}%)`,
+											},
+											{
+												el: "span",
+												className: "empty-cell-data",
+												text: `Товару в зоні збереження:${save_area}`,
+											},
+										],
+									},
+									{
+										el: "button",
+										className: "add-btn",
+										text: "Заповнити комірку",
+										event: "click",
+										data: [{ article: item }],
+										hendler: hendlers.fill_cell,
+									},
+								],
+							};
+						}
+					}),
+
+
+				}))
+			}
+			else {
 				wrapper.innerHTML = "";
-				wrapper.appendChild(
-					generate.message("Немає Комірок з записаною Ємністю")
-				);
+				wrapper.appendChild(generate.message("Немає Комірок з записаною Ємністю"))
 			}
 		},
 		show_empty_cells: function () {
@@ -1706,65 +1642,8 @@ function main() {
 				return placeA.localeCompare(placeB);
 			});
 
-			generate.empty_cells(empty_cells);
-		},
-		show_delivery: function () {
-			generate.preloader({ status: "start" });
-			load.deliverys_list().then((data) => {
-				generate.delivery_list(data);
-			});
-		},
-		show_delivery_item: function () {
-			let el = this;
-			let item_id = this.dataset.delivery_id;
-			let footers = Array.from(document.querySelectorAll(".item-footer"));
-			let item_footer = el.querySelector(".item-footer");
-			footers.forEach((element) => {
-				element.innerHTML = "";
-			});
-			item_footer.appendChild(
-				get.elements({
-					el: "div",
-					className: "item-preloader",
-					children: [
-						{
-							el: "img",
-							src: get.url(src.ico.spiner),
-						},
-					],
-				})
-			);
-			if (item_id) {
-				load.delivery_item(item_id).then((data) => {
-					generate.delivery_item.call(el, data, generate);
-				});
-				return;
-			}
-			alert("Відбулася помилдка під час отримання інформації про   прихід");
-		},
-		copy_storage: function () {
-			let data = JSON.stringify(data_base.data);
-			navigator.clipboard
-				.writeText(data)
-				.then(function () {
-					console.log("Async: Copying to clipboard was successful!");
-				})
-				.catch(function (err) {
-					console.log(err);
-				});
-		},
-		get_id: async function () {
-			let store = data_base.data.addresses;
-			let stored_cell = data_base.data.settings.cell;
-			let stored_id = data_base.data.id;
-			let cell_count = 0;
-			if (stored_cell == undefined) {
-				stored_cell = {};
-				data_base.data.settings.cell = {};
-			}
-			if (stored_id == undefined) {
-				data_base.data.id = {};
-			}
+
+
 			generate.empty_cells(empty_cells);
 		},
 		show_delivery: function () {
@@ -1893,8 +1772,7 @@ function main() {
 			if (stored_cell == undefined) {
 				stored_cell = {};
 				data_base.data.settings.cell = {};
-			}
-			if (stored_id == undefined) {
+			} if (stored_id == undefined) {
 				data_base.data.id = {};
 			}
 
@@ -1906,6 +1784,7 @@ function main() {
 					return;
 				}
 				if (Object.values(stored_id).includes(Object.keys(store)[index])) {
+
 					return;
 				}
 				if (stored_cell[element.cell] == undefined) {
@@ -2470,6 +2349,7 @@ function main() {
 				Object.values(data_base.data.elaborations)
 					.reverse()
 					.forEach((item, index) => {
+
 						elaborations_list.appendChild(
 							get.elements({
 								el: "div",
@@ -2648,6 +2528,7 @@ function main() {
 			}
 		},
 		production: function (data) {
+
 			if (data.length > 0) {
 				let descNames = [
 					"Назва",
@@ -2663,6 +2544,7 @@ function main() {
 					className: "production-wraper",
 				});
 				data.sort((a, b) => {
+
 					if (
 						!b.isProcesed &&
 						Object.values(data_base.data.production).find(
@@ -2680,6 +2562,7 @@ function main() {
 						if (a.id === item.id) {
 							isProcesed = "procesed";
 							val = a.count;
+
 						}
 					});
 
@@ -3100,13 +2983,14 @@ function main() {
 								el: "p",
 								className: "manager_desc",
 								text: `Менеджер: ${data[0].order_manager}`,
-							},
-						],
-					},
-				],
+							}
+						]
+					}
+				]
 			});
 			if (data.length > 0) {
 				data.forEach((item) => {
+
 					order_id = item.order_id;
 					let options_inp = [];
 					let seal_number = item.seal_number || "";
@@ -3135,8 +3019,9 @@ function main() {
 									{
 										el: "img",
 										src: get.url(src.ico.send),
-									},
-								],
+
+									}
+								]
 							}
 						);
 					}
@@ -3145,6 +3030,8 @@ function main() {
 						el: "div",
 						className: "order-item",
 						children: [
+
+
 							{
 								el: "div",
 								className: "main_item_desc",
@@ -3378,6 +3265,7 @@ function main() {
 			return generate.message("Немає розбіжностей!!!");
 		},
 		list: function () {
+
 			if (Object.keys(data_base.data.listArray).length > 0) {
 				let listWraper = get.elements({
 					el: "div",
@@ -3611,8 +3499,7 @@ function main() {
 										className: "cell-capacity-desc",
 										text: `Кількість товару в комірці ${storage_item_data?.real_goods_count || 0
 											} шт. з можливих ${storage_item_data?.cell_capacity || 0
-											} шт. В зоні збереження ${storage_item_data?.save_area_count || 0
-											} .шт`,
+											} шт. В зоні збереження ${storage_item_data?.save_area_count || 0} .шт`,
 									},
 									{
 										el: "p",
@@ -3807,10 +3694,12 @@ function main() {
 									{
 										el: "p",
 										className: "history-desc",
-										text: "Показати історію забору з комірки.",
-									},
+										text: "Показати історію забору з комірки."
+									}
 								],
 								hendler: function () {
+
+
 									let childs = this.children.length;
 									if (childs > 1) {
 										Array.from(this.children).forEach((child) => {
@@ -3819,31 +3708,29 @@ function main() {
 										});
 										return;
 									}
-									Object.keys(data_base.data.history)
-										.reverse()
-										.forEach((key) => {
-											console.log(key);
-											if (key.includes(item.article)) {
-												console.log(key.match(regExp.num));
-												this.appendChild(
-													get.elements({
-														el: "p",
-														className: "history-desc",
-														children: [
-															{
-																el: "span",
-																text: `Замовлення: ${key.match(regExp.num)[0]}`,
-															},
-															{
-																el: "span",
-																text: `${data_base.data.history[key].quantity}`,
-															},
-														],
-													})
-												);
-											}
-										});
-								},
+									Object.keys(data_base.data.history).reverse().forEach((key) => {
+										console.log(key)
+										if (key.includes(item.article)) {
+											console.log(key.match(regExp.num))
+											this.appendChild(get.elements({
+												el: "p",
+												className: "history-desc",
+												children: [
+													{
+														el: "span",
+														text: `Замовлення: ${key.match(regExp.num)[0]}`
+													},
+													{
+														el: "span",
+														text: `${data_base.data.history[key].quantity}`
+													}
+
+												]
+											}))
+										}
+									})
+
+								}
 							},
 							{ el: "div", className: "item-footer" },
 						],
@@ -4279,6 +4166,7 @@ function main() {
 
 			if (Object.keys(data_base.data?.production ?? {}) > 0) {
 				Object.keys(data_base.data.production).forEach((item) => {
+
 					if (!item.isProcessed) {
 						productionCount++;
 					}
@@ -4377,1608 +4265,1522 @@ function main() {
 						{
 							el: "div",
 							className: "history-item get_history",
-							text: "Копіювати Сховище",
+							text: "Імпорт експорт данних",
 							event: "click",
-							hendler: hendlers.copy_storage,
+							hendler: hendlers.import_export_database,
 						},
-			if(productionCount > 0) {
-				document.querySelector(".production-count").style.display = "block";
-				document.querySelector(".production-count").textContent =
-					productionCount;
-			} else {
-				document.querySelector(".production-count").style.display = "none";
-			}
-	},
-		history: function () {
-			contentWraper.innerHTML = "";
-	let today_elaboration_count = 0;
-	Object.keys(data_base.data?.elaborations ?? {}).forEach((item) => {
-		if (
-			item.includes(
-				`${get.date().year}.${get.date().month}.${get.date().day}`
-			)
-		) {
-			today_elaboration_count++;
-		}
-	});
-	contentWraper.appendChild(
-		get.elements({
-			el: "div",
-			className: "history-wraper",
-			children: [
-				{
-					el: "div",
-					className: "history-item saved-articles",
-					text: `Збережено Артикулів: ${Object.keys(data_base.data.addresses).length
-						}`,
-				},
-				{
-					el: "div",
-					className: "history-item elaboration",
-					text: `Відбито Уточнень: ${Object.keys(data_base.data?.elaborations).length
-						}(${today_elaboration_count})`,
-					event: "click",
-					hendler: generate.elaborations_list,
-				},
-				{
-					el: "div",
-					className: "history-item production",
-					text:
-						"Виготовлено продукції: " +
-						Object.keys(data_base.data?.production).length,
-				},
-				{
-					el: "div",
-					className: "history-item cells_list",
-					text: "Стелажі",
-					event: "click",
-					hendler: hendlers.show_stilages,
-				},
-				{
-					el: "div",
-					className: "history-item empty-cells",
-					text: "Пусті комірки",
-					event: "click",
-					hendler: hendlers.show_empty_cells,
-				},
-				{
-					el: "div",
-					className: "history-item get_cells",
-					text: `Отримати ID товаів збережено ${Object.keys(data_base.data?.id || {}).length
-						}/${Object.keys(data_base.data?.addresses).length}`,
-					event: "click",
-					hendler: hendlers.get_id,
-				},
-				{
-					el: "div",
-					className: "history-item get_delivery",
-					text: "Показати приходи",
-					event: "click",
-					hendler: hendlers.show_delivery,
-				},
-				{
-					el: "div",
-					className: "history-item get_history",
-					text: "Імпорт експорт данних",
-					event: "click",
-					hendler: hendlers.import_export_database,
-				},
 
-				{
-					el: "div",
-					className: "history-item  deliveries_table",
-					text: "Таблиця приходів",
-					event: "click",
-					hendler: function () {
-						hendlers.database({
-							action: "get_data",
-							store_name: "deliveries_list",
-							callback: generate.deliveries_table,
-						});
-					},
-				},
-			],
-		})
-	);
-},
-empty_cells: function (data) {
-	contentWraper.innerHTML = "";
-	if (data.length === 0) {
-		contentWraper.appendChild(
-			get.elements({
-				el: "div",
-				className: "message-title content-title",
-				text: "Пусті комірки не знайдені!!!",
-			})
-		);
-	}
-	let orders = { main_orders: 0, checked_orders: 0 };
-	orders.main_orders = Object.keys(data_base.data.orders).length;
-	Object.keys(data_base.data.orders).forEach((item) => {
-		if (!data_base.data.orders[item].is_new) {
-			orders.checked_orders++;
-		}
-	});
-	contentWraper.appendChild(
-		get.elements({
-			el: "div",
-			className: "empty-cells-wraper",
-			children: [
-				{
-					el: "div",
-					className: "cells-header",
-					children: [
 						{
-							el: "button",
-							className: "btn suc",
-							text: "Записані комірки",
+							el: "div",
+							className: "history-item  deliveries_table",
+							text: "Таблиця приходів",
 							event: "click",
-							hendler: hendlers.show_wroted_cells,
-						},
-						{
-							el: "button",
-							className: "btn empt",
-							text: "Пусті Комірки",
-							event: "click",
-							hendler: hendlers.show_emp_cells,
-						},
-						{
-							el: "button",
-							className: "btn warn",
-							text: "Товар Закінчується",
-							event: "click",
-							hendler: hendlers.show_expired,
+							hendler: function () {
+								hendlers.database({
+									action: "get_data",
+									store_name: "deliveries_list",
+									callback: generate.deliveries_table,
+								});
+							},
 						},
 					],
-				},
-				{
-					el: "p",
-					className: "empty-cells-description",
-					text: `Перевірено Замовлень: ${orders.checked_orders} / ${orders.main_orders} | Остання перевірка була о ${data_base.data.settings.last_check.hours}:${data_base.data.settings.last_check.minutes}`,
-				},
-				{
-					el: "p",
-					text: `Кількість пустих комірок: ${data.length}`,
-				},
-				{
-					el: "ul",
-					className: "empty-items-wraper",
-					children: data.map((item) => {
-						let cell_bg = "";
-
-						let real_count =
-							data_base.data.addresses[item].real_goods_count;
-						let cell_capacity =
-							data_base.data.addresses[item].cell_capacity;
-						let save_area = data_base.data.addresses[item].save_area_count;
-
-						let percent = get.percent({
-							num: real_count,
-							main: cell_capacity,
-						});
-						if (percent <= 25) {
-							cell_bg = "danger";
-						} else if (percent > 25) {
-							cell_bg = "warrning";
-						} else if (percent >= 50) {
-							cell_bg = "success";
-						}
-						console.log(cell_bg, percent);
-						return {
-							el: "li",
-							className: `empty-cell-item ${cell_bg}`,
+				})
+			);
+		},
+		empty_cells: function (data) {
+			contentWraper.innerHTML = "";
+			if (data.length === 0) {
+				contentWraper.appendChild(
+					get.elements({
+						el: "div",
+						className: "message-title content-title",
+						text: "Пусті комірки не знайдені!!!",
+					})
+				);
+			}
+			let orders = { main_orders: 0, checked_orders: 0 };
+			orders.main_orders = Object.keys(data_base.data.orders).length;
+			Object.keys(data_base.data.orders).forEach((item) => {
+				if (!data_base.data.orders[item].is_new) {
+					orders.checked_orders++;
+				}
+			});
+			contentWraper.appendChild(
+				get.elements({
+					el: "div",
+					className: "empty-cells-wraper",
+					children: [
+						{
+							el: "div",
+							className: "cells-header",
 							children: [
 								{
-									el: "p",
-									className: `empty-cell-description`,
-									children: [
-										{
-											el: "span",
-											className: "empty-cell-article",
-											text: item,
-										},
-										{
-											el: "span",
-											className: "empty-cell-place",
-											text: data_base.data.addresses[item].place,
-										},
-										{
-											el: "span",
-											className: "empty-cell-data",
-											text: `Ємність комірки:${cell_capacity} Реальна кількість: ${real_count} Заповнено на: (${percent.toFixed(
-												1
-											)}%)`,
-										},
-										{
-											el: "span",
-											className: "empty-cell-data",
-											text: `Товару в зоні збереження:${save_area}`,
-										},
-									],
+									el: "button",
+									className: "btn suc",
+									text: "Записані комірки",
+									event: "click",
+									hendler: hendlers.show_wroted_cells
 								},
 								{
 									el: "button",
-									className: "add-btn",
-									text: "Заповнити комірку",
+									className: "btn empt",
+									text: "Пусті Комірки",
 									event: "click",
-									data: [{ article: item }],
-									hendler: hendlers.fill_cell,
-								},
-							],
-						};
-					}),
-				},
-				{
-					el: "button",
-					className: "search-empty_cells btn",
-					text: "Пошук пустих комірок",
-					event: "click",
-					hendler: hendlers.find_empty_cells,
-				},
-			],
-		})
-	);
-},
-delivery_list: function (data) {
-	generate.preloader({ status: "end" });
-	if (data.length === 0) {
-		this.message("Немає приходів");
-		return;
-	}
-	let delivery_wraper = get.elements({
-		el: "div",
-		className: "delivery-wraper",
-		children: [
-			{
-				el: "div",
-				className: "delivery-header",
-				children: [
-					{
-						el: "p",
-						className: "delivery-desc",
-						text: "ID",
-					},
-					{
-						el: "p",
-						className: "delivery-desc",
-						text: "Постачальник",
-					},
-					{
-						el: "p",
-						className: "delivery-desc",
-						text: "Дата",
-					},
-				],
-			},
-		],
-	});
-	data.forEach((item) => {
-		delivery_wraper.appendChild(
-			get.elements({
-				el: "div",
-				className: "delivery-item",
-				event: "click",
-				data: [{ delivery_id: item.delivery_id }],
-				hendler: hendlers.show_delivery_item,
-				children: [
-					{
-						el: "div",
-						className: "desc-wrapper",
-						children: [
-							{
-								el: "p",
-								className: "item-desc",
-								text: item.delivery_id,
-							},
-							{
-								el: "p",
-								className: "item-desc",
-								text: item.delivery_provider,
-							},
-							{
-								el: "p",
-								className: "item-desc",
-								text: item.delivery_date,
-							},
-						],
-					},
-					{
-						el: "div",
-						className: "item-footer",
-					},
-				],
-			})
-		);
-	});
-	contentWraper.appendChild(delivery_wraper);
-},
-delivery_item: function (data) {
-	if (data.length > 0) {
-		let item_wraper = get.elements({
-			el: "div",
-			className: "item-wraper",
-			children: [
-				{
-					el: "div",
-					className: "item item-header",
-					children: [
-						{
-							el: "p",
-							className: "item-desc",
-							text: "Артикул",
+									hendler: hendlers.show_emp_cells
+								}, {
+									el: "button",
+									className: "btn warn",
+									text: "Товар Закінчується",
+									event: "click",
+									hendler: hendlers.show_expired
+								}
+							]
 						},
 						{
 							el: "p",
-							className: "item-desc",
-							text: "Назва товару",
+							className: "empty-cells-description",
+							text: `Перевірено Замовлень: ${orders.checked_orders} / ${orders.main_orders} | Остання перевірка була о ${data_base.data.settings.last_check.hours}:${data_base.data.settings.last_check.minutes}`,
 						},
 						{
 							el: "p",
-							className: "item-desc",
-							text: "місце",
+							text: `Кількість пустих комірок: ${data.length}`,
 						},
 						{
-							el: "p",
-							className: "item-desc",
-							text: "Кількість",
+							el: "ul",
+							className: "empty-items-wraper",
+							children: data.map((item) => {
+								let cell_bg = "";
+
+								let real_count =
+									data_base.data.addresses[item].real_goods_count;
+								let cell_capacity =
+									data_base.data.addresses[item].cell_capacity;
+								let save_area = data_base.data.addresses[item].save_area_count;
+
+								let percent = get.percent({
+									num: real_count,
+									main: cell_capacity,
+								});
+								if (percent <= 25) {
+									cell_bg = "danger"
+								}
+								else if (percent > 25) {
+									cell_bg = "warrning"
+								}
+								else if (percent >= 50) {
+									cell_bg = "success"
+								}
+								console.log(cell_bg, percent)
+								return {
+									el: "li",
+									className: `empty-cell-item ${cell_bg}`,
+									children: [
+										{
+											el: "p",
+											className: `empty-cell-description`,
+											children: [
+												{
+													el: "span",
+													className: "empty-cell-article",
+													text: item,
+												},
+												{
+													el: "span",
+													className: "empty-cell-place",
+													text: data_base.data.addresses[item].place,
+												},
+												{
+													el: "span",
+													className: "empty-cell-data",
+													text: `Ємність комірки:${cell_capacity} Реальна кількість: ${real_count} Заповнено на: (${percent.toFixed(
+														1
+													)}%)`,
+												},
+												{
+													el: "span",
+													className: "empty-cell-data",
+													text: `Товару в зоні збереження:${save_area}`,
+												},
+											],
+										},
+										{
+											el: "button",
+											className: "add-btn",
+											text: "Заповнити комірку",
+											event: "click",
+											data: [{ article: item }],
+											hendler: hendlers.fill_cell,
+										},
+									],
+								};
+							}),
 						},
 						{
 							el: "button",
-							className: "btn fill_all_cell_btn",
-							text: "Заповнити всі комірки",
+							className: "search-empty_cells btn",
+							text: "Пошук пустих комірок",
 							event: "click",
-							hendler: hendlers.fill_all_cells,
+							hendler: hendlers.find_empty_cells,
 						},
 					],
-				},
-			],
-		});
-		let item_footer = this.querySelector(".item-footer");
-		item_footer.innerHTML = "";
-		let store = data_base.data;
-		data.forEach((item) => {
-			let item_article = store?.id[item.id] || 0;
-			Object.keys(data_base.data.addresses).forEach((a) => {
-				if (data_base.data.addresses[a].id !== item.id) return;
-				item_wraper.appendChild(
-					get.elements({
+				})
+			);
+		},
+		delivery_list: function (data) {
+			generate.preloader({ status: "end" });
+			if (data.length === 0) {
+				this.message("Немає приходів");
+				return;
+			}
+			let delivery_wraper = get.elements({
+				el: "div",
+				className: "delivery-wraper",
+				children: [
+					{
 						el: "div",
-						className: "item",
+						className: "delivery-header",
 						children: [
 							{
 								el: "p",
-								className: "item-desc",
-								text: a,
+								className: "delivery-desc",
+								text: "ID",
 							},
 							{
 								el: "p",
-								className: "item-desc",
-								text: item.desc,
+								className: "delivery-desc",
+								text: "Постачальник",
 							},
 							{
 								el: "p",
-								className: "item-desc",
-								text: item.place,
+								className: "delivery-desc",
+								text: "Дата",
 							},
+						],
+					},
+				],
+			});
+			data.forEach((item) => {
+				delivery_wraper.appendChild(
+					get.elements({
+						el: "div",
+						className: "delivery-item",
+						event: "click",
+						data: [{ delivery_id: item.delivery_id }],
+						hendler: hendlers.show_delivery_item,
+						children: [
 							{
-								el: "p",
-								className: "item-desc",
-								text: item.count,
-							},
-							{
-								el: "button",
-								className: "btn fill_cell_btn",
-								text: "Заповнити комірку",
-
-								data: [{ article: a }, { added_count: Number(item.count) }],
-								event: "click",
-								hendler: hendlers.fill_cell,
+								el: "div",
+								className: "desc-wrapper",
+								children: [
+									{
+										el: "p",
+										className: "item-desc",
+										text: item.delivery_id,
+									},
+									{
+										el: "p",
+										className: "item-desc",
+										text: item.delivery_provider,
+									},
+									{
+										el: "p",
+										className: "item-desc",
+										text: item.delivery_date,
+									},
+								],
 							},
 							{
 								el: "div",
-								className: "indicator-wrapper",
-								children: [
-									{
-										el: "div",
-										className: "fill-indicator",
-										style: {
-											width: `${get.percent({
-												main:
-													store.addresses[item_article]?.cell_capacity || 0,
-												num:
-													store.addresses[item_article]?.real_goods_count ||
-													0,
-											})}%`,
-										},
-										children: [
-											{
-												el: "span",
-												className: "indicator-desc",
-												text: `${store.addresses[item_article]?.real_goods_count ||
-													0
-													} / ${store.addresses[item_article]?.cell_capacity || 0
-													}`,
-											},
-										],
-									},
-								],
+								className: "item-footer",
 							},
 						],
 					})
 				);
 			});
-		});
-		console.log(item_wraper);
-		item_footer.appendChild(item_wraper);
-		return;
-	}
-	this.message("Немає інформації про прихід");
-},
-  };
+			contentWraper.appendChild(delivery_wraper);
+		},
+		delivery_item: function (data) {
+			if (data.length > 0) {
+				let item_wraper = get.elements({
+					el: "div",
+					className: "item-wraper",
+					children: [
+						{
+							el: "div",
+							className: "item item-header",
+							children: [
+								{
+									el: "p",
+									className: "item-desc",
+									text: "Артикул",
+								},
+								{
+									el: "p",
+									className: "item-desc",
+									text: "Назва товару",
+								},
+								{
+									el: "p",
+									className: "item-desc",
+									text: "місце",
+								},
+								{
+									el: "p",
+									className: "item-desc",
+									text: "Кількість",
+								},
+								{
+									el: "button",
+									className: "btn fill_all_cell_btn",
+									text: "Заповнити всі комірки",
+									event: "click",
+									hendler: hendlers.fill_all_cells,
+								},
+							],
+						},
+					],
+				});
+				let item_footer = this.querySelector(".item-footer");
+				item_footer.innerHTML = "";
+				let store = data_base.data;
+				data.forEach((item) => {
+					let item_article = store?.id[item.id] || 0;
+					Object.keys(data_base.data.addresses).forEach((a) => {
+						if (data_base.data.addresses[a].id !== item.id) return;
+						item_wraper.appendChild(
+							get.elements({
+								el: "div",
+								className: "item",
+								children: [
+									{
+										el: "p",
+										className: "item-desc",
+										text: a,
+									},
+									{
+										el: "p",
+										className: "item-desc",
+										text: item.desc,
+									},
+									{
+										el: "p",
+										className: "item-desc",
+										text: item.place,
+									},
+									{
+										el: "p",
+										className: "item-desc",
+										text: item.count,
+									},
+									{
+										el: "button",
+										className: "btn fill_cell_btn",
+										text: "Заповнити комірку",
 
-function barcodeRecognition() {
-	let barCodeSearch = document.querySelector(".bar-code-search-btn");
-	let barcodeDisplayWraper = document.querySelector(
-		".barcode-display-wraper"
-	);
-	let html5QrcodeScanner = new Html5QrcodeScanner("reader", {
-		fps: 8,
-		qrbox: 250,
-	});
+										data: [{ article: a }, { added_count: Number(item.count) }],
+										event: "click",
+										hendler: hendlers.fill_cell,
+									},
+									{
+										el: "div",
+										className: "indicator-wrapper",
+										children: [
+											{
+												el: "div",
+												className: "fill-indicator",
+												style: {
+													width: `${get.percent({
+														main:
+															store.addresses[item_article]?.cell_capacity || 0,
+														num:
+															store.addresses[item_article]?.real_goods_count ||
+															0,
+													})}%`,
+												},
+												children: [
+													{
+														el: "span",
+														className: "indicator-desc",
+														text: `${store.addresses[item_article]?.real_goods_count || 0
+															} / ${store.addresses[item_article]?.cell_capacity || 0
+															}`,
+													},
+												],
+											},
+										],
+									},
+								],
+							})
+						);
 
-	let lastResult,
-		countResults = 0;
-	function onScanSuccess(decodedText) {
-		if (decodedText !== lastResult) {
-			++countResults;
-			lastResult = decodedText;
-			let searchInp = document.querySelector(".search-inp");
-			searchInp.value = decodedText;
-			let serarchBtn = document.querySelector(".search-send-btn");
-			if (decodedText.match(regExp.cell) !== null) {
-				serarchBtn.click();
-			}
-		}
-	}
-	html5QrcodeScanner.render(onScanSuccess);
-	if (barCodeSearch.dataset.scaning == "true") {
-		barCodeSearch.dataset.scaning = "false";
+					})
 
-		html5QrcodeScanner.clear();
 
-		barcodeDisplayWraper.classList.add("hide-barcode");
-		return;
-	}
-	barcodeDisplayWraper.classList.remove("hide-barcode");
-	barCodeSearch.dataset.scaning = "true";
-}
 
-let load = {
-	storage: [],
-	fetch: async function (data) {
-		try {
-			const requestBody = data.body ? get.decode(data.body) : "";
-			const response = await fetch(data.url, {
-				method: data.method,
-				body: requestBody,
-			});
 
-			if (!response.ok) {
-				throw new Error(`HTTP Error! Status: ${response.status}`);
-			}
 
-			const res = await response.text();
-			try {
-				return get.parser(res);
-			} catch (parseError) {
-				console.error("Parsing error:", parseError);
-				return res;
-			}
-		} catch (error) {
-			console.error("Fetch error:", error);
-			data_base.data.settings.error = {
-				err_tyte: "load eroor",
-				err_desc: error.message,
-			};
-			generate.preloader({ status: "end" });
-			return [];
-		}
-	},
-	add_good_comment: function (data) {
-		//let add_result = this.fetch({})
-	},
-	add_order_comment: function (req_data) {
-		let add_comment_result = this.fetch({
-			url: url.add_coment,
-			method: "POST",
-			body: req_data.body,
-		});
-		add_comment_result.then((data) => {
-			if (!data.body.textContent.includes(req_data.body.texts)) {
-				alert("Помилка збереження коментаря");
+				});
+				console.log(item_wraper);
+				item_footer.appendChild(item_wraper);
 				return;
 			}
-			let textarea = document.querySelector("textarea.order_comment");
+			this.message("Немає інформації про прихід");
+		},
+	};
 
-			textarea.value = "";
+	function barcodeRecognition() {
+		let barCodeSearch = document.querySelector(".bar-code-search-btn");
+		let barcodeDisplayWraper = document.querySelector(
+			".barcode-display-wraper"
+		);
+		let html5QrcodeScanner = new Html5QrcodeScanner("reader", {
+			fps: 8,
+			qrbox: 250,
 		});
-	},
-	seal_number: function (data) {
-		console.log(data);
-		let send_seal = this.fetch({
-			url: url.seal_number,
-			method: "POST",
-			body: data.body,
-		});
-		send_seal.then((data) => {
-			console.log(data);
-			if (data.body.textContent != "ok") {
-				alert("Помилка збереження пломби");
+
+		let lastResult,
+			countResults = 0;
+		function onScanSuccess(decodedText) {
+			if (decodedText !== lastResult) {
+				++countResults;
+				lastResult = decodedText;
+				let searchInp = document.querySelector(".search-inp");
+				searchInp.value = decodedText;
+				let serarchBtn = document.querySelector(".search-send-btn");
+				if (decodedText.match(regExp.cell) !== null) {
+					serarchBtn.click();
+				}
 			}
-		});
-	},
-	reserve: async function (data) {
-		this.storage = [];
-		const reserve = await this.fetch({
-			url: url.reserve,
-			method: "POST",
-			body: { id: data.id },
-		});
-
-		const rows = Array.from(reserve.querySelectorAll("tr"));
-		rows.shift();
-		if (rows.length === 0) {
-			return [];
 		}
+		html5QrcodeScanner.render(onScanSuccess);
+		if (barCodeSearch.dataset.scaning == "true") {
+			barCodeSearch.dataset.scaning = "false";
 
-		rows.forEach((item) => {
-			let rowData = {};
-			let td = item.querySelectorAll("td");
-			rowData.id = td[0].textContent;
-			rowData.storage = td[1].textContent;
-			rowData.count = td[2].textContent;
-			rowData.time = td[3].textContent;
-			this.storage.push(rowData);
-		});
-		return this.storage;
-	},
-	sales: async function (data) {
-		this.storage = [];
-		const sales = await this.fetch({
-			url: url.sales,
-			method: "POST",
-			body: { id: data.id },
-		});
+			html5QrcodeScanner.clear();
 
-		let rows = Array.from(sales.querySelectorAll("tr"));
-		rows.shift();
-		if (sales.length === 0) {
-			return [];
+			barcodeDisplayWraper.classList.add("hide-barcode");
+			return;
 		}
-		rows.forEach((item) => {
-			let rowData = {};
-			let td = item.querySelectorAll("td");
-			rowData.orderNumber = td[0].textContent;
-			rowData.status = td[1].textContent;
-			rowData.count = td[2].textContent;
-			rowData.date = td[4].textContent;
-			this.storage.push(rowData);
-		});
-		return this.storage;
-	},
-	deliveries: async function (data) {
-		this.storage = [];
-		const deliveries = await this.fetch({
-			url: url.deliveries,
-			method: "POST",
-			body: { id: data.id },
-		});
-		let rows = Array.from(deliveries.querySelectorAll("tr"));
-		rows.shift();
-		if (deliveries.length === 0) {
-			return [];
-		}
-		rows.forEach((item) => {
-			let rowData = {};
-			let td = item.querySelectorAll("td");
-			rowData.date = td[0].textContent;
-			rowData.provider = td[1].textContent;
-			rowData.count = td[2].textContent;
-			rowData.price = td[3].textContent;
-			rowData.manager = td[4].textContent;
-			rowData.storage = td[5].textContent;
-			this.storage.push(rowData);
-		});
-		return this.storage;
-	},
-	search: async function (data) {
-		this.storage = [];
-		const result = await this.fetch({
-			url: url.search,
-			method: "POST",
-			body: { search: data.search, search_sel: data.search_sell },
-		});
+		barcodeDisplayWraper.classList.remove("hide-barcode");
+		barCodeSearch.dataset.scaning = "true";
+	}
 
-		let goodsId = Array.from(result.querySelectorAll(".detDivTitle"));
-		let searchGoodWraper = Array.from(result.querySelectorAll(".detDiv"));
-		searchGoodWraper.forEach((item, index) => {
-			let data = {};
-			let goodsPhoto = item.querySelector(".detImg>a>img");
-			let goodsCount = Array.from(result.querySelectorAll(".detPr"));
-			let goodsDesc = Array.from(result.querySelectorAll(".titleDet"));
-			let goods_type = Array.from(
-				item.querySelectorAll(".goodsDopInfoButton")
+	let load = {
+		storage: [],
+		fetch: async function (data) {
+			try {
+				const requestBody = data.body ? get.decode(data.body) : "";
+				const response = await fetch(data.url, {
+					method: data.method,
+					body: requestBody,
+				});
+
+				if (!response.ok) {
+					throw new Error(`HTTP Error! Status: ${response.status}`);
+				}
+
+				const res = await response.text();
+				try {
+					return get.parser(res);
+				} catch (parseError) {
+					console.error("Parsing error:", parseError);
+					return res;
+				}
+			} catch (error) {
+				console.error("Fetch error:", error);
+				data_base.data.settings.error = {
+					err_tyte: "load eroor",
+					err_desc: error.message,
+				};
+				generate.preloader({ status: "end" });
+				return [];
+			}
+		},
+		add_good_comment: function (data) {
+			//let add_result = this.fetch({})
+		},
+		add_order_comment: function (req_data) {
+			let add_comment_result = this.fetch({
+				url: url.add_coment,
+				method: "POST",
+				body: req_data.body,
+			});
+			add_comment_result.then((data) => {
+				if (!data.body.textContent.includes(req_data.body.texts)) {
+					alert("Помилка збереження коментаря");
+					return;
+				}
+				let textarea = document.querySelector("textarea.order_comment");
+
+				textarea.value = "";
+			});
+		},
+		seal_number: function (data) {
+			console.log(data);
+			let send_seal = this.fetch({
+				url: url.seal_number,
+				method: "POST",
+				body: data.body,
+			});
+			send_seal.then((data) => {
+				console.log(data);
+				if (data.body.textContent != "ok") {
+					alert("Помилка збереження пломби");
+				}
+			});
+		},
+		reserve: async function (data) {
+			this.storage = [];
+			const reserve = await this.fetch({
+				url: url.reserve,
+				method: "POST",
+				body: { id: data.id },
+			});
+
+			const rows = Array.from(reserve.querySelectorAll("tr"));
+			rows.shift();
+			if (rows.length === 0) {
+				return [];
+			}
+
+			rows.forEach((item) => {
+				let rowData = {};
+				let td = item.querySelectorAll("td");
+				rowData.id = td[0].textContent;
+				rowData.storage = td[1].textContent;
+				rowData.count = td[2].textContent;
+				rowData.time = td[3].textContent;
+				this.storage.push(rowData);
+			});
+			return this.storage;
+		},
+		sales: async function (data) {
+			this.storage = [];
+			const sales = await this.fetch({
+				url: url.sales,
+				method: "POST",
+				body: { id: data.id },
+			});
+
+			let rows = Array.from(sales.querySelectorAll("tr"));
+			rows.shift();
+			if (sales.length === 0) {
+				return [];
+			}
+			rows.forEach((item) => {
+				let rowData = {};
+				let td = item.querySelectorAll("td");
+				rowData.orderNumber = td[0].textContent;
+				rowData.status = td[1].textContent;
+				rowData.count = td[2].textContent;
+				rowData.date = td[4].textContent;
+				this.storage.push(rowData);
+			});
+			return this.storage;
+		},
+		deliveries: async function (data) {
+			this.storage = [];
+			const deliveries = await this.fetch({
+				url: url.deliveries,
+				method: "POST",
+				body: { id: data.id },
+			});
+			let rows = Array.from(deliveries.querySelectorAll("tr"));
+			rows.shift();
+			if (deliveries.length === 0) {
+				return [];
+			}
+			rows.forEach((item) => {
+				let rowData = {};
+				let td = item.querySelectorAll("td");
+				rowData.date = td[0].textContent;
+				rowData.provider = td[1].textContent;
+				rowData.count = td[2].textContent;
+				rowData.price = td[3].textContent;
+				rowData.manager = td[4].textContent;
+				rowData.storage = td[5].textContent;
+				this.storage.push(rowData);
+			});
+			return this.storage;
+		},
+		search: async function (data) {
+			this.storage = [];
+			const result = await this.fetch({
+				url: url.search,
+				method: "POST",
+				body: { search: data.search, search_sel: data.search_sell },
+			});
+
+			let goodsId = Array.from(result.querySelectorAll(".detDivTitle"));
+			let searchGoodWraper = Array.from(result.querySelectorAll(".detDiv"));
+			searchGoodWraper.forEach((item, index) => {
+				let data = {};
+				let goodsPhoto = item.querySelector(".detImg>a>img");
+				let goodsCount = Array.from(result.querySelectorAll(".detPr"));
+				let goodsDesc = Array.from(result.querySelectorAll(".titleDet"));
+				let goods_type = Array.from(
+					item.querySelectorAll(".goodsDopInfoButton")
+				);
+
+				data.id = get.article(goodsId[index].textContent).id;
+				data.article = get.article(goodsId[index].textContent).article;
+				data.photo = goodsPhoto.getAttribute("src");
+				data.photoLG = goodsPhoto.parentNode.getAttribute("href");
+				data.head = goodsDesc[index].innerHTML.split("<br>")[0].trim();
+				data.desc = goodsDesc[index].textContent.trim();
+				data.count = get.goodsCount(
+					goodsCount[index].textContent.trim()
+				).baseCount;
+				data.baseCount = get.goodsCount(goodsCount[index].textContent.trim());
+				data.goods_type = goods_type[0].textContent.trim();
+				this.storage.push(data);
+			});
+
+			return get.mergeSort(this.storage);
+		},
+		orders: async function (data) {
+			this.storage = [];
+			const orders = await this.fetch({
+				url: url.orders,
+				method: "POST",
+				body: data,
+			});
+			let rows = Array.from(orders.querySelectorAll("table tr"));
+
+			rows.shift();
+			rows.forEach((item) => {
+				let rowData = {};
+				let td = Array.from(item.querySelectorAll("td"));
+				if (td.length < 6) {
+					return;
+				}
+				rowData.id = td[0].textContent;
+				rowData.Number = td[1].textContent;
+				rowData.ststus = td[3].textContent;
+				rowData.city = td[4].textContent;
+				rowData.type = td[5].textContent;
+				rowData.date = td[6].textContent;
+				this.storage.push(rowData);
+			});
+
+			return this.storage;
+		},
+		order: async function (data) {
+			this.storage = [];
+			const order = await this.fetch({
+				url: url.order,
+				method: "POST",
+				body: { id: data.id },
+			});
+			let rows = Array.from(order.querySelectorAll("table tr"));
+			rows.shift();
+			rows.forEach((item) => {
+				let td = Array.from(item.querySelectorAll("td"));
+				let quantity;
+
+				if (td.length > 7) {
+					td.shift();
+				}
+
+				if (td.length > 5) {
+					if (td[4].querySelector("input[type='text']")) {
+						quantity = td[4].querySelector("input[type='text']").value;
+					} else {
+						quantity = td[4].textContent;
+					}
+					let checkStyle = td[0].getAttribute("style");
+
+					if (checkStyle.includes("background-color:#d7cafb;")) {
+						return;
+					}
+
+					let rowData = {};
+
+					let order_manager = order
+						.querySelectorAll("div")[0]
+						.textContent.trim();
+					let is_need_seal = td[4].querySelectorAll("input[type='text']")[2];
+					let seal_number = 0;
+					let seal_params;
+					let base_quantity_div = td[2].querySelectorAll("div")[4];
+					let base_quantity = 0;
+					if (is_need_seal && is_need_seal.id.includes("warranty")) {
+						seal_number = is_need_seal.value;
+						seal_params = get.params_for_seal(
+							is_need_seal.getAttribute("onkeyup")
+						);
+					}
+					if (base_quantity_div != undefined && base_quantity_div !== null) {
+						base_quantity = Number(base_quantity_div.textContent.trim());
+					}
+
+					rowData.imgSrc = td[1].querySelector("img").src;
+					Array.from(td[2].children).forEach((child) => {
+						child.textContent = "";
+					});
+					rowData.order_id = data.id;
+					rowData.seal_params = seal_params;
+					rowData.is_need_seal = is_need_seal;
+					rowData.seal_number = seal_number;
+					rowData.order_manager = order_manager;
+					rowData.base_quantity = base_quantity;
+					rowData.positionName = td[2].textContent.trim();
+					rowData.articleAndPlace = get.articleAndPlacement(
+						td[3].textContent.trim()
+					);
+					rowData.quantity = quantity.trim();
+					rowData.price = td[5].textContent.trim();
+
+					this.storage.push(rowData);
+				}
+			});
+
+			return this.storage;
+		},
+		production: async function () {
+			this.storage = [];
+			const production = await this.fetch({
+				url: url.production,
+				method: "POST",
+			});
+			let table = production.querySelector("table tbody");
+
+			let rows = Array.from(table.children);
+			rows.shift();
+
+			rows.forEach((item, index) => {
+				let rowData = {};
+				let table = item.querySelector("table");
+				if (table) {
+					let th = Array.from(rows[index - 1].querySelectorAll("td"));
+					let td = Array.from(rows[index].querySelectorAll("td"));
+					let componentRows = Array.from(td[1].querySelectorAll("table tr"));
+					componentRows.shift();
+					componentRows.pop();
+					componentRows.pop();
+					rowData.id = th[1].textContent;
+					rowData.name = th[2].textContent;
+					rowData.place =
+						data_base.data.addresses[th[3].textContent]?.place ??
+						"Ще не збережено";
+					rowData.cell =
+						data_base.data.addresses[th[3].textContent]?.cell ??
+						"Ще не збережено";
+					rowData.article = th[3].textContent;
+					rowData.img = td[0].querySelector("img").src;
+					rowData.components = componentRows.map((item) => {
+						let obj = {};
+						let componentData = Array.from(item.querySelectorAll("td"));
+						componentData.shift();
+						obj.name = componentData[0].textContent.trim();
+						obj.place =
+							data_base.data.addresses[componentData[1].textContent.trim()]
+								?.place ?? "Ще не збережено";
+						obj.article = componentData[1].textContent.trim();
+						obj.count = componentData[3].textContent.trim();
+						obj.availability = componentData[5].textContent.trim();
+						obj.enough = componentData[6].textContent.trim();
+						return obj;
+					});
+					this.storage.push(rowData);
+				}
+			});
+			return this.storage;
+		},
+		requestCount: async function () {
+			this.storage = [];
+			let requests = { questionsCount: 0, elaborationsCount: 0 };
+
+			const requestCount = await this.fetch({
+				url: url.baza,
+				method: "POST",
+			});
+
+			let divs = Array.from(requestCount.querySelectorAll("div"));
+
+			divs.forEach((item) => {
+				let questionCount = item.textContent.match(regExp.question);
+				let elaborationsCount = item.textContent.match(regExp.elaboration);
+				if (questionCount !== null) {
+					requests.questionsCount = questionCount[1];
+				}
+				if (elaborationsCount !== null) {
+					requests.elaborationsCount = elaborationsCount[1];
+				}
+			});
+
+			if (divs.length == 0) {
+				console.log(divs.length);
+				this.logOut();
+				return;
+			}
+
+			this.storage.push(requests);
+			return this.storage;
+		},
+		elaborations: async function (data) {
+			this.storage = [];
+			const elaborations = await this.fetch({
+				url: url.elaborations,
+				method: "POST",
+			});
+			const rows = Array.from(elaborations.querySelectorAll("table tbody tr"));
+			let elaboarations_count = rows.length - 1;
+			let loaded_elaborations_count = 0;
+			let sortByPlace = (a, b) => {
+				let placeA = a.place.toUpperCase();
+				let placeB = b.place.toUpperCase();
+				if (placeA < placeB) return -1;
+				if (placeA > placeB) return 1;
+				return 0;
+			};
+			rows.shift();
+			const elaborationsList = await Promise.all(
+				rows.map(async (data) => {
+					let elaborationData = {};
+					let cell = Array.from(data.querySelectorAll("td"));
+					elaborationData.order = cell[0].textContent.trim();
+					elaborationData.manager = cell[1].textContent.trim();
+					elaborationData.positionName = cell[2].textContent.trim();
+					elaborationData.place = cell[3].textContent.trim();
+					elaborationData.type = cell[4].textContent.trim();
+					elaborationData.quantity = cell[5].textContent.trim();
+					elaborationData.time = get.elaboration_time(
+						cell[1].querySelector("span").title
+					);
+					elaborationData.search = get.elaborationArtice(
+						cell[2].textContent.trim()
+					);
+
+					const search = await load.fetch({
+						url: url.search,
+						method: "POST",
+						body: { search: elaborationData.search, search_sel: "0" },
+					});
+
+					const result = Array.from(search.querySelectorAll(".detDivTitle"));
+					result.forEach((item, index) => {
+						if (
+							get.article(item.textContent.trim()).article ===
+							elaborationData.search
+						) {
+							loaded_elaborations_count++;
+							let countData = search.querySelectorAll(".detPr")[index];
+							let images = Array.from(
+								search
+									.querySelectorAll(".detImg")
+								[index].querySelectorAll("img")
+							);
+
+							let imgSrc = [];
+							let imgLink = [];
+							images.forEach((img) => {
+								if (!img.parentNode.classList.contains("detImg")) {
+									return;
+								}
+								imgSrc.push(img.getAttribute("rel"));
+								imgLink.push(img.alt);
+							});
+							elaborationData.goodId = get.article(item.textContent.trim()).id;
+							elaborationData.imagesSrc = imgSrc;
+							elaborationData.imageLink = imgLink;
+							elaborationData.count = get.goodsCount(
+								countData.textContent.trim()
+							);
+							generate.preloader({
+								status: "update_status",
+								desc:
+									"Завантажено: " +
+									loaded_elaborations_count +
+									"/" +
+									elaboarations_count,
+								percent: get.percent({
+									num: loaded_elaborations_count,
+									main: elaboarations_count,
+								}),
+							});
+						}
+					});
+					return elaborationData;
+				})
+			);
+			elaborationsList.sort(sortByPlace);
+			this.storage = elaborationsList;
+			console.log(this.storage);
+			return this.storage;
+		},
+		questions: async function (data) {
+			this.storage = [];
+			const questions = await this.fetch({
+				url: url.getQuestion,
+				method: "POST",
+			});
+			let tr = Array.from(questions.querySelectorAll("table tr"));
+			tr.shift();
+			if (tr.length > 0) {
+				tr.forEach((row) => {
+					let data = {};
+					let item = row.querySelectorAll("td");
+
+					try {
+						data.goodsDesc = item[0].textContent.trim();
+						data.questionManager = item[1].getAttribute("title").trim();
+						data.question = item[1].textContent.trim();
+
+						let inputElement = item[2].querySelector("input[type='text']");
+						if (inputElement) {
+							data.id = inputElement.id.match(/(\d+)/)[1];
+						} else {
+							throw new Error("Елемент input[type='text'] не знайдено");
+						}
+
+						data.questionOrder = item[3].textContent.trim();
+						this.storage.push(data);
+					} catch (error) {
+						console.error("Помилка обробки рядка:", error.message);
+						data_base.data.settings.error = {
+							err_tyte: "load eroor",
+							err_desc: error.message,
+						};
+						generate.preloader({
+							status: "end",
+						});
+
+						return;
+					}
+				});
+			}
+			return this.storage;
+		},
+		get_stilages: async function () {
+			let places = {};
+			let count = 0;
+			let areas = {};
+			let load_stilages_id = await this.fetch({
+				url: url.stilages,
+				method: "POST",
+			});
+			let id_tr = Array.from(load_stilages_id.querySelectorAll("table tr"));
+			id_tr.shift();
+			let places_id = [];
+			let stilages_data;
+
+			id_tr.forEach((item) => {
+				let area = item.querySelectorAll("td")[1].textContent;
+				areas[area] = {};
+				places_id.push(item.querySelector("td").textContent);
+			});
+			if (places_id.length === 0) {
+				return;
+			}
+			stilages_data = await Promise.all(
+				places_id.map(async (item) => {
+					let stilages = await this.fetch({
+						url: url.stilagesZones,
+						method: "POST",
+						body: { zone: item },
+					});
+					let rows = Array.from(stilages.querySelectorAll("table tbody tr"));
+					rows.shift();
+					let stilage = rows.map((item) => {
+						let td = Array.from(item.querySelectorAll("td"));
+						return {
+							id: td[0].textContent,
+							number: td[1].textContent,
+							zone: td[3].textContent,
+						};
+					});
+					return stilage;
+				})
 			);
 
-			data.id = get.article(goodsId[index].textContent).id;
-			data.article = get.article(goodsId[index].textContent).article;
-			data.photo = goodsPhoto.getAttribute("src");
-			data.photoLG = goodsPhoto.parentNode.getAttribute("href");
-			data.head = goodsDesc[index].innerHTML.split("<br>")[0].trim();
-			data.desc = goodsDesc[index].textContent.trim();
-			data.count = get.goodsCount(
-				goodsCount[index].textContent.trim()
-			).baseCount;
-			data.baseCount = get.goodsCount(goodsCount[index].textContent.trim());
-			data.goods_type = goods_type[0].textContent.trim();
-			this.storage.push(data);
-		});
-
-		return get.mergeSort(this.storage);
-	},
-	orders: async function (data) {
-		this.storage = [];
-		const orders = await this.fetch({
-			url: url.orders,
-			method: "POST",
-			body: data,
-		});
-		let rows = Array.from(orders.querySelectorAll("table tr"));
-
-		rows.shift();
-		rows.forEach((item) => {
-			let rowData = {};
-			let td = Array.from(item.querySelectorAll("td"));
-			if (td.length < 6) {
-				return;
-			}
-			rowData.id = td[0].textContent;
-			rowData.Number = td[1].textContent;
-			rowData.ststus = td[3].textContent;
-			rowData.city = td[4].textContent;
-			rowData.type = td[5].textContent;
-			rowData.date = td[6].textContent;
-			this.storage.push(rowData);
-		});
-
-		return this.storage;
-	},
-	order: async function (data) {
-		this.storage = [];
-		const order = await this.fetch({
-			url: url.order,
-			method: "POST",
-			body: { id: data.id },
-		});
-		let rows = Array.from(order.querySelectorAll("table tr"));
-		rows.shift();
-		rows.forEach((item) => {
-			let td = Array.from(item.querySelectorAll("td"));
-			let quantity;
-
-			if (td.length > 7) {
-				td.shift();
-			}
-
-			if (td.length > 5) {
-				if (td[4].querySelector("input[type='text']")) {
-					quantity = td[4].querySelector("input[type='text']").value;
-				} else {
-					quantity = td[4].textContent;
-				}
-				let checkStyle = td[0].getAttribute("style");
-
-				if (checkStyle.includes("background-color:#d7cafb;")) {
-					return;
-				}
-
-				let rowData = {};
-
-				let order_manager = order
-					.querySelectorAll("div")[0]
-					.textContent.trim();
-				let is_need_seal = td[4].querySelectorAll("input[type='text']")[2];
-				let seal_number = 0;
-				let seal_params;
-				let base_quantity_div = td[2].querySelectorAll("div")[4];
-				let base_quantity = 0;
-				if (is_need_seal && is_need_seal.id.includes("warranty")) {
-					seal_number = is_need_seal.value;
-					seal_params = get.params_for_seal(
-						is_need_seal.getAttribute("onkeyup")
+			await Promise.all(
+				stilages_data.flat().map(async (stilage_item) => {
+					let cells = [];
+					let stilage = await this.fetch({
+						url: url.stilage,
+						method: "POST",
+						body: { id: stilage_item.id },
+					});
+					let stilage_rows = Array.from(
+						stilage.querySelectorAll("table tbody tr")
 					);
-				}
-				if (base_quantity_div != undefined && base_quantity_div !== null) {
-					base_quantity = Number(base_quantity_div.textContent.trim());
-				}
-
-				rowData.imgSrc = td[1].querySelector("img").src;
-				Array.from(td[2].children).forEach((child) => {
-					child.textContent = "";
-				});
-				rowData.order_id = data.id;
-				rowData.seal_params = seal_params;
-				rowData.is_need_seal = is_need_seal;
-				rowData.seal_number = seal_number;
-				rowData.order_manager = order_manager;
-				rowData.base_quantity = base_quantity;
-				rowData.positionName = td[2].textContent.trim();
-				rowData.articleAndPlace = get.articleAndPlacement(
-					td[3].textContent.trim()
-				);
-				rowData.quantity = quantity.trim();
-				rowData.price = td[5].textContent.trim();
-
-				this.storage.push(rowData);
-			}
-		});
-
-		return this.storage;
-	},
-	production: async function () {
-		this.storage = [];
-		const production = await this.fetch({
-			url: url.production,
-			method: "POST",
-		});
-		let table = production.querySelector("table tbody");
-
-		let rows = Array.from(table.children);
-		rows.shift();
-
-		rows.forEach((item, index) => {
-			let rowData = {};
-			let table = item.querySelector("table");
-			if (table) {
-				let th = Array.from(rows[index - 1].querySelectorAll("td"));
-				let td = Array.from(rows[index].querySelectorAll("td"));
-				let componentRows = Array.from(td[1].querySelectorAll("table tr"));
-				componentRows.shift();
-				componentRows.pop();
-				componentRows.pop();
-				rowData.id = th[1].textContent;
-				rowData.name = th[2].textContent;
-				rowData.place =
-					data_base.data.addresses[th[3].textContent]?.place ??
-					"Ще не збережено";
-				rowData.cell =
-					data_base.data.addresses[th[3].textContent]?.cell ??
-					"Ще не збережено";
-				rowData.article = th[3].textContent;
-				rowData.img = td[0].querySelector("img").src;
-				rowData.components = componentRows.map((item) => {
-					let obj = {};
-					let componentData = Array.from(item.querySelectorAll("td"));
-					componentData.shift();
-					obj.name = componentData[0].textContent.trim();
-					obj.place =
-						data_base.data.addresses[componentData[1].textContent.trim()]
-							?.place ?? "Ще не збережено";
-					obj.article = componentData[1].textContent.trim();
-					obj.count = componentData[3].textContent.trim();
-					obj.availability = componentData[5].textContent.trim();
-					obj.enough = componentData[6].textContent.trim();
-					return obj;
-				});
-				this.storage.push(rowData);
-			}
-		});
-		return this.storage;
-	},
-	requestCount: async function () {
-		this.storage = [];
-		let requests = { questionsCount: 0, elaborationsCount: 0 };
-
-		const requestCount = await this.fetch({
-			url: url.baza,
-			method: "POST",
-		});
-
-		let divs = Array.from(requestCount.querySelectorAll("div"));
-
-		divs.forEach((item) => {
-			let questionCount = item.textContent.match(regExp.question);
-			let elaborationsCount = item.textContent.match(regExp.elaboration);
-			if (questionCount !== null) {
-				requests.questionsCount = questionCount[1];
-			}
-			if (elaborationsCount !== null) {
-				requests.elaborationsCount = elaborationsCount[1];
-			}
-		});
-
-		if (divs.length == 0) {
-			console.log(divs.length);
-			this.logOut();
-			return;
-		}
-
-		this.storage.push(requests);
-		return this.storage;
-	},
-	elaborations: async function (data) {
-		this.storage = [];
-		const elaborations = await this.fetch({
-			url: url.elaborations,
-			method: "POST",
-		});
-		const rows = Array.from(elaborations.querySelectorAll("table tbody tr"));
-		let elaboarations_count = rows.length - 1;
-		let loaded_elaborations_count = 0;
-		let sortByPlace = (a, b) => {
-			let placeA = a.place.toUpperCase();
-			let placeB = b.place.toUpperCase();
-			if (placeA < placeB) return -1;
-			if (placeA > placeB) return 1;
-			return 0;
-		};
-		rows.shift();
-		const elaborationsList = await Promise.all(
-			rows.map(async (data) => {
-				let elaborationData = {};
-				let cell = Array.from(data.querySelectorAll("td"));
-				elaborationData.order = cell[0].textContent.trim();
-				elaborationData.manager = cell[1].textContent.trim();
-				elaborationData.positionName = cell[2].textContent.trim();
-				elaborationData.place = cell[3].textContent.trim();
-				elaborationData.type = cell[4].textContent.trim();
-				elaborationData.quantity = cell[5].textContent.trim();
-				elaborationData.time = get.elaboration_time(
-					cell[1].querySelector("span").title
-				);
-				elaborationData.search = get.elaborationArtice(
-					cell[2].textContent.trim()
-				);
-
-				const search = await load.fetch({
-					url: url.search,
-					method: "POST",
-					body: { search: elaborationData.search, search_sel: "0" },
-				});
-
-				const result = Array.from(search.querySelectorAll(".detDivTitle"));
-				result.forEach((item, index) => {
-					if (
-						get.article(item.textContent.trim()).article ===
-						elaborationData.search
-					) {
-						loaded_elaborations_count++;
-						let countData = search.querySelectorAll(".detPr")[index];
-						let images = Array.from(
-							search
-								.querySelectorAll(".detImg")
-							[index].querySelectorAll("img")
-						);
-
-						let imgSrc = [];
-						let imgLink = [];
-						images.forEach((img) => {
-							if (!img.parentNode.classList.contains("detImg")) {
-								return;
-							}
-							imgSrc.push(img.getAttribute("rel"));
-							imgLink.push(img.alt);
+					let zoneKey = stilage_item.zone;
+					let stilageItem = stilage_item.number;
+					areas[zoneKey][stilageItem] = {};
+					stilage_rows.forEach((place_item) => {
+						let td = Array.from(place_item.querySelectorAll("td"));
+						td.forEach((item) => {
+							cells.push(item);
 						});
-						elaborationData.goodId = get.article(item.textContent.trim()).id;
-						elaborationData.imagesSrc = imgSrc;
-						elaborationData.imageLink = imgLink;
-						elaborationData.count = get.goodsCount(
-							countData.textContent.trim()
-						);
-						generate.preloader({
-							status: "update_status",
-							desc:
-								"Завантажено: " +
-								loaded_elaborations_count +
-								"/" +
-								elaboarations_count,
-							percent: get.percent({
-								num: loaded_elaborations_count,
-								main: elaboarations_count,
-							}),
-						});
-					}
-				});
-				return elaborationData;
-			})
-		);
-		elaborationsList.sort(sortByPlace);
-		this.storage = elaborationsList;
-		console.log(this.storage);
-		return this.storage;
-	},
-	questions: async function (data) {
-		this.storage = [];
-		const questions = await this.fetch({
-			url: url.getQuestion,
-			method: "POST",
-		});
-		let tr = Array.from(questions.querySelectorAll("table tr"));
-		tr.shift();
-		if (tr.length > 0) {
-			tr.forEach((row) => {
-				let data = {};
-				let item = row.querySelectorAll("td");
-
-				try {
-					data.goodsDesc = item[0].textContent.trim();
-					data.questionManager = item[1].getAttribute("title").trim();
-					data.question = item[1].textContent.trim();
-
-					let inputElement = item[2].querySelector("input[type='text']");
-					if (inputElement) {
-						data.id = inputElement.id.match(/(\d+)/)[1];
-					} else {
-						throw new Error("Елемент input[type='text'] не знайдено");
-					}
-
-					data.questionOrder = item[3].textContent.trim();
-					this.storage.push(data);
-				} catch (error) {
-					console.error("Помилка обробки рядка:", error.message);
-					data_base.data.settings.error = {
-						err_tyte: "load eroor",
-						err_desc: error.message,
-					};
-					generate.preloader({
-						status: "end",
 					});
 
+					cells.forEach((data) => {
+						if (data.textContent.trim().includes(".")) {
+							let cell_name = data.textContent.trim();
+							let str = data.getAttribute("title") || null;
+							let articles;
+							let place = `${zoneKey}-${stilageItem}.${cell_name}`.trim();
+							if (str !== null) {
+								articles = str.match(new RegExp(regExp.article, "gim"));
+							}
+							places[place] = articles;
+
+						}
+					});
+				})
+			);
+			console.log(places);
+			for (key in places) {
+				console.log(key, places[key]);
+				if (count === Object.keys(places).length - 1) {
+					count = 0;
+
+
+					alert("Завершено");
+				} else {
+					count++;
+					if (places[key] == undefined) {
+						continue
+					}
+					places[key].forEach((item) => {
+						let article = item.trim()
+						if (article == undefined) {
+							return
+						}
+						if (data_base.data.addresses[article] == undefined) {
+							data_base.data.addresses[article] = {
+								article: article,
+								id: "",
+								place: "",
+								cell_capacity: 0,
+								cell: "",
+								real_goods_count: 0,
+								last_goods_count: 0,
+								save_area_count: 0,
+							};
+						}
+						if (data_base.data.addresses[article]?.place?.includes(key) ?? false) {
+							return;
+						}
+						data_base.data.addresses[article].place += `${key} | `;
+						data_base.save_data({
+							store_name: "addresses",
+							index_name: "article",
+							request: data_base.data.addresses[article],
+						})
+
+					})
+
+
+				}
+
+
+			}
+
+
+			return areas;
+		},
+		get_goods_count: async function () {
+			let preloader_indicator = get.elements({
+				el: "div",
+				className: "checking-indicator",
+				children: [
+					{
+						el: "p",
+						className: "indecator-desc",
+						text: "Триває Перевірка замовлень",
+					},
+					{
+						el: "img",
+						src: get.url(src.ico.spiner),
+					},
+				],
+			});
+			let stored_data = data_base.data;
+			console.log(stored_data.addresses);
+			if (Object.keys(stored_data.addresses).length == 0) {
+				alert("Адреса товару ще не збережені!!!");
+				return;
+			}
+			contentWraper.appendChild(preloader_indicator);
+			let orders = await load.fetch({
+				url: url.orders,
+				method: "POST",
+				body: { status: 4 },
+			});
+			console.log(orders);
+
+			let tr = Array.from(orders.querySelectorAll("table tbody tr"));
+			tr.shift();
+			tr.forEach((item) => {
+				let td = Array.from(item.querySelectorAll("td"));
+				if (td.length < 5) {
 					return;
+				}
+				if (td[0].style.backgroundColor == "#fcf304" || td[0].style.backgroundColor == "#rgb(252, 243, 4)" && td[3].style.backgroundColor == "#fcf304" || td[3].style.backgroundColor == "rgb(252, 243, 4)" && td[2].textContent == "****** (***** *****)" ||
+					td[3].textContent === "чекає відправки" &&
+					td[2].textContent !== "****** (***** *****)" &&
+					td[4].textContent !== "******"
+				) {
+					let order_id = td[0].textContent.trim();
+					let order_number = td[1].textContent.trim();
+
+					if (!stored_data.orders[order_id]) {
+						stored_data.orders[order_id] = {
+							id: order_id,
+							is_new: true,
+							order_date: get.date(),
+							order_num: order_number,
+						};
+						data_base.save_data({
+							store_name: "orders",
+							index_name: "id",
+							id: order_id,
+							request: stored_data.orders[order_id],
+						});
+					}
 				}
 			});
-		}
-		return this.storage;
-	},
-	get_stilages: async function () {
-		let places = {};
-		let count = 0;
-		let areas = {};
-		let load_stilages_id = await this.fetch({
-			url: url.stilages,
-			method: "POST",
-		});
-		let id_tr = Array.from(load_stilages_id.querySelectorAll("table tr"));
-		id_tr.shift();
-		let places_id = [];
-		let stilages_data;
 
-		id_tr.forEach((item) => {
-			let area = item.querySelectorAll("td")[1].textContent;
-			areas[area] = {};
-			places_id.push(item.querySelector("td").textContent);
-		});
-		if (places_id.length === 0) {
-			return;
-		}
-		stilages_data = await Promise.all(
-			places_id.map(async (item) => {
-				let stilages = await this.fetch({
-					url: url.stilagesZones,
-					method: "POST",
-					body: { zone: item },
-				});
-				let rows = Array.from(stilages.querySelectorAll("table tbody tr"));
-				rows.shift();
-				let stilage = rows.map((item) => {
-					let td = Array.from(item.querySelectorAll("td"));
-					return {
-						id: td[0].textContent,
-						number: td[1].textContent,
-						zone: td[3].textContent,
-					};
-				});
-				return stilage;
-			})
-		);
+			for (const order_id of Object.keys(stored_data.orders).reverse()) {
+				if (stored_data.orders[order_id].is_new) {
+					let response = await load.order({ id: order_id });
 
-		await Promise.all(
-			stilages_data.flat().map(async (stilage_item) => {
-				let cells = [];
-				let stilage = await this.fetch({
-					url: url.stilage,
-					method: "POST",
-					body: { id: stilage_item.id },
-				});
-				let stilage_rows = Array.from(
-					stilage.querySelectorAll("table tbody tr")
-				);
-				let zoneKey = stilage_item.zone;
-				let stilageItem = stilage_item.number;
-				areas[zoneKey][stilageItem] = {};
-				stilage_rows.forEach((place_item) => {
-					let td = Array.from(place_item.querySelectorAll("td"));
-					td.forEach((item) => {
-						cells.push(item);
-					});
-				});
-
-				cells.forEach((data) => {
-					if (data.textContent.trim().includes(".")) {
-						let cell_name = data.textContent.trim();
-						let str = data.getAttribute("title") || null;
-						let articles;
-						let place = `${zoneKey}-${stilageItem}.${cell_name}`.trim();
-						if (str !== null) {
-							articles = str.match(new RegExp(regExp.article, "gim"));
+					response.forEach((item) => {
+						if (item.questionsCount >= 0) {
+							return;
 						}
-						places[place] = articles;
-					}
-				});
-			})
-		);
-		console.log(places);
-		for (key in places) {
-			console.log(key, places[key]);
-			if (count === Object.keys(places).length - 1) {
-				count = 0;
-
-				alert("Завершено");
-			} else {
-				count++;
-				if (places[key] == undefined) {
-					continue;
-				}
-				places[key].forEach((item) => {
-					let article = item.trim();
-					if (article == undefined) {
-						return;
-					}
-					if (data_base.data.addresses[article] == undefined) {
-						data_base.data.addresses[article] = {
+						let article = item.articleAndPlace.article;
+						console.log(article);
+						let storage_article = stored_data.addresses[article];
+						let quantity = item.quantity.match(regExp.num)[0];
+						if (storage_article == null || storage_article == undefined || storage_article.cell_capacity == 0 || storage_article.cell_capacity == undefined) {
+							console.log(`${article} комірку або ще не заповено або відбулася помилка`)
+							return;
+						}
+						if (
+							storage_article.save_area_count == undefined ||
+							storage_article.save_area_count == null
+						) {
+							storage_article.save_area_count = 0;
+						}
+						if (
+							storage_article.save_area_count != undefined &&
+							quantity >= storage_article?.cell_capacity
+						) {
+							storage_article.save_area_count =
+								Number(storage_article.save_area_count) - Number(quantity);
+						}
+						storage_article.last_goods_count = item.base_quantity;
+						if (storage_article.real_goods_count) {
+							storage_article.real_goods_count =
+								Number(storage_article.real_goods_count) - Number(quantity);
+							storage_article.save_area_count =
+								Number(storage_article.last_goods_count) -
+								Number(storage_article.real_goods_count) || 0;
+						}
+						data_base.save_data({
+							store_name: "addresses",
+							index_name: "article",
 							article: article,
-							id: "",
-							place: "",
-							cell_capacity: 0,
-							cell: "",
-							real_goods_count: 0,
-							last_goods_count: 0,
-							save_area_count: 0,
-						};
-					}
-					if (
-						data_base.data.addresses[article]?.place?.includes(key) ??
-						false
-					) {
-						return;
-					}
-					data_base.data.addresses[article].place += `${key} | `;
-					data_base.save_data({
-						store_name: "addresses",
-						index_name: "article",
-						request: data_base.data.addresses[article],
+							request: storage_article,
+						});
+						console.log(stored_data.orders[order_id])
+						console.log(stored_data.orders[order_id].order_num)
+						data_base.save_data({
+							store_name: "history",
+							index_name: "id",
+							id: `${stored_data.orders[order_id].order_num}:/${article}`,
+							request: {
+								id: `${stored_data.orders[order_id].order_num}:/${article}`,
+								article: article,
+								quantity: quantity,
+
+							}
+						})
 					});
-				});
-			}
-		}
-
-		return areas;
-	},
-	get_goods_count: async function () {
-		let preloader_indicator = get.elements({
-			el: "div",
-			className: "checking-indicator",
-			children: [
-				{
-					el: "p",
-					className: "indecator-desc",
-					text: "Триває Перевірка замовлень",
-				},
-				{
-					el: "img",
-					src: get.url(src.ico.spiner),
-				},
-			],
-		});
-		let stored_data = data_base.data;
-		console.log(stored_data.addresses);
-		if (Object.keys(stored_data.addresses).length == 0) {
-			alert("Адреса товару ще не збережені!!!");
-			return;
-		}
-		contentWraper.appendChild(preloader_indicator);
-		let orders = await load.fetch({
-			url: url.orders,
-			method: "POST",
-			body: { status: 4 },
-		});
-		console.log(orders);
-
-		let tr = Array.from(orders.querySelectorAll("table tbody tr"));
-		tr.shift();
-		tr.forEach((item) => {
-			let td = Array.from(item.querySelectorAll("td"));
-			if (td.length < 5) {
-				return;
-			}
-			if (
-				td[0].style.backgroundColor == "#fcf304" ||
-				(td[0].style.backgroundColor == "#rgb(252, 243, 4)" &&
-					td[3].style.backgroundColor == "#fcf304") ||
-				(td[3].style.backgroundColor == "rgb(252, 243, 4)" &&
-					td[2].textContent == "****** (***** *****)") ||
-				(td[3].textContent === "чекає відправки" &&
-					td[2].textContent !== "****** (***** *****)" &&
-					td[4].textContent !== "******")
-			) {
-				let order_id = td[0].textContent.trim();
-				let order_number = td[1].textContent.trim();
-
-				if (!stored_data.orders[order_id]) {
-					stored_data.orders[order_id] = {
-						id: order_id,
-						is_new: true,
-						order_date: get.date(),
-						order_num: order_number,
-					};
+					stored_data.orders[order_id].is_new = false;
 					data_base.save_data({
 						store_name: "orders",
 						index_name: "id",
 						id: order_id,
 						request: stored_data.orders[order_id],
 					});
+
+
+					await new Promise((resolve) => setTimeout(resolve, 250));
 				}
 			}
-		});
-
-		for (const order_id of Object.keys(stored_data.orders).reverse()) {
-			if (stored_data.orders[order_id].is_new) {
-				let response = await load.order({ id: order_id });
-
-				response.forEach((item) => {
-					if (item.questionsCount >= 0) {
-						return;
-					}
-					let article = item.articleAndPlace.article;
-					console.log(article);
-					let storage_article = stored_data.addresses[article];
-					let quantity = item.quantity.match(regExp.num)[0];
-					if (
-						storage_article == null ||
-						storage_article == undefined ||
-						storage_article.cell_capacity == 0 ||
-						storage_article.cell_capacity == undefined
-					) {
-						console.log(
-							`${article} комірку або ще не заповено або відбулася помилка`
-						);
-						return;
-					}
-					if (
-						storage_article.save_area_count == undefined ||
-						storage_article.save_area_count == null
-					) {
-						storage_article.save_area_count = 0;
-					}
-					if (
-						storage_article.save_area_count != undefined &&
-						quantity >= storage_article?.cell_capacity
-					) {
-						storage_article.save_area_count =
-							Number(storage_article.save_area_count) - Number(quantity);
-					}
-					storage_article.last_goods_count = item.base_quantity;
-					if (storage_article.real_goods_count) {
-						storage_article.real_goods_count =
-							Number(storage_article.real_goods_count) - Number(quantity);
-						storage_article.save_area_count =
-							Number(storage_article.last_goods_count) -
-							Number(storage_article.real_goods_count) || 0;
-					}
-					data_base.save_data({
-						store_name: "addresses",
-						index_name: "article",
-						article: article,
-						request: storage_article,
-					});
-					console.log(stored_data.orders[order_id]);
-					console.log(stored_data.orders[order_id].order_num);
-					data_base.save_data({
-						store_name: "history",
-						index_name: "id",
-						id: `${stored_data.orders[order_id].order_num}:/${article}`,
-						request: {
-							id: `${stored_data.orders[order_id].order_num}:/${article}`,
-							article: article,
-							quantity: quantity,
-						},
-					});
-				});
-				stored_data.orders[order_id].is_new = false;
-				data_base.save_data({
-					store_name: "orders",
-					index_name: "id",
-					id: order_id,
-					request: stored_data.orders[order_id],
-				});
-
-				await new Promise((resolve) => setTimeout(resolve, 250));
-			}
-		}
-		data_base.data.settings.last_check = get.date();
-		data_base.data.settings.name = "last_check";
-		preloader_indicator.remove();
-		data_base.save_data({
-			store_name: "settings",
-			index_name: "name",
-			name: "last_check",
-			request: data_base.data.settings,
-		});
-	},
-	deliverys_list: async function () {
-		this.storage = [];
-		let deliverys = await this.fetch({ url: url.prihod, method: "POST" });
-		let divs_rows = Array.from(deliverys.querySelectorAll("div"));
-		divs_rows.shift();
-		divs_rows.forEach((item) => {
-			if (
-				item.style.float.includes("left") ||
-				item.style.display == "none" ||
-				Array.from(item.children).length == 0
-			) {
-				return;
-			}
-			let data = {};
-			data.delivery_id = item.children[0].textContent.trim();
-			data.delivery_provider = item.children[3].textContent.trim();
-			data.delivery_date = item.children[4].textContent.trim();
-			this.storage.push(data);
-		});
-		return this.storage;
-	},
-	delivery_item: async function (id) {
-		this.storage = [];
-
-		let delivery = await this.fetch({
-			url: url.prihod_item,
-			method: "POST",
-			body: { id: id, search: "" },
-		});
-		let rows = Array.from(delivery.querySelectorAll("table tr"));
-		rows.shift();
-		rows.forEach((item) => {
-			let data = {};
-			let td = Array.from(item.querySelectorAll("td"));
-			if (td.length < 14) {
-				return;
-			}
-
-			data.id = regExp.id.exec(td[1].textContent)[1];
-			data.desc = td[2].textContent;
-			data.place = td[4].textContent;
-			data.count = td[9].textContent;
-			this.storage.push(data);
-		});
-
-		return this.storage;
-	},
-	deliveries_statistics: async function (data) {
-		generate.preloader({ status: "start" });
-		hendlers.database({
-			action: "clear_store",
-			store_name: "deliveries_list",
-		});
-		let articlesList = data;
-		for (const art of articlesList) {
-			generate.preloader({
-				status: "update_status",
-				desc: `Processing article: ${art}  ${articlesList.indexOf(art) + 1
-					} / ${articlesList.length}`,
-			});
-
-			let averageAmount = 0,
-				lastDeliveryDate,
-				timeFromLastDelivery;
-
-			let searchRes = await load.search({
-				search: art,
-				search_sell: 0,
-			});
-
-			searchRes = searchRes.filter((item) => item.article === art);
-
-			if (searchRes.length === 0) {
-				continue;
-			}
-
-			let deliveries = await load.deliveries({ id: searchRes[0].id });
-
-			deliveries = deliveries.filter(
-				(item) =>
-					Number(item.count) > 0 && item.elaborationsCount === undefined
-			);
-			if (deliveries.length === 0) {
-				continue;
-			}
-			deliveries.forEach((item) => (averageAmount += Number(item.count)));
-			averageAmount /= deliveries.length;
-
-			lastDeliveryDate = deliveries[0].date;
-			timeFromLastDelivery = get.time_from_last_delivery(lastDeliveryDate);
-
-			hendlers.database({
-				action: "save_data",
-				store_name: "deliveries_list",
-				data: {
-					article: art,
-					id: searchRes[0].id,
-					name: searchRes[0].head,
-					count: searchRes[0].baseCount.baseCount,
-					average_amount: averageAmount,
-					time_from_last_delivery: timeFromLastDelivery,
-					last_delivery_date: lastDeliveryDate,
-					place: data_base.data.addresses[art].place,
-					cell: data_base.data.addresses[art].cell,
-					goods_type: searchRes[0].goods_type,
-					checking_date: get.date(),
-					years_frequency: get.years_frequency(deliveries),
-				},
-			});
-		}
-		generate.preloader({ status: "end" });
-	},
-	logOut: function () {
-		document.cookie = "login=null";
-		document.cookie = "hash=null";
-		window.location.reload();
-	},
-};
-
-// check elaborations count
-setInterval(() => {
-	generate.requestCount();
-}, interval.elaboration);
-
-let buttons = {
-	el: "div",
-	className: "btn-wraper",
-	children: [
-		{
-			el: "button",
-			className: "elaboration-btn btn",
-			event: "click",
-			hendler: function () {
-				generate.preloader({ status: "start" });
-				let elaborations = load.elaborations();
-				elaborations.then((data) => {
-					generate.preloader({ status: "end" });
-					contentWraper.appendChild(generate.elaborations(data));
-				});
-			},
-			children: [
-				{
-					el: "span",
-					className: "elabortion-count counter",
-				},
-				{
-					el: "img",
-					src: get.url(src.ico.elaboration),
-					alt: "Наявні уточнення",
-				},
-			],
-		},
-		{
-			el: "button",
-			className: "question-btn btn",
-			event: "click",
-			hendler: hendlers.questions,
-			children: [
-				{
-					el: "span",
-					className: "question-count counter",
-				},
-				{
-					el: "img",
-					src: get.url(src.ico.question),
-					alt: "Наявні питання",
-				},
-			],
-		},
-		{
-			el: "button",
-			className: "compare-btn btn",
-			event: "click",
-			hendler: hendlers.generateCompare,
-			children: [
-				{
-					el: "span",
-					className: "compare-count counter",
-				},
-				,
-				{
-					el: "img",
-					src: get.url(src.ico.compare),
-					alt: "Розбіжності товару",
-				},
-			],
-		},
-		{
-			el: "button",
-			className: "list-btn btn",
-			event: "click",
-			hendler: hendlers.generateList,
-			children: [
-				{
-					el: "span",
-					className: "list-count counter",
-				},
-				{
-					el: "img",
-					src: get.url(src.ico.list),
-					alt: "Список на рознесення товару",
-				},
-			],
-		},
-		{
-			el: "button",
-			className: "orders-btn btn",
-			event: "click",
-			hendler: function () {
-				generate.preloader({ status: "start" });
-				let orders = load.orders();
-				orders.then((data) => {
-					generate.preloader({ status: "end" });
-					let mainWraper = document.querySelector(".wraper");
-					mainWraper.innerHTML = "";
-					mainWraper.appendChild(generate.orders(data));
-				});
-			},
-			children: [{ el: "img", src: get.url(src.ico.orders) }],
-		},
-		{
-			el: "button",
-			className: "production-btn btn",
-			event: "click",
-			hendler: hendlers.production,
-			children: [
-				{
-					el: "span",
-					className: "production-count counter",
-				},
-				{
-					el: "img",
-					src: get.url(src.ico.production),
-					alt: "Виробництво",
-				},
-			],
-		},
-		{
-			el: "button",
-			className: "history-btn btn",
-			event: "click",
-			hendler: generate.history,
-			children: [
-				{
-					el: "img",
-					src: get.url(src.ico.history),
-					alt: "Історія",
-				},
-			],
-		},
-		{
-			el: "button",
-			className: "log-out-btn btn",
-			event: "click",
-			hendler: load.logOut,
-			children: [
-				{
-					el: "img",
-					src: get.url(src.ico.logout),
-					alt: "Вийти з Акаунта",
-				},
-			],
-		},
-	],
-};
-function check_last_check() {
-	let last_check_time = data_base.data.settings.last_check?.last_check;
-	let orders_storage = data_base.data.orders;
-	if (last_check_time == undefined) {
-		data_base.data.settings.last_check = {
-			year: 0,
-			month: 0,
-			day: 0,
-			hours: 0,
-			minutes: 0,
-		};
-		last_check_time = data_base.data.settings.last_check;
-
-		data_base.save_data({
-			store_name: "settings",
-			index_name: "name",
-			request: {
+			data_base.data.settings.last_check = get.date();
+			data_base.data.settings.name = "last_check";
+			preloader_indicator.remove();
+			data_base.save_data({
+				store_name: "settings",
+				index_name: "name",
 				name: "last_check",
-				last_check_time: data_base.data.settings.last_check,
-			},
-		});
-	}
-	let current_date = get.date();
-	if (
-		orders_storage !== undefined &&
-		Object.keys(orders_storage).length !== 0
-	) {
-		Object.keys(orders_storage).forEach((item) => {
-			if (orders_storage[item].order_date.day !== current_date.day) {
-				delete orders_storage[item];
-				data_base.delete_item({
-					store_name: "orders",
-					index_name: "id",
-					request: item,
+				request: data_base.data.settings,
+			});
+
+		},
+		deliverys_list: async function () {
+			this.storage = [];
+			let deliverys = await this.fetch({ url: url.prihod, method: "POST" });
+			let divs_rows = Array.from(deliverys.querySelectorAll("div"));
+			divs_rows.shift();
+			divs_rows.forEach((item) => {
+				if (
+					item.style.float.includes("left") ||
+					item.style.display == "none" ||
+					Array.from(item.children).length == 0
+				) {
+					return;
+				}
+				let data = {};
+				data.delivery_id = item.children[0].textContent.trim();
+				data.delivery_provider = item.children[3].textContent.trim();
+				data.delivery_date = item.children[4].textContent.trim();
+				this.storage.push(data);
+			});
+			return this.storage;
+		},
+		delivery_item: async function (id) {
+			this.storage = [];
+
+			let delivery = await this.fetch({
+				url: url.prihod_item,
+				method: "POST",
+				body: { id: id, search: "" },
+			});
+			let rows = Array.from(delivery.querySelectorAll("table tr"));
+			rows.shift();
+			rows.forEach((item) => {
+				let data = {};
+				let td = Array.from(item.querySelectorAll("td"));
+				if (td.length < 14) {
+					return;
+				}
+
+				data.id = regExp.id.exec(td[1].textContent)[1];
+				data.desc = td[2].textContent;
+				data.place = td[4].textContent;
+				data.count = td[9].textContent;
+				this.storage.push(data);
+			});
+
+			return this.storage;
+		},
+		deliveries_statistics: async function (data) {
+			generate.preloader({ status: "start" });
+			hendlers.database({
+				action: "clear_store",
+				store_name: "deliveries_list",
+			});
+			let articlesList = data;
+			for (const art of articlesList) {
+				generate.preloader({
+					status: "update_status",
+					desc: `Processing article: ${art}  ${articlesList.indexOf(art) + 1
+						} / ${articlesList.length}`,
+				});
+
+				let averageAmount = 0,
+					lastDeliveryDate,
+					timeFromLastDelivery;
+
+				let searchRes = await load.search({
+					search: art,
+					search_sell: 0,
+				});
+
+				searchRes = searchRes.filter((item) => item.article === art);
+
+				if (searchRes.length === 0) {
+					continue;
+				}
+
+				let deliveries = await load.deliveries({ id: searchRes[0].id });
+
+				deliveries = deliveries.filter(
+					(item) =>
+						Number(item.count) > 0 && item.elaborationsCount === undefined
+				);
+				if (deliveries.length === 0) {
+					continue;
+				}
+				deliveries.forEach((item) => (averageAmount += Number(item.count)));
+				averageAmount /= deliveries.length;
+
+				lastDeliveryDate = deliveries[0].date;
+				timeFromLastDelivery = get.time_from_last_delivery(lastDeliveryDate);
+
+				hendlers.database({
+					action: "save_data",
+					store_name: "deliveries_list",
+					data: {
+						article: art,
+						id: searchRes[0].id,
+						name: searchRes[0].head,
+						count: searchRes[0].baseCount.baseCount,
+						average_amount: averageAmount,
+						time_from_last_delivery: timeFromLastDelivery,
+						last_delivery_date: lastDeliveryDate,
+						place: data_base.data.addresses[art].place,
+						cell: data_base.data.addresses[art].cell,
+						goods_type: searchRes[0].goods_type,
+						checking_date: get.date(),
+						years_frequency: get.years_frequency(deliveries),
+					},
 				});
 			}
-		});
-	}
+			generate.preloader({ status: "end" });
+		},
+		logOut: function () {
+			document.cookie = "login=null";
+			document.cookie = "hash=null";
+			window.location.reload();
+		},
+	};
 
-	if (last_check_time) {
-		let hours_difference = current_date.hours - last_check_time.hours;
-		let minutes_difference = current_date.minutes - last_check_time.minutes;
+	// check elaborations count
+	setInterval(() => {
+		generate.requestCount();
+	}, interval.elaboration);
 
-		let time_difference =
-			(hours_difference * 60 + minutes_difference + 1440) % 1440;
-
-		if (time_difference > 30) {
-			let check_wrapper = get.elements({
-				el: "div",
-				className: "check_wrapper hide_check_wrapper",
+	let buttons = {
+		el: "div",
+		className: "btn-wraper",
+		children: [
+			{
+				el: "button",
+				className: "elaboration-btn btn",
+				event: "click",
+				hendler: function () {
+					generate.preloader({ status: "start" });
+					let elaborations = load.elaborations();
+					elaborations.then((data) => {
+						generate.preloader({ status: "end" });
+						contentWraper.appendChild(generate.elaborations(data));
+					});
+				},
 				children: [
 					{
 						el: "span",
-						className: "close_btn",
-						text: "X",
-						event: "click",
-						hendler: function () {
-							this.parentElement.remove();
-						},
+						className: "elabortion-count counter",
 					},
 					{
-						el: "p",
-						className: "check_text",
-						text: "Пройшло більше  30хв. від останньої перевірки. Може подивимося шо там по коміркам?",
-					},
-					{
-						el: "button",
-						className: "btn check_bnt",
-						text: "Давай подивимося",
-						event: "click",
-						hendler: function () {
-							check_wrapper.classList.add("hide_check_wrapper");
-							hendlers.find_empty_cells();
-						},
+						el: "img",
+						src: get.url(src.ico.elaboration),
+						alt: "Наявні уточнення",
 					},
 				],
-			});
-			btnWraper.appendChild(check_wrapper);
+			},
+			{
+				el: "button",
+				className: "question-btn btn",
+				event: "click",
+				hendler: hendlers.questions,
+				children: [
+					{
+						el: "span",
+						className: "question-count counter",
+					},
+					{
+						el: "img",
+						src: get.url(src.ico.question),
+						alt: "Наявні питання",
+					},
+				],
+			},
+			{
+				el: "button",
+				className: "compare-btn btn",
+				event: "click",
+				hendler: hendlers.generateCompare,
+				children: [
+					{
+						el: "span",
+						className: "compare-count counter",
+					},
+					,
+					{
+						el: "img",
+						src: get.url(src.ico.compare),
+						alt: "Розбіжності товару",
+					},
+				],
+			},
+			{
+				el: "button",
+				className: "list-btn btn",
+				event: "click",
+				hendler: hendlers.generateList,
+				children: [
+					{
+						el: "span",
+						className: "list-count counter",
+					},
+					{
+						el: "img",
+						src: get.url(src.ico.list),
+						alt: "Список на рознесення товару",
+					},
+				],
+			},
+			{
+				el: "button",
+				className: "orders-btn btn",
+				event: "click",
+				hendler: function () {
+					generate.preloader({ status: "start" });
+					let orders = load.orders();
+					orders.then((data) => {
+						generate.preloader({ status: "end" });
+						let mainWraper = document.querySelector(".wraper");
+						mainWraper.innerHTML = "";
+						mainWraper.appendChild(generate.orders(data));
+					});
+				},
+				children: [{ el: "img", src: get.url(src.ico.orders) }],
+			},
+			{
+				el: "button",
+				className: "production-btn btn",
+				event: "click",
+				hendler: hendlers.production,
+				children: [
+					{
+						el: "span",
+						className: "production-count counter",
+					},
+					{
+						el: "img",
+						src: get.url(src.ico.production),
+						alt: "Виробництво",
+					},
+				],
+			},
+			{
+				el: "button",
+				className: "history-btn btn",
+				event: "click",
+				hendler: generate.history,
+				children: [
+					{
+						el: "img",
+						src: get.url(src.ico.history),
+						alt: "Історія",
+					},
+				],
+			},
+			{
+				el: "button",
+				className: "log-out-btn btn",
+				event: "click",
+				hendler: load.logOut,
+				children: [
+					{
+						el: "img",
+						src: get.url(src.ico.logout),
+						alt: "Вийти з Акаунта",
+					},
+				],
+			},
+		],
+	};
+	function check_last_check() {
+		let last_check_time = data_base.data.settings.last_check?.last_check;
+		let orders_storage = data_base.data.orders;
+		if (last_check_time == undefined) {
+			data_base.data.settings.last_check = {
+				year: 0,
+				month: 0,
+				day: 0,
+				hours: 0,
+				minutes: 0,
+			};
+			last_check_time = data_base.data.settings.last_check;
 
-			check_wrapper.classList.remove("hide_check_wrapper");
+			data_base.save_data({
+				store_name: "settings",
+				index_name: "name",
+				request: {
+					name: "last_check", last_check_time: data_base.data.settings.last_check,
+				}
+			});
+
+		}
+		let current_date = get.date();
+		if (
+			orders_storage !== undefined &&
+			Object.keys(orders_storage).length !== 0
+		) {
+			Object.keys(orders_storage).forEach((item) => {
+				if (orders_storage[item].order_date.day !== current_date.day) {
+					delete orders_storage[item];
+					data_base.delete_item({
+						store_name: "orders",
+						index_name: "id",
+						request: item
+
+					})
+				}
+			});
+		}
+
+		if (last_check_time) {
+			let hours_difference = current_date.hours - last_check_time.hours;
+			let minutes_difference = current_date.minutes - last_check_time.minutes;
+
+			let time_difference =
+				(hours_difference * 60 + minutes_difference + 1440) % 1440;
+
+			if (time_difference > 30) {
+				let check_wrapper = get.elements({
+					el: "div",
+					className: "check_wrapper hide_check_wrapper",
+					children: [
+						{
+							el: "span",
+							className: "close_btn",
+							text: "X",
+							event: "click",
+							hendler: function () {
+								this.parentElement.remove();
+							}
+						},
+						{
+							el: "p",
+							className: "check_text",
+							text: "Пройшло більше  30хв. від останньої перевірки. Може подивимося шо там по коміркам?",
+						},
+						{
+							el: "button",
+							className: "btn check_bnt",
+							text: "Давай подивимося",
+							event: "click",
+							hendler: function () {
+
+								check_wrapper.classList.add("hide_check_wrapper");
+								hendlers.find_empty_cells();
+							},
+						},
+					],
+				});
+				btnWraper.appendChild(check_wrapper);
+
+				check_wrapper.classList.remove("hide_check_wrapper");
+			}
 		}
 	}
-}
 
-let btnWraper = get.elements(buttons);
-document.body.appendChild(searchWraper);
-document.body.appendChild(contentWraper);
-document.body.appendChild(btnWraper);
-generate.requestCount();
-generate.tasksCount();
-check_last_check();
-console.log(data_base.data);
-let btnWraper = get.elements(buttons);
-document.body.appendChild(searchWraper);
-document.body.appendChild(contentWraper);
-document.body.appendChild(btnWraper);
-generate.requestCount();
-generate.tasksCount();
-check_last_check();
-hendlers.import_data();
-console.log(data_base.data)
+	let btnWraper = get.elements(buttons);
+	document.body.appendChild(searchWraper);
+	document.body.appendChild(contentWraper);
+	document.body.appendChild(btnWraper);
+	generate.requestCount();
+	generate.tasksCount();
+	check_last_check();
+
+	console.log(data_base.data)
 }
