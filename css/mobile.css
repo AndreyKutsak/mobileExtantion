@@ -1319,30 +1319,4 @@ button.html5-qrcode-element {
 }
 .empty-cells-wraper .warn {
   background-color: #ffe792;
-}
-
-.import_export_wrapper {
-  padding: 10px;
-}
-.import_export_wrapper .import_export_title {
-  font-family: sans-serif;
-  font-size: 18px;
-  text-transform: uppercase;
-  font-weight: 600;
-  margin-bottom: 10px;
-  text-align: center;
-}
-.import_export_wrapper .buttons_wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.import_export_wrapper .buttons_wrapper .btn {
-  border-radius: 5px;
-  padding: 10px 15px;
-  margin: 5px;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  background-color: #1cc879;
 }/*# sourceMappingURL=mobile.css.map */

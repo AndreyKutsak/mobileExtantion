@@ -125,7 +125,50 @@ const data_base = {
 			};
 		});
 	},
+	save_all: function () {
+		const transaction = data_base.db.transaction(
+			Object.keys(data_base.data),
+			"readwrite"
+		);
+		return Promise.all(
+			Object.keys(data_base.data).map(function (storeName) {
 
+				const store = transaction.objectStore(storeName);
+
+				const promises = data_base.data[storeName].map(item => {
+					return new Promise((resolve, reject) => {
+						const key = data_base.params[storeName].keyPath.map(key => item[key]);
+						const getRequest = store.get(key);
+						getRequest.onsuccess = function (event) {
+							const existingRecord = event.target.result;
+							if (existingRecord) {
+								const updateRequest = store.put(item);
+								updateRequest.onsuccess = function () {
+									resolve();
+								};
+								updateRequest.onerror = function (event) {
+									reject(event.target.error);
+								};
+							} else {
+								const addRequest = store.add(item);
+								addRequest.onsuccess = function () {
+									resolve();
+								};
+								addRequest.onerror = function (event) {
+									reject(event.target.error);
+								};
+							}
+						};
+						getRequest.onerror = function (event) {
+							reject(event.target.error);
+						};
+					});
+				});
+
+				return Promise.all(promises);
+			})
+		);
+	},
 
 	init_data: function () {
 		return new Promise((resolve, reject) => {
@@ -1850,7 +1893,8 @@ function main() {
 			if (stored_cell == undefined) {
 				stored_cell = {};
 				data_base.data.settings.cell = {};
-			} if (stored_id == undefined) {
+			}
+			if (stored_id == undefined) {
 				data_base.data.id = {};
 			}
 
