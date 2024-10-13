@@ -132,13 +132,12 @@ const data_base = {
 		);
 		return Promise.all(
 			Object.keys(data_base.data).map(function (storeName) {
+
 				const store = transaction.objectStore(storeName);
 
-				const promises = data_base.data[storeName].map((item) => {
+				const promises = data_base.data[storeName].map(item => {
 					return new Promise((resolve, reject) => {
-						const key = data_base.params[storeName].keyPath.map(
-							(key) => item[key]
-						);
+						const key = data_base.params[storeName].keyPath.map(key => item[key]);
 						const getRequest = store.get(key);
 						getRequest.onsuccess = function (event) {
 							const existingRecord = event.target.result;
@@ -656,6 +655,9 @@ function main() {
 			}
 			if (data.alt) {
 				element.alt = data.alt;
+			}
+			if (data.autofill) {
+				element.setAttribute("autocomplete", data.autofill);
 			}
 			if (data.atr) {
 				for (const atrKey in data.atr) {
@@ -1512,6 +1514,9 @@ function main() {
 		fill_cell: function () {
 			let article = this.dataset.article || false;
 			if (article) {
+				if (data_base.data.addresses[article].save_area_count < 0) {
+					data_base.data.addresses[article].save_area_count = 0;
+				}
 				if (
 					data_base.data.addresses[article].last_goods_count > 0 &&
 					data_base.data.addresses[article].cell_capacity > 0 &&
@@ -1568,8 +1573,9 @@ function main() {
 					request: data_base.data.addresses[article],
 				});
 				this.textContent = "Заповнено";
-			}
-			console.log(data_base.data.addresses[article]);
+
+			} console.log(data_base.data.addresses[article]);
+
 		},
 		find_empty_cells: function () {
 			load.get_goods_count.call(load);
@@ -1738,16 +1744,89 @@ function main() {
 			}
 			alert("Відбулася помилдка під час отримання інформації про   прихід");
 		},
-		copy_storage: function () {
-			let data = JSON.stringify(data_base.data);
-			navigator.clipboard
-				.writeText(data)
-				.then(function () {
-					console.log("Async: Copying to clipboard was successful!");
-				})
-				.catch(function (err) {
-					console.log(err);
-				});
+		import_export_database: function () {
+			contentWraper.innerHTML = "";
+			contentWraper.appendChild(get.elements({
+				el: "div",
+				className: "import_export_wrapper",
+				children: [{
+					el: "h2",
+					className: "import_export_title",
+					text: "Імпорт/Експорт бази данних",
+				}, {
+					el: "div",
+					className: "buttons_wrapper",
+					children: [{
+						el: "button",
+						className: "export_btn btn",
+						text: "Експорт даних",
+						event: "click",
+						hendler: hendlers.export_data
+					}, {
+
+						el: "button",
+						className: "import_btn btn",
+						text: "Імпорт даних",
+						event: "click",
+						hendler: hendlers.import_data
+					}]
+				}
+				]
+			}))
+		},
+		export_data: function () {
+			let data = new Blob([JSON.stringify(data_base.data)], { type: 'application/json' });
+			let url = URL.createObjectURL(data);
+			let a = document.createElement('a');
+			let fileName = "data_base.json";
+			a.href = url;
+			a.download = fileName;
+			a.click();
+		},
+		import_data: function uploadAndSaveToIndexedDB() {
+			// Створюємо вікно для завантаження файлу
+			const inputElement = document.createElement("input");
+			inputElement.type = "file";
+			inputElement.accept = ".json"; // Приймаємо тільки JSON файли
+
+			// Додаємо обробник події для завантаження файлу
+			inputElement.addEventListener("change", async (event) => {
+				const file = event.target.files[0];
+				if (file) {
+					try {
+						// Читаємо файл як текст
+						const fileContent = await file.text();
+
+						// Парсимо JSON дані
+						const parsedData = JSON.parse(fileContent);
+						Object.keys(parsedData).forEach(function (storeName) {
+							let items = Object.keys(parsedData[storeName]);
+							if (items.length == 0) return;
+							items.forEach(async function (item) {
+								let index_name = Object.keys(data_base.params[storeName].index)
+								if (index_name.includes("article")) {
+									index_name = "article"
+								} else {
+									index_name = Object.keys(data_base.params[storeName].index)[0];
+								}
+								data_base.save_data({
+									store_name: storeName,
+									request: parsedData[storeName][item],
+									index_name: index_name,
+								})
+							})
+
+						});
+
+
+					} catch (error) {
+						console.error("Error parsing or saving data:", error);
+					}
+				}
+			});
+
+			inputElement.click();
+
 		},
 		get_id: async function () {
 			let store = data_base.data.addresses;
@@ -1757,8 +1836,7 @@ function main() {
 			if (stored_cell == undefined) {
 				stored_cell = {};
 				data_base.data.settings.cell = {};
-			}
-			if (stored_id == undefined) {
+			} if (stored_id == undefined) {
 				data_base.data.id = {};
 			}
 
@@ -1814,6 +1892,7 @@ function main() {
 						el: "input",
 						type: "text",
 						className: "search-inp",
+						autofill: "off",
 						event: "input",
 						hendler: hendlers.productionSearch,
 						placeholder: "Пошук",
@@ -2728,6 +2807,7 @@ function main() {
 									{
 										el: "input",
 										type: "number",
+										autofill: "off",
 										value: val,
 										className: `item-input ${isProcesed}`,
 										placeholder: "Кількість",
@@ -3143,6 +3223,7 @@ function main() {
 								className: "seal_inp",
 								type: "text",
 								placeholder: "№ пломби",
+								autofill: "off",
 								value: seal_number,
 								event: "input",
 								data: [
@@ -3513,6 +3594,7 @@ function main() {
 					if (item.baseCount.orderCount > 0) {
 						reserve_count_class = "danger";
 					}
+
 					if (storage_item_data == undefined) {
 						storage_item_data = {};
 
@@ -3524,6 +3606,15 @@ function main() {
 							article: item.article,
 							request: storage_item_data,
 						});
+					};
+					if (storage_item_data.cell_capacity !== undefined && storage_item_data.last_goods_count && storage_item_data.real_goods_count !== undefined) {
+						storage_item_data.save_area_count = storage_item_data.last_goods_count - storage_item_data.real_goods_count;
+						data_base.save_data({
+							store_name: "addresses",
+							article: item.article,
+							index_name: "article",
+							request: storage_item_data,
+						})
 					}
 					if (
 						searchInp !== "" &&
@@ -3680,6 +3771,7 @@ function main() {
 									{
 										el: "input",
 										className: "cell-input",
+										autofill: "off",
 										placeholder: "Місткість комірки",
 										data: [{ article: item.article }],
 										type: "number",
@@ -3721,6 +3813,7 @@ function main() {
 												el: "input",
 												type: "number",
 												className: "compare-inp",
+												autofill: "off",
 												event: "input",
 												hendler: function (e) {
 													let compareVal = e.currentTarget.value;
@@ -4402,9 +4495,9 @@ function main() {
 						{
 							el: "div",
 							className: "history-item get_history",
-							text: "Копіювати Сховище",
+							text: "Імпорт експорт данних",
 							event: "click",
-							hendler: hendlers.copy_storage,
+							hendler: hendlers.import_export_database,
 						},
 
 						{
@@ -5506,8 +5599,7 @@ function main() {
 						}
 						if (
 							storage_article.save_area_count == undefined ||
-							storage_article.save_area_count == null ||
-							storage_article.save_area_count < 0
+							storage_article.save_area_count == null
 						) {
 							storage_article.save_area_count = 0;
 						}
@@ -5524,7 +5616,7 @@ function main() {
 								Number(storage_article.real_goods_count) - Number(quantity);
 							storage_article.save_area_count =
 								Number(storage_article.last_goods_count) -
-								Number(storage_article.real_goods_count);
+								Number(storage_article.real_goods_count) || 0;
 						}
 						data_base.save_data({
 							store_name: "addresses",
@@ -5921,5 +6013,5 @@ function main() {
 	generate.requestCount();
 	generate.tasksCount();
 	check_last_check();
-	console.log(data_base.data);
+	console.log(data_base.data)
 }
