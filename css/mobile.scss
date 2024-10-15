@@ -1503,3 +1503,30 @@ button.html5-qrcode-element {
     }
   }
 }
+.print_barcode_btn {
+  margin: 20px auto;
+  padding: 15px 20px;
+  background-color: $actionBtnBg;
+  color: $white;
+  border-radius: 5px;
+}
+// ШТРИХКОД
+.barcode_item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: $white;
+  padding: 10px 15px;
+  .goods_list {
+    list-style-type: disc;
+    font-family: sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .good_name {
+    font-size: 14px;
+    font-weight: normal;
+    font-style: italic;
+  }
+}

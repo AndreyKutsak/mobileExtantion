@@ -407,7 +407,8 @@ function main() {
 		goodsCount:
 			/всього:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.|пар\.)|резерв:\s*(\d+)\(.*?\)\s*(м\/п|компл\.|шт\.|бал\.|упак\.|пар\.)/g,
 	};
-	let barcode_data = {};
+	let barcode_params = {};
+	let barcodes_data = {};
 	let src = {
 		ico: {
 			recycle: "img/recycle-bin-ico.svg",
@@ -740,6 +741,74 @@ function main() {
 		},
 	};
 	let hendlers = {
+		show_barcodes: function () {
+
+			if (!barcodes_data) {
+				alert("Немаєданних для генерації штрихкодів!!!");
+				return;
+			};
+			let barcodes_wrapper = this.parentNode.parentNode;
+			Object.keys(barcodes_data).forEach(function (item) {
+				barcodes_data[item].forEach(function (cell) {
+					if (!cell?.cell) { console.log(cell); return };
+					let cell_barcode = {
+						el: "img",
+						alt: `CELL: ${cell.cell}`,
+						src: url.bar_code + `&data=CELL${cell.cell}`,
+						id: item
+
+					};
+					let cell_goods_list = {
+						el: "ul",
+						className: "goods_list",
+						children: []
+					}
+					let cell_goods_data = barcodes_data[item].map(function (cell_data) {
+						if (!cell_data) {
+							console.log(cell_data)
+							// alert("Походу пуста комірка");
+							return;
+						};
+						return cell_data.goods_list.forEach(function (good_item, index) {
+							cell_goods_list.children.push({
+								el: "li",
+								text: good_item.article
+							});
+							cell_goods_list.children[index].children = [{
+								el: "p",
+								className: "good_desc",
+								text: good_item.desc
+							}]
+						})
+
+					});
+
+					barcodes_wrapper.appendChild(get.elements({
+						el: "div",
+						className: "barcode_item",
+						children: [cell_barcode, cell_goods_list],
+					}))
+				})
+
+
+
+
+			});
+		}
+		,
+		set_barcode_params: function () {
+			console.log(this)
+			if (!this.id) {
+				alert("Помилка при заданні параметра штрикодів");
+				return;
+			};
+			let param_key = this.id;
+			let params_value = this.value || this.options[this.selectedIndex].text;
+			barcode_params[param_key] = params_value;
+			console.log(barcode_params);
+
+		},
+
 		generate_barcodes: function (data) {
 			if (!data) {
 				alert("Помилка при генерації кодів");
@@ -750,17 +819,35 @@ function main() {
 				className: "description",
 				text: `Буде надруковано ${Object.keys(data).length * Object.keys(data[Object.keys(data)[1]].length)} стікерів.`
 			}))
-			let settings = {};
+
 			let settings_marcup = {
 				el: "div",
 				calssName: "barcode_settings_wrapper",
 				children: [
+					{
+						el: "div",
+						className: "settings_item",
+						children: [{
+							el: "input",
+							type: "checkbox",
+							id: "add_article_barcode_checkbox",
+							event: "change",
+							hendler: hendlers.set_barcode_params,
+							checked: false
+						}, {
+							el: "label",
+							for: "add_article_barcode_checkbox",
+							text: "Додати штрихкоди артикулів"
+						}]
+					},
 					{
 						el: "div", className: "settings_item", children: [
 							{
 								el: "input",
 								type: "checkbox",
 								id: "add_description_checkbox",
+								event: "change",
+								hendler: hendlers.set_barcode_params,
 								checked: false
 
 							}, {
@@ -774,6 +861,9 @@ function main() {
 							el: "input",
 							type: "checkbox",
 							id: "add_cell_barcode_checkbox",
+							event: "change",
+							hendler: hendlers.set_barcode_params,
+
 							checked: false
 						}, {
 							el: "label",
@@ -786,11 +876,40 @@ function main() {
 							el: "input",
 							type: "checkbox",
 							id: "add_article_checkbox",
+							event: "change",
+							hendler: hendlers.set_barcode_params,
 							checked: false
 						}, {
 							el: "label",
 							for: "add_article_checkbox",
 							text: "Додати артикул"
+						}]
+					}, {
+						el: "div", className: "settings_item",
+						children: [{
+							el: "input",
+							type: "text",
+							id: "set_sticker_height",
+							event: "input",
+							hendler: hendlers.set_barcode_params,
+							placeholder: "Задайте вистоу стікеру в сантиметрах"
+
+						}, {
+							el: "input",
+							type: "text",
+							id: "set_sticker_width",
+							event: "input",
+							hendler: hendlers.set_barcode_params,
+							placeholder: "Задйте ширину стфкера в сантиметрах"
+						}]
+					},
+					{
+						el: "div", className: "settings_item", children: [{
+							el: "button",
+							className: "btn print_barcode_btn",
+							event: "click",
+							hendler: hendlers.show_barcodes,
+							text: "Показати штрихкоди",
 						}]
 					}
 				]
@@ -2052,7 +2171,9 @@ function main() {
 													}
 													let td = Array.from(key.querySelectorAll("td"));
 													data[zone_name].stilages_list[event.target.value][index] = td.map(function (item) {
-														if (!item.title) {
+
+														if (item.title == "") {
+															console.log(item)
 															return
 														}
 														let goods_list = item.title.split('&#013;').map(function (str) {
@@ -2072,7 +2193,7 @@ function main() {
 																console.log(str)
 															}
 															return {
-																artilce: article,
+																article: article,
 																desc: desc
 															}
 														})
@@ -2083,7 +2204,8 @@ function main() {
 															cell: cell
 														}
 													});
-													console.log(data[zone_name].stilages_list[event.target.value])
+													console.log(data[zone_name].stilages_list[event.target.value]);
+													barcodes_data = data[zone_name].stilages_list[event.target.value];
 												});
 												hendlers.generate_barcodes(data[zone_name].stilages_list[event.target.value]);
 											},
