@@ -1511,6 +1511,10 @@ button.html5-qrcode-element {
   border-radius: 5px;
 }
 // ШТРИХКОД
+.sticker {
+  padding: 15px;
+  background-color: $white;
+}
 .barcode_item {
   display: flex;
   align-items: center;

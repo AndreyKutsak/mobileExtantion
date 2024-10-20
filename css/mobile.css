@@ -1355,6 +1355,11 @@ button.html5-qrcode-element {
   border-radius: 5px;
 }
 
+.sticker {
+  padding: 15px;
+  background-color: #fff;
+}
+
 .barcode_item {
   display: flex;
   align-items: center;

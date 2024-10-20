@@ -388,6 +388,7 @@ function main() {
 		bar_code:
 			"https://barcode.tec-it.com/barcode.ashx?code=Code128&multiplebarcodes=false&translate-esc=false&unit=Fit&dpi=96&imagetype=Gif&rotation=0&color=%23000000&bgcolor=%23ffffff&codepage=&qunit=Mm&quiet=2",
 	};
+
 	//regulars expression
 	let regExp = {
 		id: /\((\d+)\)/,
@@ -424,6 +425,10 @@ function main() {
 			production: "img/production-ico.svg",
 			history: "img/history-ico.svg",
 		},
+		img: {
+			test_cell_barcode: "img/barcode.gif"
+		}
+
 	};
 	let interval = {
 		elaboration: 15 * 1000,
@@ -742,72 +747,186 @@ function main() {
 	};
 	let hendlers = {
 		show_barcodes: function () {
-
 			if (!barcodes_data) {
 				alert("Немаєданних для генерації штрихкодів!!!");
 				return;
 			};
 			let barcodes_wrapper = this.parentNode.parentNode;
 			Object.keys(barcodes_data).forEach(function (item) {
+				let resizeObserver = new ResizeObserver(entries => {
+					for (let entry of entries) {
+						splitBarcodeItems();
+					}
+				});
+				resizeObserver.observe(barcodes_wrapper);
 				barcodes_data[item].forEach(function (cell) {
-					if (!cell?.cell) { console.log(cell); return };
+					if (!cell?.cell) {
+						console.log('Пуста комірка:', cell);
+						return;
+					}
+
 					let cell_barcode = {
 						el: "img",
 						alt: `CELL: ${cell.cell}`,
 						src: url.bar_code + `&data=CELL${cell.cell}`,
-						id: item
-
+						id: "image"
 					};
+
 					let cell_goods_list = {
 						el: "ul",
 						className: "goods_list",
 						children: []
-					}
-					let cell_goods_data = barcodes_data[item].map(function (cell_data) {
-						if (!cell_data) {
-							console.log(cell_data)
-							// alert("Походу пуста комірка");
-							return;
-						};
-						return cell_data.goods_list.forEach(function (good_item, index) {
-							cell_goods_list.children.push({
+					};
+
+					// Тепер ми ітеруємо тільки по товарах конкретної комірки
+					if (cell.goods_list && cell.goods_list.length > 0) {
+						cell.goods_list.forEach(function (good_item) {
+							let good_element = {
 								el: "li",
-								text: good_item.article
-							});
-							cell_goods_list.children[index].children = [{
-								el: "p",
-								className: "good_desc",
-								text: good_item.desc
-							}]
-						})
+								className: "article_item",
+								text: good_item.article,
+								children: [{
+									el: "p",
+									className: "good_desc",
+									text: good_item.desc
+								}]
+							};
 
-					});
-
+							cell_goods_list.children.push(good_element);
+						});
+					}
+					// Додаємо готові елементи до сторінки
 					barcodes_wrapper.appendChild(get.elements({
 						el: "div",
-						className: "barcode_item",
+						className: "sticker",
 						children: [cell_barcode, cell_goods_list],
-					}))
-				})
-
-
-
-
+					}));
+				});
 			});
-		}
-		,
-		set_barcode_params: function () {
-			console.log(this)
-			if (!this.id) {
-				alert("Помилка при заданні параметра штрикодів");
-				return;
-			};
-			let param_key = this.id;
-			let params_value = this.value || this.options[this.selectedIndex].text;
-			barcode_params[param_key] = params_value;
-			console.log(barcode_params);
+			splitBarcodeItems();
+
 
 		},
+		handleElementEdit: function (event) {
+			const target = event.target; // Елемент, на якому була подія
+			const existingEditor = document.querySelector('.css-editor'); // Шукаємо існуючий редактор
+
+			// Якщо клік на тому ж елементі, видаляємо редактор
+			if (existingEditor && existingEditor.dataset.target === target.dataset.target) {
+				target.style.backgroundColor = '';
+				existingEditor.remove();
+				return;
+			}
+
+
+			if (existingEditor) {
+				const previousTarget = document.querySelector(`#${existingEditor.dataset.target}`);
+				previousTarget.style.backgroundColor = '';
+				existingEditor.remove();
+			}
+
+			// Додаємо легкий червоний фон до елемента
+			target.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+
+			// Створюємо <textarea> для редагування CSS
+			const editor = document.createElement('textarea');
+			editor.classList.add('css-editor');
+			editor.dataset.target = target.id; // Прив'язуємо редактор до цього елемента
+			editor.style.position = 'absolute'; // Позиціонуємо відносно сторінки
+
+			// Отримуємо розміри елемента, щоб позиціонувати редактор
+			const targetRect = target.getBoundingClientRect();
+			editor.style.left = `${Math.min(targetRect.left, window.innerWidth - 200)}px`; // Щоб textarea не вийшла за екран
+			editor.style.top = `${Math.min(targetRect.bottom + 10, window.innerHeight - 100)}px`; // Під елементом
+
+			// Додаємо текстове поле на сторінку
+			document.body.appendChild(editor);
+
+			// Обробник події вводу в textarea
+			editor.addEventListener('input', function () {
+				let elements = Array.from(document.querySelectorAll(`${target.id}`) || document.querySelectorAll(`.${target.id}`));
+				try {
+					// Пробуємо застосувати CSS до цільового елемента
+					target.style.cssText += editor.value;
+					editor.style.borderColor = ''; // Якщо CSS валідний, знімаємо помилку
+				} catch (error) {
+					editor.style.borderColor = 'red'; // Якщо CSS не валідний, робимо обводку червоною
+				}
+
+				elements.forEach(function (item) {
+					try {
+						// Пробуємо застосувати CSS до цільового елемента
+						item.style.cssText += editor.value;
+						editor.style.borderColor = ''; // Якщо CSS валідний, знімаємо помилку
+					} catch (error) {
+						editor.style.borderColor = 'red'; // Якщо CSS не валідний, робимо обводку червоною
+					}
+				});
+
+			});
+		},
+		set_barcode_params: function () {
+			let id = this.id;
+			let val = this.value;
+			let wrapper = document.querySelector(".sticker");
+			if (id == "add_cell_barcode_checkbox" && this.checked) {
+				barcode_params[id] = this.checked;
+				wrapper.appendChild(get.elements({
+					el: "div",
+					className: "image_wrapper",
+					id: "image_wrapper",
+					event: "click",
+					children: [{
+						el: "img",
+						id: "img",
+						alt: "barcode example",
+						src: get.url(src.img.test_cell_barcode)
+					}],
+					hendler: hendlers.handleElementEdit
+				}))
+			} else if (id == "add_cell_barcode_checkbox" && !this.checked) {
+				barcode_params[id] = this.checked;
+				wrapper.querySelector(".image_wrapper").remove();
+
+			};
+			if (id == "add_article_checkbox" && this.checked) {
+				barcode_params[id] = this.checked;
+				wrapper.appendChild(get.elements({
+					el: "div",
+					id: "article_item",
+					className: "article_item",
+					text: "1.2.3456",
+					event: "click",
+					hendler: hendlers.handleElementEdit,
+
+
+				}))
+			} else if (id == "add_article_checkbox" && !this.checked) {
+				barcode_params[id] = this.checked;
+				wrapper.querySelector(".article_item").remove();
+			};
+			if (id == "add_description_checkbox" && this.checked) {
+				barcode_params[id] = this.checked;
+				let desc = get.elements({
+					el: "div",
+					className: "position_description",
+					id: "good_desc",
+					text: "Опис позиції",
+					event: "click",
+					hendler: hendlers.handleElementEdit
+				});
+				if (document.querySelector(".article_item")) {
+					document.querySelector(".article_item").appendChild(desc);
+					return;
+				}
+				wrapper.appendChild(desc);
+			} else if (id == "add_description_checkbox" && !this.checked) {
+				barcode_params[id] = this.checked;
+				wrapper.querySelector(".position_description").remove();
+			}
+		},
+
+
 
 		generate_barcodes: function (data) {
 			if (!data) {
@@ -820,100 +939,7 @@ function main() {
 				text: `Буде надруковано ${Object.keys(data).length * Object.keys(data[Object.keys(data)[1]].length)} стікерів.`
 			}))
 
-			let settings_marcup = {
-				el: "div",
-				calssName: "barcode_settings_wrapper",
-				children: [
-					{
-						el: "div",
-						className: "settings_item",
-						children: [{
-							el: "input",
-							type: "checkbox",
-							id: "add_article_barcode_checkbox",
-							event: "change",
-							hendler: hendlers.set_barcode_params,
-							checked: false
-						}, {
-							el: "label",
-							for: "add_article_barcode_checkbox",
-							text: "Додати штрихкоди артикулів"
-						}]
-					},
-					{
-						el: "div", className: "settings_item", children: [
-							{
-								el: "input",
-								type: "checkbox",
-								id: "add_description_checkbox",
-								event: "change",
-								hendler: hendlers.set_barcode_params,
-								checked: false
 
-							}, {
-								el: "label",
-								for: "add_description_checkbox",
-								text: "Додати опис позиції"
-							}
-						]
-					}, {
-						el: "div", className: "settings_item", children: [{
-							el: "input",
-							type: "checkbox",
-							id: "add_cell_barcode_checkbox",
-							event: "change",
-							hendler: hendlers.set_barcode_params,
-
-							checked: false
-						}, {
-							el: "label",
-							for: "add_cell_barcode_checkbox",
-							text: "Додати коди комірки"
-						}]
-					}
-					, {
-						el: "div", className: "settings_item", children: [{
-							el: "input",
-							type: "checkbox",
-							id: "add_article_checkbox",
-							event: "change",
-							hendler: hendlers.set_barcode_params,
-							checked: false
-						}, {
-							el: "label",
-							for: "add_article_checkbox",
-							text: "Додати артикул"
-						}]
-					}, {
-						el: "div", className: "settings_item",
-						children: [{
-							el: "input",
-							type: "text",
-							id: "set_sticker_height",
-							event: "input",
-							hendler: hendlers.set_barcode_params,
-							placeholder: "Задайте вистоу стікеру в сантиметрах"
-
-						}, {
-							el: "input",
-							type: "text",
-							id: "set_sticker_width",
-							event: "input",
-							hendler: hendlers.set_barcode_params,
-							placeholder: "Задйте ширину стфкера в сантиметрах"
-						}]
-					},
-					{
-						el: "div", className: "settings_item", children: [{
-							el: "button",
-							className: "btn print_barcode_btn",
-							event: "click",
-							hendler: hendlers.show_barcodes,
-							text: "Показати штрихкоди",
-						}]
-					}
-				]
-			}
 			contentWraper.appendChild(get.elements(settings_marcup));
 		},
 		show_available_articles: function (categorys, places) {
@@ -2106,6 +2132,73 @@ function main() {
 							el: "p",
 							className: "select_desc",
 							text: "Виберіть Зону",
+						}, {
+							el: "div",
+							calssName: "barcode_settings_wrapper",
+							children: [
+								{
+									el: "div", className: "settings_item", children: [
+										{
+											el: "input",
+											type: "checkbox",
+											id: "add_description_checkbox",
+											event: "change",
+											hendler: hendlers.set_barcode_params,
+											checked: false
+
+										}, {
+											el: "label",
+											for: "add_description_checkbox",
+											text: "Додати опис позиції"
+										}
+									]
+								}, {
+									el: "div", className: "settings_item", children: [{
+										el: "input",
+										type: "checkbox",
+										id: "add_cell_barcode_checkbox",
+										event: "change",
+										hendler: hendlers.set_barcode_params,
+
+										checked: false
+									}, {
+										el: "label",
+										for: "add_cell_barcode_checkbox",
+										text: "Додати коди комірки"
+									}]
+								}
+								, {
+									el: "div", className: "settings_item", children: [{
+										el: "input",
+										type: "checkbox",
+										id: "add_article_checkbox",
+										event: "change",
+										hendler: hendlers.set_barcode_params,
+										checked: false
+									}, {
+										el: "label",
+										for: "add_article_checkbox",
+										text: "Додати артикул"
+									}]
+								},
+								{
+									el: "div",
+									className: "sticker",
+									id: "sticker",
+									event: "click",
+									hendler: hendlers.handleElementEdit
+
+								},
+								{
+									el: "div", className: "settings_item", children: [{
+										el: "button",
+										className: "btn print_barcode_btn",
+										event: "click",
+										hendler: hendlers.show_barcodes,
+										text: "Показати штрихкоди",
+									}]
+								}
+							]
 						},
 						{
 							el: "select",
@@ -2176,7 +2269,7 @@ function main() {
 															console.log(item)
 															return
 														}
-														let goods_list = item.title.split('&#013;').map(function (str) {
+														let goods_list = item.title.split('\r').map(function (str) {
 															let article;
 															let desc;
 															try {
@@ -6150,7 +6243,49 @@ function main() {
 				check_wrapper.classList.remove("hide_check_wrapper");
 			}
 		}
+	}; function splitBarcodeItems() {
+		// Отримуємо всі .barcode_item
+		let barcodeItems = document.querySelectorAll('.barcode_item');
+
+		barcodeItems.forEach(function (barcodeItem) {
+			let barcodeItemHeight = barcodeItem.offsetHeight; // Висота .barcode_item
+			let ulElement = barcodeItem.querySelector('ul.goods_list'); // Отримуємо <ul> з товарами
+			let liElements = ulElement.querySelectorAll('li'); // Всі <li> товари
+			let currentHeight = 0;
+			let newLiElements = []; // Для тих <li>, які не вміщаються
+
+			// Ітеруємо через кожен <li> елемент
+			liElements.forEach(function (liElement) {
+				let liHeight = liElement.offsetHeight; // Висота поточного <li>
+				currentHeight += liHeight;
+
+				// Якщо загальна висота більше, ніж .barcode_item, переносимо елемент у новий список
+				if (currentHeight > barcodeItemHeight) {
+					newLiElements.push(liElement); // Зберігаємо елемент для переносу
+					ulElement.removeChild(liElement); // Видаляємо його з поточного списку
+				}
+			});
+
+			// Якщо є елементи для переносу, створюємо новий .barcode_item
+			if (newLiElements.length > 0) {
+				let newBarcodeItem = document.createElement('div');
+				newBarcodeItem.className = 'barcode_item';
+
+				let newUlElement = document.createElement('ul');
+				newUlElement.className = 'goods_list';
+
+				// Додаємо всі <li> елементи в новий <ul>
+				newLiElements.forEach(function (liElement) {
+					newUlElement.appendChild(liElement);
+				});
+
+				// Додаємо новий <ul> у новий .barcode_item і на сторінку
+				newBarcodeItem.appendChild(newUlElement);
+				barcodeItem.parentNode.appendChild(newBarcodeItem);
+			}
+		});
 	}
+
 
 	let btnWraper = get.elements(buttons);
 	document.body.appendChild(searchWraper);
