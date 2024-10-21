@@ -753,12 +753,8 @@ function main() {
 			};
 			let barcodes_wrapper = this.parentNode.parentNode;
 			Object.keys(barcodes_data).forEach(function (item) {
-				let resizeObserver = new ResizeObserver(entries => {
-					for (let entry of entries) {
-						splitBarcodeItems();
-					}
-				});
-				resizeObserver.observe(barcodes_wrapper);
+
+
 				barcodes_data[item].forEach(function (cell) {
 					if (!cell?.cell) {
 						console.log('Пуста комірка:', cell);
@@ -769,12 +765,14 @@ function main() {
 						el: "img",
 						alt: `CELL: ${cell.cell}`,
 						src: url.bar_code + `&data=CELL${cell.cell}`,
-						id: "image"
+						className: "cell_barcode_img",
+						hendler: hendlers.handleElementEdit
 					};
 
 					let cell_goods_list = {
 						el: "ul",
 						className: "goods_list",
+						hendler: hendlers.handleElementEdit,
 						children: []
 					};
 
@@ -788,7 +786,8 @@ function main() {
 								children: [{
 									el: "p",
 									className: "good_desc",
-									text: good_item.desc
+									text: good_item.desc,
+									hendler: hendlers.handleElementEdit
 								}]
 							};
 
@@ -809,7 +808,7 @@ function main() {
 		},
 		handleElementEdit: function (event) {
 			const target = event.target; // Елемент, на якому була подія
-			const existingEditor = document.querySelector('.css-editor'); // Шукаємо існуючий редактор
+			const existingEditor = document.querySelector('#css-editor-container'); // Шукаємо існуючий редактор
 
 			// Якщо клік на тому ж елементі, видаляємо редактор
 			if (existingEditor && existingEditor.dataset.target === target.dataset.target) {
@@ -818,9 +817,8 @@ function main() {
 				return;
 			}
 
-
 			if (existingEditor) {
-				const previousTarget = document.querySelector(`#${existingEditor.dataset.target}`);
+				const previousTarget = document.querySelector(`.${existingEditor.dataset.target}`);
 				previousTarget.style.backgroundColor = '';
 				existingEditor.remove();
 			}
@@ -828,43 +826,138 @@ function main() {
 			// Додаємо легкий червоний фон до елемента
 			target.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
 
-			// Створюємо <textarea> для редагування CSS
-			const editor = document.createElement('textarea');
-			editor.classList.add('css-editor');
-			editor.dataset.target = target.id; // Прив'язуємо редактор до цього елемента
-			editor.style.position = 'absolute'; // Позиціонуємо відносно сторінки
+			// Створюємо div-обгортку
+			const editorContainer = document.createElement('div');
+			editorContainer.id = 'css-editor-container';
+			editorContainer.dataset.target = target.className; // Прив'язуємо редактор до цього елемента
+			editorContainer.style.position = 'absolute'; // Позиціонуємо відносно сторінки
 
 			// Отримуємо розміри елемента, щоб позиціонувати редактор
 			const targetRect = target.getBoundingClientRect();
-			editor.style.left = `${Math.min(targetRect.left, window.innerWidth - 200)}px`; // Щоб textarea не вийшла за екран
-			editor.style.top = `${Math.min(targetRect.bottom + 10, window.innerHeight - 100)}px`; // Під елементом
+			editorContainer.style.left = `${Math.min(targetRect.left, window.innerWidth - 400)}px`; // Щоб textarea не вийшла за екран
+			editorContainer.style.top = `${Math.min(targetRect.bottom + 10, window.innerHeight - 300)}px`; // Під елементом
 
-			// Додаємо текстове поле на сторінку
-			document.body.appendChild(editor);
+			// Стилізація контейнера
+			editorContainer.style.width = '400px';
+			editorContainer.style.height = '300px';
+			editorContainer.style.backgroundColor = '#2d2d2d';
+			editorContainer.style.border = '1px solid #ccc';
+			editorContainer.style.padding = '10px';
+			editorContainer.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
+			editorContainer.style.borderRadius = '5px';
+			editorContainer.style.resize = 'none'; // Забороняємо стандартне перетягування
+			editorContainer.style.overflow = 'hidden'; // Забороняємо вихід елементів за межі
+
+			// Створюємо <textarea> для редагування CSS
+			const editor = document.createElement('textarea');
+			editor.id = 'css-editor';
+			editor.dataset.target = target.className;
+			editor.style.width = '100%';
+			editor.style.height = '250px';
+			editor.style.fontFamily = 'monospace';
+			editor.style.backgroundColor = '#2d2d2d';
+			editor.style.color = '#f8f8f2';
+			editor.style.border = 'none';
+			editor.style.padding = '10px';
+			editor.style.overflowY = 'auto';
+			editor.style.whiteSpace = 'pre-wrap';
+
+			// Створюємо кнопку для вибору стилізації
+			const applyButton = document.createElement('button');
+			applyButton.textContent = 'Apply to all';
+			applyButton.style.position = 'absolute';
+			applyButton.style.bottom = '10px';
+			applyButton.style.right = '10px';
+			applyButton.style.padding = '5px 10px';
+			applyButton.style.backgroundColor = '#007bff';
+			applyButton.style.color = '#fff';
+			applyButton.style.border = 'none';
+			applyButton.style.borderRadius = '5px';
+			applyButton.style.cursor = 'pointer';
+			applyButton.style.fontSize = '12px';
+
+			// Додаємо кнопку до контейнера, а не textarea
+			editorContainer.appendChild(applyButton);
+
+			// Додаємо textarea в контейнер
+			editorContainer.appendChild(editor);
+
+			// Логіка для перемикання кнопки між "Apply to all" і "Apply to one"
+			let applyToAll = true;
+			applyButton.addEventListener('click', () => {
+				applyToAll = !applyToAll;
+				applyButton.textContent = applyToAll ? 'Apply to all' : 'Apply to one';
+			});
+
+			// Додаємо контейнер на сторінку
+			document.body.appendChild(editorContainer);
+
+			// Перетягування контейнера
+			let isDragging = false;
+			let offsetX, offsetY;
+
+			editorContainer.addEventListener('mousedown', (e) => {
+				if (e.target !== applyButton && e.target !== editor) {
+					isDragging = true;
+					offsetX = e.clientX - editorContainer.getBoundingClientRect().left;
+					offsetY = e.clientY - editorContainer.getBoundingClientRect().top;
+					editorContainer.style.cursor = 'move';
+				}
+			});
+
+			document.addEventListener('mousemove', (e) => {
+				if (isDragging) {
+					editorContainer.style.left = `${e.clientX - offsetX}px`;
+					editorContainer.style.top = `${e.clientY - offsetY}px`;
+				}
+			});
+
+			document.addEventListener('mouseup', () => {
+				isDragging = false;
+				editorContainer.style.cursor = '';
+			});
+
+			// Отримуємо стилі, задані через атрибут style або CSS-файл
+			let existingCss = '';
+
+			// 1. Стилі з атрибута style
+			if (target.getAttribute('style')) {
+				existingCss += target.getAttribute('style').replace(/;/g, ';\n') + '\n'; // Форматуємо для textarea
+			}
+
+			// 2. Стилі з зовнішнього CSS-файлу (якщо браузер підтримує getMatchedCSSRules)
+			if (window.getMatchedCSSRules) {
+				const matchedRules = window.getMatchedCSSRules(target);
+				if (matchedRules) {
+					for (let rule of matchedRules) {
+						existingCss += rule.cssText.replace(/;/g, ';\n') + '\n'; // Додаємо CSS-правила
+					}
+				}
+			}
+
+			editor.value = existingCss.trim(); // Вставляємо CSS у textarea
 
 			// Обробник події вводу в textarea
 			editor.addEventListener('input', function () {
-				let elements = Array.from(document.querySelectorAll(`${target.id}`) || document.querySelectorAll(`.${target.id}`));
+				let elements = Array.from(document.querySelectorAll(`.${target.className}`));
 				try {
-					// Пробуємо застосувати CSS до цільового елемента
-					target.style.cssText += editor.value;
+					// Пробуємо застосувати CSS до цільового елемента або до всіх
+					if (applyToAll) {
+						elements.forEach(function (item) {
+							item.style.cssText += editor.value;
+						});
+					} else {
+						target.style.cssText += editor.value;
+					}
 					editor.style.borderColor = ''; // Якщо CSS валідний, знімаємо помилку
 				} catch (error) {
 					editor.style.borderColor = 'red'; // Якщо CSS не валідний, робимо обводку червоною
 				}
-
-				elements.forEach(function (item) {
-					try {
-						// Пробуємо застосувати CSS до цільового елемента
-						item.style.cssText += editor.value;
-						editor.style.borderColor = ''; // Якщо CSS валідний, знімаємо помилку
-					} catch (error) {
-						editor.style.borderColor = 'red'; // Якщо CSS не валідний, робимо обводку червоною
-					}
-				});
-
 			});
-		},
+		}
+
+		,
+
 		set_barcode_params: function () {
 			let id = this.id;
 			let val = this.value;
@@ -878,7 +971,7 @@ function main() {
 					event: "click",
 					children: [{
 						el: "img",
-						id: "img",
+						className: "cell_barcode_img",
 						alt: "barcode example",
 						src: get.url(src.img.test_cell_barcode)
 					}],
@@ -893,7 +986,7 @@ function main() {
 				barcode_params[id] = this.checked;
 				wrapper.appendChild(get.elements({
 					el: "div",
-					id: "article_item",
+
 					className: "article_item",
 					text: "1.2.3456",
 					event: "click",
@@ -910,7 +1003,7 @@ function main() {
 				let desc = get.elements({
 					el: "div",
 					className: "position_description",
-					id: "good_desc",
+					className: "good_desc",
 					text: "Опис позиції",
 					event: "click",
 					hendler: hendlers.handleElementEdit
@@ -6243,48 +6336,63 @@ function main() {
 				check_wrapper.classList.remove("hide_check_wrapper");
 			}
 		}
-	}; function splitBarcodeItems() {
-		// Отримуємо всі .barcode_item
-		let barcodeItems = document.querySelectorAll('.barcode_item');
+	};
+	function distributeArticleItems() {
+		const stickers = document.querySelectorAll('.sticker');
+		console.log(stickers)
+		stickers.forEach(sticker => {
+			let totalItemsHeight = 0;
+			const maxHeight = sticker.clientHeight; // Висота батьківського елемента .sticker
+			const articleItems = Array.from(sticker.querySelectorAll('li.article_item'));
 
-		barcodeItems.forEach(function (barcodeItem) {
-			let barcodeItemHeight = barcodeItem.offsetHeight; // Висота .barcode_item
-			let ulElement = barcodeItem.querySelector('ul.goods_list'); // Отримуємо <ul> з товарами
-			let liElements = ulElement.querySelectorAll('li'); // Всі <li> товари
-			let currentHeight = 0;
-			let newLiElements = []; // Для тих <li>, які не вміщаються
+			// Масив для збереження елементів, які не помістилися
+			let overflowItems = [];
 
-			// Ітеруємо через кожен <li> елемент
-			liElements.forEach(function (liElement) {
-				let liHeight = liElement.offsetHeight; // Висота поточного <li>
-				currentHeight += liHeight;
+			articleItems.forEach(item => {
+				const itemHeight = item.clientHeight;
+				totalItemsHeight += itemHeight;
 
-				// Якщо загальна висота більше, ніж .barcode_item, переносимо елемент у новий список
-				if (currentHeight > barcodeItemHeight) {
-					newLiElements.push(liElement); // Зберігаємо елемент для переносу
-					ulElement.removeChild(liElement); // Видаляємо його з поточного списку
+				// Якщо загальна висота перевищує висоту батьківського елемента .sticker
+				if (totalItemsHeight > maxHeight) {
+					overflowItems.push(item); // Додаємо елемент у масив overflow
+					item.remove(); // Видаляємо з поточного .sticker
 				}
 			});
 
-			// Якщо є елементи для переносу, створюємо новий .barcode_item
-			if (newLiElements.length > 0) {
-				let newBarcodeItem = document.createElement('div');
-				newBarcodeItem.className = 'barcode_item';
+			// Якщо є елементи, що не помістилися, створюємо новий .sticker
+			if (overflowItems.length > 0) {
+				const newSticker = document.createElement('div');
+				newSticker.classList.add('sticker'); // Додаємо клас sticker
 
-				let newUlElement = document.createElement('ul');
-				newUlElement.className = 'goods_list';
-
-				// Додаємо всі <li> елементи в новий <ul>
-				newLiElements.forEach(function (liElement) {
-					newUlElement.appendChild(liElement);
+				// Додаємо в новий .sticker всі елементи, що не помістилися
+				overflowItems.forEach(item => {
+					newSticker.appendChild(item);
 				});
 
-				// Додаємо новий <ul> у новий .barcode_item і на сторінку
-				newBarcodeItem.appendChild(newUlElement);
-				barcodeItem.parentNode.appendChild(newBarcodeItem);
+				// Додаємо новий .sticker після поточного
+				sticker.parentNode.insertBefore(newSticker, sticker.nextSibling);
 			}
 		});
 	}
+
+	// Відстежуємо зміну розміру для кожного елемента .sticker
+	function observeStickers() {
+		const stickers = document.querySelectorAll('.sticker');
+		const resizeObserver = new ResizeObserver(() => {
+			distributeArticleItems(); // Перерозподіл елементів при зміні розміру
+		});
+
+		stickers.forEach(sticker => {
+			resizeObserver.observe(sticker);
+		});
+	}
+
+	// Викликаємо функцію для початкового розподілу елементів
+	distributeArticleItems();
+
+	// Відстежуємо зміни розміру .sticker
+	observeStickers();
+
 
 
 	let btnWraper = get.elements(buttons);
