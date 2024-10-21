@@ -760,7 +760,7 @@ function main() {
 						console.log('Пуста комірка:', cell);
 						return;
 					}
-
+					observeStickers();
 					let cell_barcode = {
 						el: "img",
 						alt: `CELL: ${cell.cell}`,
@@ -6391,7 +6391,7 @@ function main() {
 	distributeArticleItems();
 
 	// Відстежуємо зміни розміру .sticker
-	observeStickers();
+
 
 
 
