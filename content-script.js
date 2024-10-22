@@ -698,6 +698,9 @@ function main() {
 			if (data.text) {
 				element.textContent = data.text;
 			}
+			if (data.for) {
+				element.setAttribute("for", data.for);
+			}
 			if (data.data) {
 				data.data.forEach((item) => {
 					const keys = Object.keys(item);
@@ -761,17 +764,45 @@ function main() {
 						return;
 					}
 					observeStickers();
-					let cell_barcode = {
-						el: "img",
-						alt: `CELL: ${cell.cell}`,
-						src: url.bar_code + `&data=CELL${cell.cell}`,
-						className: "cell_barcode_img",
-						hendler: hendlers.handleElementEdit
+					let cell_place = {
+						el: "p",
+						className: "cell_place",
+						text: cell.cell_number,
 					};
+					if (!barcode_params.add_place_checkbox) {
+						cell_place = {
+							el: "div",
+							style: [{
+								display: "none"
+							}]
+						}
+					};
+					let cell_barcode = {
+						el: "div",
+						className: "image_wrapper",
+						children: [{
+							el: "img",
+							alt: `CELL: ${cell.cell}`,
+							src: url.bar_code + `&data=CELL${cell.cell}`,
+							className: "cell_barcode_img",
+							event: "click",
+							hendler: hendlers.handleElementEdit
+						}, cell_place],
+
+					};
+					if (!barcode_params.add_cell_barcode_checkbox) {
+						cell_barcode = {
+							el: "div",
+							style: [{
+								display: "none"
+							}]
+						}
+					}
 
 					let cell_goods_list = {
 						el: "ul",
 						className: "goods_list",
+						event: "click",
 						hendler: hendlers.handleElementEdit,
 						children: []
 					};
@@ -779,14 +810,20 @@ function main() {
 					// Тепер ми ітеруємо тільки по товарах конкретної комірки
 					if (cell.goods_list && cell.goods_list.length > 0) {
 						cell.goods_list.forEach(function (good_item) {
+							let article;
+							let desc;
+							if (barcode_params.add_article_checkbox) { article = good_item.article };
+							if (barcode_params.add_description_checkbox) { desc = good_item.desc };
+							console.log(desc)
 							let good_element = {
 								el: "li",
 								className: "article_item",
-								text: good_item.article,
+								text: article,
 								children: [{
 									el: "p",
 									className: "good_desc",
-									text: good_item.desc,
+									text: desc,
+									event: "click",
 									hendler: hendlers.handleElementEdit
 								}]
 							};
@@ -798,6 +835,8 @@ function main() {
 					barcodes_wrapper.appendChild(get.elements({
 						el: "div",
 						className: "sticker",
+						event: "click",
+						hendler: hendlers.handleElementEdit,
 						children: [cell_barcode, cell_goods_list],
 					}));
 				});
@@ -954,13 +993,10 @@ function main() {
 					editor.style.borderColor = 'red'; // Якщо CSS не валідний, робимо обводку червоною
 				}
 			});
-		}
-
-		,
-
+		},
 		set_barcode_params: function () {
 			let id = this.id;
-			let val = this.value;
+
 			let wrapper = document.querySelector(".sticker");
 			if (id == "add_cell_barcode_checkbox" && this.checked) {
 				barcode_params[id] = this.checked;
@@ -979,7 +1015,7 @@ function main() {
 				}))
 			} else if (id == "add_cell_barcode_checkbox" && !this.checked) {
 				barcode_params[id] = this.checked;
-				wrapper.querySelector(".image_wrapper").remove();
+				Array.from(document.querySelectorAll(".image_wrapper")).forEach((item) => item.remove());
 
 			};
 			if (id == "add_article_checkbox" && this.checked) {
@@ -996,7 +1032,7 @@ function main() {
 				}))
 			} else if (id == "add_article_checkbox" && !this.checked) {
 				barcode_params[id] = this.checked;
-				wrapper.querySelector(".article_item").remove();
+				Array.from(document.querySelectorAll(".article_item")).forEach((item) => item.remove());
 			};
 			if (id == "add_description_checkbox" && this.checked) {
 				barcode_params[id] = this.checked;
@@ -1015,7 +1051,29 @@ function main() {
 				wrapper.appendChild(desc);
 			} else if (id == "add_description_checkbox" && !this.checked) {
 				barcode_params[id] = this.checked;
-				wrapper.querySelector(".position_description").remove();
+				Array.from(document.querySelectorAll(".position_description")).forEach((item) => item.remove());
+			}
+			if (id == "add_place_checkbox" && this.checked) {
+				barcode_params[id] = this.checked;
+				let img_wrapper = document.querySelector(".image_wrapper");
+				if (!img_wrapper) {
+					alert("Місце Можливо додати лише якщо є штрихкод");
+					return;
+				};
+				img_wrapper.appendChild(get.elements({
+					el: "p",
+					className: "cell_place",
+					text: "A-1.2.3",
+					event: "click",
+					hendler: hendlers.handleElementEdit
+				}))
+			}
+			else if (id == "add_place_checkbox" && !this.checked) {
+				barcode_params[id] = this.checked;
+				let desc_items = document.querySelectorAll(".cell_number");
+				desc_items.forEach((item) => {
+					item.remove();
+				});
 			}
 		},
 
@@ -2230,6 +2288,54 @@ function main() {
 							calssName: "barcode_settings_wrapper",
 							children: [
 								{
+									el: "div", className: "settings_item", children: [{
+										el: "input",
+										type: "checkbox",
+										id: "add_cell_barcode_checkbox",
+										event: "change",
+										hendler: hendlers.set_barcode_params,
+
+										checked: false
+									}, {
+										el: "label",
+										for: "add_cell_barcode_checkbox",
+										text: "Додати коди комірки"
+									}]
+								}
+								,
+								{
+									el: "div", className: "settings_item", children: [
+										{
+											el: "input",
+											type: "checkbox",
+											id: "add_place_checkbox",
+											event: "change",
+											hendler: hendlers.set_barcode_params,
+											checked: false
+
+										}, {
+											el: "label",
+											for: "add_place_checkbox",
+											text: "Додати адрес комірки",
+											checked: false
+										}
+									]
+								},
+								{
+									el: "div", className: "settings_item", children: [{
+										el: "input",
+										type: "checkbox",
+										id: "add_article_checkbox",
+										event: "change",
+										hendler: hendlers.set_barcode_params,
+										checked: false
+									}, {
+										el: "label",
+										for: "add_article_checkbox",
+										text: "Додати артикул"
+									}]
+								},
+								{
 									el: "div", className: "settings_item", children: [
 										{
 											el: "input",
@@ -2245,34 +2351,6 @@ function main() {
 											text: "Додати опис позиції"
 										}
 									]
-								}, {
-									el: "div", className: "settings_item", children: [{
-										el: "input",
-										type: "checkbox",
-										id: "add_cell_barcode_checkbox",
-										event: "change",
-										hendler: hendlers.set_barcode_params,
-
-										checked: false
-									}, {
-										el: "label",
-										for: "add_cell_barcode_checkbox",
-										text: "Додати коди комірки"
-									}]
-								}
-								, {
-									el: "div", className: "settings_item", children: [{
-										el: "input",
-										type: "checkbox",
-										id: "add_article_checkbox",
-										event: "change",
-										hendler: hendlers.set_barcode_params,
-										checked: false
-									}, {
-										el: "label",
-										for: "add_article_checkbox",
-										text: "Додати артикул"
-									}]
 								},
 								{
 									el: "div",
@@ -2381,13 +2459,16 @@ function main() {
 															return {
 																article: article,
 																desc: desc
+
 															}
 														})
 														let cell = item.getAttribute("onClick")?.match(regExp.barcode_cell)[1];
 
+
 														return {
 															goods_list: goods_list,
-															cell: cell
+															cell: cell,
+															cell_number: `${zone_name}-${event.target.value}.${item.textContent.trim()}`
 														}
 													});
 													console.log(data[zone_name].stilages_list[event.target.value]);
@@ -6338,30 +6419,74 @@ function main() {
 		}
 	};
 	function distributeArticleItems() {
-		const stickers = document.querySelectorAll('.sticker');
-		console.log(stickers)
-		stickers.forEach(sticker => {
+		const stickers = Array.from(document.querySelectorAll('.sticker'));
+		stickers.shift();
+		stickers.forEach((sticker, index) => {
+			console.log(sticker)
 			let totalItemsHeight = 0;
 			const maxHeight = sticker.clientHeight; // Висота батьківського елемента .sticker
 			const articleItems = Array.from(sticker.querySelectorAll('li.article_item'));
-
+			if (sticker.childNodes.length == 0) {
+				sticker.remove();
+				return;
+			}
 			// Масив для збереження елементів, які не помістилися
 			let overflowItems = [];
 
+			// Обчислюємо висоту всіх li.article_item, враховуючи margin, padding, border
 			articleItems.forEach(item => {
-				const itemHeight = item.clientHeight;
+				const itemStyle = window.getComputedStyle(item);
+				const itemHeight = item.offsetHeight
+					+ parseFloat(itemStyle.marginTop)
+					+ parseFloat(itemStyle.marginBottom);
+
 				totalItemsHeight += itemHeight;
 
-				// Якщо загальна висота перевищує висоту батьківського елемента .sticker
 				if (totalItemsHeight > maxHeight) {
 					overflowItems.push(item); // Додаємо елемент у масив overflow
 					item.remove(); // Видаляємо з поточного .sticker
 				}
 			});
 
-			// Якщо є елементи, що не помістилися, створюємо новий .sticker
+			// Якщо є попередній .sticker і є елементи, що не помістилися
+			if (index > 0 && overflowItems.length > 0) {
+				const previousSticker = stickers[index - 1];
+				let prevTotalItemsHeight = 0;
+				const prevMaxHeight = previousSticker.clientHeight;
+				const prevArticleItems = Array.from(previousSticker.querySelectorAll('li.article_item'));
+
+				// Обчислюємо поточну висоту елементів у попередньому .sticker
+				prevArticleItems.forEach(item => {
+					const itemStyle = window.getComputedStyle(item);
+					const itemHeight = item.offsetHeight
+						+ parseFloat(itemStyle.marginTop)
+						+ parseFloat(itemStyle.marginBottom);
+
+					prevTotalItemsHeight += itemHeight;
+				});
+
+				// Перевіряємо, скільки елементів можна додати в попередній .sticker
+				overflowItems = overflowItems.filter(item => {
+					const itemStyle = window.getComputedStyle(item);
+					const itemHeight = item.offsetHeight
+						+ parseFloat(itemStyle.marginTop)
+						+ parseFloat(itemStyle.marginBottom);
+
+					if (prevTotalItemsHeight + itemHeight <= prevMaxHeight) {
+						previousSticker.appendChild(item); // Переносимо елемент у попередній .sticker
+						prevTotalItemsHeight += itemHeight;
+
+
+						return false; // Видаляємо елемент із overflowItems, оскільки він вже переміщений
+					}
+					return true; // Якщо не помістився, залишаємо його в overflowItems
+				});
+			}
+
+			// Якщо все ще залишилися елементи, що не помістилися, створюємо новий .sticker
 			if (overflowItems.length > 0) {
 				const newSticker = document.createElement('div');
+				newSticker.addEventListener("click", hendlers.handleElementEdit)
 				newSticker.classList.add('sticker'); // Додаємо клас sticker
 
 				// Додаємо в новий .sticker всі елементи, що не помістилися
@@ -6375,6 +6500,12 @@ function main() {
 		});
 	}
 
+
+
+
+
+
+
 	// Відстежуємо зміну розміру для кожного елемента .sticker
 	function observeStickers() {
 		const stickers = document.querySelectorAll('.sticker');
@@ -6387,8 +6518,7 @@ function main() {
 		});
 	}
 
-	// Викликаємо функцію для початкового розподілу елементів
-	distributeArticleItems();
+
 
 	// Відстежуємо зміни розміру .sticker
 
