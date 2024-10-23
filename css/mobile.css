@@ -1378,4 +1378,16 @@ button.html5-qrcode-element {
   font-size: 14px;
   font-weight: normal;
   font-style: italic;
+}
+
+@media print {
+  .btn-wraper,
+  .search-wraper,
+  .barcode_select,
+  .select_desc,
+  .barcode-title,
+  .settings_item,
+  #sticker {
+    display: none;
+  }
 }/*# sourceMappingURL=mobile.css.map */

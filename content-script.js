@@ -754,7 +754,7 @@ function main() {
 				alert("Немаєданних для генерації штрихкодів!!!");
 				return;
 			};
-			let barcodes_wrapper = this.parentNode.parentNode;
+			let barcodes_wrapper = this.parentNode.parentNode.parentNode;
 			Object.keys(barcodes_data).forEach(function (item) {
 
 
@@ -976,24 +976,45 @@ function main() {
 
 			editor.value = existingCss.trim(); // Вставляємо CSS у textarea
 
+			// Функція для оновлення або створення тегу <style> з новими правилами
+			function updateStyleSheet(cssRules, targetClass) {
+				let styleElement = document.querySelector('#dynamic-css-styles');
+				if (!styleElement) {
+					styleElement = document.createElement('style');
+					styleElement.id = 'dynamic-css-styles';
+					document.head.appendChild(styleElement);
+				}
+				// Оновлюємо або додаємо нове правило
+				let styleSheet = styleElement.sheet;
+				let ruleIndex = Array.from(styleSheet.cssRules).findIndex(rule => rule.selectorText === `.${targetClass}`);
+				let newRule = `.${targetClass} { ${cssRules} }`;
+				if (ruleIndex !== -1) {
+					styleSheet.deleteRule(ruleIndex);
+				}
+				styleSheet.insertRule(newRule, styleSheet.cssRules.length);
+			}
+
 			// Обробник події вводу в textarea
 			editor.addEventListener('input', function () {
 				let elements = Array.from(document.querySelectorAll(`.${target.className}`));
 				try {
-					// Пробуємо застосувати CSS до цільового елемента або до всіх
+					let cssText = editor.value.trim();
+					// Пробуємо застосувати CSS до всіх елементів і зберегти стилі в <style>
 					if (applyToAll) {
+						updateStyleSheet(cssText, target.className);
 						elements.forEach(function (item) {
-							item.style.cssText += editor.value;
+							item.style.cssText = ''; // Очищаємо інлайн стилі, щоб працювали правила з <style>
 						});
 					} else {
-						target.style.cssText += editor.value;
+						target.style.cssText += cssText;
 					}
 					editor.style.borderColor = ''; // Якщо CSS валідний, знімаємо помилку
 				} catch (error) {
 					editor.style.borderColor = 'red'; // Якщо CSS не валідний, робимо обводку червоною
 				}
 			});
-		},
+		}
+		,
 		set_barcode_params: function () {
 			let id = this.id;
 
@@ -6420,20 +6441,22 @@ function main() {
 	};
 	function distributeArticleItems() {
 		const stickers = Array.from(document.querySelectorAll('.sticker'));
-		stickers.shift();
+
 		stickers.forEach((sticker, index) => {
-			console.log(sticker)
 			let totalItemsHeight = 0;
-			const maxHeight = sticker.clientHeight; // Висота батьківського елемента .sticker
+			const maxHeight = sticker.clientHeight; // Висота стікера
 			const articleItems = Array.from(sticker.querySelectorAll('li.article_item'));
-			if (sticker.childNodes.length == 0) {
+
+			// Видаляємо порожні стікери
+			if (articleItems.length === 0) {
 				sticker.remove();
 				return;
 			}
-			// Масив для збереження елементів, які не помістилися
+
+			// Масив для елементів, які не поміщаються
 			let overflowItems = [];
 
-			// Обчислюємо висоту всіх li.article_item, враховуючи margin, padding, border
+			// Рахуємо висоту і збираємо елементи, які не влізають
 			articleItems.forEach(item => {
 				const itemStyle = window.getComputedStyle(item);
 				const itemHeight = item.offsetHeight
@@ -6443,65 +6466,64 @@ function main() {
 				totalItemsHeight += itemHeight;
 
 				if (totalItemsHeight > maxHeight) {
-					overflowItems.push(item); // Додаємо елемент у масив overflow
-					item.remove(); // Видаляємо з поточного .sticker
+					overflowItems.push(item);
+					item.remove(); // Видаляємо з поточного стікера
 				}
 			});
 
-			// Якщо є попередній .sticker і є елементи, що не помістилися
-			if (index > 0 && overflowItems.length > 0) {
-				const previousSticker = stickers[index - 1];
-				let prevTotalItemsHeight = 0;
-				const prevMaxHeight = previousSticker.clientHeight;
-				const prevArticleItems = Array.from(previousSticker.querySelectorAll('li.article_item'));
-
-				// Обчислюємо поточну висоту елементів у попередньому .sticker
-				prevArticleItems.forEach(item => {
-					const itemStyle = window.getComputedStyle(item);
-					const itemHeight = item.offsetHeight
-						+ parseFloat(itemStyle.marginTop)
-						+ parseFloat(itemStyle.marginBottom);
-
-					prevTotalItemsHeight += itemHeight;
-				});
-
-				// Перевіряємо, скільки елементів можна додати в попередній .sticker
-				overflowItems = overflowItems.filter(item => {
-					const itemStyle = window.getComputedStyle(item);
-					const itemHeight = item.offsetHeight
-						+ parseFloat(itemStyle.marginTop)
-						+ parseFloat(itemStyle.marginBottom);
-
-					if (prevTotalItemsHeight + itemHeight <= prevMaxHeight) {
-						previousSticker.appendChild(item); // Переносимо елемент у попередній .sticker
-						prevTotalItemsHeight += itemHeight;
-
-
-						return false; // Видаляємо елемент із overflowItems, оскільки він вже переміщений
-					}
-					return true; // Якщо не помістився, залишаємо його в overflowItems
-				});
-			}
-
-			// Якщо все ще залишилися елементи, що не помістилися, створюємо новий .sticker
+			// Якщо є елементи, які не помістилися, спробуємо їх помістити в наступний стікер
 			if (overflowItems.length > 0) {
-				const newSticker = document.createElement('div');
-				newSticker.addEventListener("click", hendlers.handleElementEdit)
-				newSticker.classList.add('sticker'); // Додаємо клас sticker
+				// Шукаємо наступний стікер
+				let nextSticker = stickers[index + 1];
 
-				// Додаємо в новий .sticker всі елементи, що не помістилися
-				overflowItems.forEach(item => {
-					newSticker.appendChild(item);
-				});
+				if (nextSticker) {
+					let nextStickerTotalHeight = 0;
+					const nextMaxHeight = nextSticker.clientHeight;
+					const nextArticleItems = Array.from(nextSticker.querySelectorAll('li.article_item'));
 
-				// Додаємо новий .sticker після поточного
-				sticker.parentNode.insertBefore(newSticker, sticker.nextSibling);
+					// Обчислюємо поточну висоту елементів у наступному стікері
+					nextArticleItems.forEach(item => {
+						const itemStyle = window.getComputedStyle(item);
+						const itemHeight = item.offsetHeight
+							+ parseFloat(itemStyle.marginTop)
+							+ parseFloat(itemStyle.marginBottom);
+
+						nextStickerTotalHeight += itemHeight;
+					});
+
+					// Переносимо елементи у наступний стікер, поки є місце
+					overflowItems = overflowItems.filter(item => {
+						const itemStyle = window.getComputedStyle(item);
+						const itemHeight = item.offsetHeight
+							+ parseFloat(itemStyle.marginTop)
+							+ parseFloat(itemStyle.marginBottom);
+
+						if (nextStickerTotalHeight + itemHeight <= nextMaxHeight) {
+							nextSticker.querySelector('ul').appendChild(item);
+							nextStickerTotalHeight += itemHeight;
+							return false; // Видаляємо елемент із переповнення
+						}
+						return true; // Якщо не помістився, залишаємо його в overflowItems
+					});
+				}
+
+				// Якщо після перевірки все ще залишились елементи, які не помістилися, створюємо новий стікер
+				if (overflowItems.length > 0) {
+					const newSticker = document.createElement('div');
+					newSticker.classList.add('sticker');
+					const listWrapper = document.createElement('ul');
+					newSticker.appendChild(listWrapper);
+
+					overflowItems.forEach(item => {
+						listWrapper.appendChild(item);
+					});
+
+					// Додаємо новий стікер після поточного
+					sticker.parentNode.insertBefore(newSticker, sticker.nextSibling);
+				}
 			}
 		});
 	}
-
-
-
 
 
 
@@ -6517,13 +6539,6 @@ function main() {
 			resizeObserver.observe(sticker);
 		});
 	}
-
-
-
-	// Відстежуємо зміни розміру .sticker
-
-
-
 
 	let btnWraper = get.elements(buttons);
 	document.body.appendChild(searchWraper);
