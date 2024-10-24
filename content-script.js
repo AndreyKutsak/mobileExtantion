@@ -873,8 +873,9 @@ function main() {
 
 			// Отримуємо розміри елемента, щоб позиціонувати редактор
 			const targetRect = target.getBoundingClientRect();
-			editorContainer.style.left = `${Math.min(targetRect.left, window.innerWidth - 400)}px`; // Щоб textarea не вийшла за екран
-			editorContainer.style.top = `${Math.min(targetRect.bottom + 10, window.innerHeight - 300)}px`; // Під елементом
+			editorContainer.style.left = `${Math.min(targetRect.left + window.scrollX, window.innerWidth - 400 + window.scrollX)}px`; // Врахування горизонтальної прокрутки
+			editorContainer.style.top = `${Math.min(targetRect.bottom + 10 + window.scrollY, targetRect.top + 300 + window.scrollY)}px`; // Врахування вертикальної прокрутки
+			// Під елементом
 
 			// Стилізація контейнера
 			editorContainer.style.width = '400px';
@@ -1100,20 +1101,7 @@ function main() {
 
 
 
-		generate_barcodes: function (data) {
-			if (!data) {
-				alert("Помилка при генерації кодів");
-				return;
-			};
-			contentWraper.appendChild(get.elements({
-				el: "p",
-				className: "description",
-				text: `Буде надруковано ${Object.keys(data).length * Object.keys(data[Object.keys(data)[1]].length)} стікерів.`
-			}))
 
-
-			contentWraper.appendChild(get.elements(settings_marcup));
-		},
 		show_available_articles: function (categorys, places) {
 			let desc = document.querySelector(".description");
 			let articles = Object.keys(data_base.data.addresses);
@@ -6440,90 +6428,89 @@ function main() {
 		}
 	};
 	function distributeArticleItems() {
+		function create_new_sticker(sticker, items) {
+			let new_sticker = document.createElement('div');
+			new_sticker.className = 'sticker';
+			let list_wrapper = document.createElement('ul');
+			new_sticker.appendChild(list_wrapper);
+			new_sticker.addEventListener('click', hendlers.handleElementEdit);
+			list_wrapper.addEventListener('click', hendlers.handleElementEdit);
+
+			let new_sticker_height = sticker.offsetHeight;
+			let main_inserted_items_height = 0;
+			let remaining_items = [];
+
+			items.forEach(function (item) {
+				let item_height = item.offsetHeight;
+				if (main_inserted_items_height + item_height <= new_sticker_height) {
+					list_wrapper.appendChild(item); // Додаємо елемент в новий стікер
+					main_inserted_items_height += item_height;
+				} else {
+					remaining_items.push(item); // Якщо елемент не вміщується, додаємо до залишкових
+				}
+			});
+
+			sticker.parentNode.insertBefore(new_sticker, sticker.nextElementSibling);
+
+			if (remaining_items.length > 0) {
+				create_new_sticker(new_sticker, remaining_items); // Рекурсія для залишкових елементів
+			}
+		}
+
 		const stickers = Array.from(document.querySelectorAll('.sticker'));
 
-		stickers.forEach((sticker, index) => {
-			let totalItemsHeight = 0;
-			const maxHeight = sticker.clientHeight; // Висота стікера
-			const articleItems = Array.from(sticker.querySelectorAll('li.article_item'));
+		stickers.forEach(function (sticker) {
+			let sticker_height = sticker.offsetHeight - 10;
+			let items = Array.from(sticker.querySelectorAll('li.article_item'));
+			let items_total_height = 0;
+			let overflown_items = [];
 
-			// Видаляємо порожні стікери
-			if (articleItems.length === 0) {
-				sticker.remove();
-				return;
-			}
-
-			// Масив для елементів, які не поміщаються
-			let overflowItems = [];
-
-			// Рахуємо висоту і збираємо елементи, які не влізають
-			articleItems.forEach(item => {
-				const itemStyle = window.getComputedStyle(item);
-				const itemHeight = item.offsetHeight
-					+ parseFloat(itemStyle.marginTop)
-					+ parseFloat(itemStyle.marginBottom);
-
-				totalItemsHeight += itemHeight;
-
-				if (totalItemsHeight > maxHeight) {
-					overflowItems.push(item);
+			items.forEach(function (item) {
+				let item_height = item.offsetHeight;
+				items_total_height += item_height + 1;
+				if (items_total_height > sticker_height) {
+					overflown_items.push(item);
 					item.remove(); // Видаляємо з поточного стікера
 				}
 			});
 
-			// Якщо є елементи, які не помістилися, спробуємо їх помістити в наступний стікер
-			if (overflowItems.length > 0) {
-				// Шукаємо наступний стікер
-				let nextSticker = stickers[index + 1];
+			if (overflown_items.length > 0) {
+				create_new_sticker(sticker, overflown_items); // Створюємо новий стікер з переповненими елементами
+			}
 
-				if (nextSticker) {
-					let nextStickerTotalHeight = 0;
-					const nextMaxHeight = nextSticker.clientHeight;
-					const nextArticleItems = Array.from(nextSticker.querySelectorAll('li.article_item'));
+			// Перевірка на наявність елементів у поточному стікері
+			if (!sticker.querySelector(".goods_list")) {
+				let current_items = Array.from(sticker.querySelectorAll('li'));
+				let prev_sticker = sticker.previousElementSibling;
 
-					// Обчислюємо поточну висоту елементів у наступному стікері
-					nextArticleItems.forEach(item => {
-						const itemStyle = window.getComputedStyle(item);
-						const itemHeight = item.offsetHeight
-							+ parseFloat(itemStyle.marginTop)
-							+ parseFloat(itemStyle.marginBottom);
+				if (prev_sticker) {
+					let prev_sticker_items = Array.from(prev_sticker.querySelectorAll('li'));
+					let prev_sticker_items_total_height = 0;
 
-						nextStickerTotalHeight += itemHeight;
+					prev_sticker_items.forEach(function (prev_item) {
+						let prev_item_height = prev_item.offsetHeight;
+						prev_sticker_items_total_height += prev_item_height;
 					});
 
-					// Переносимо елементи у наступний стікер, поки є місце
-					overflowItems = overflowItems.filter(item => {
-						const itemStyle = window.getComputedStyle(item);
-						const itemHeight = item.offsetHeight
-							+ parseFloat(itemStyle.marginTop)
-							+ parseFloat(itemStyle.marginBottom);
-
-						if (nextStickerTotalHeight + itemHeight <= nextMaxHeight) {
-							nextSticker.querySelector('ul').appendChild(item);
-							nextStickerTotalHeight += itemHeight;
-							return false; // Видаляємо елемент із переповнення
+					current_items.forEach(function (item) {
+						let item_height = item.offsetHeight;
+						if (prev_sticker_items_total_height + item_height <= sticker_height) {
+							prev_sticker.querySelector('ul').appendChild(item);
+							prev_sticker_items_total_height += item_height;
 						}
-						return true; // Якщо не помістився, залишаємо його в overflowItems
-					});
-				}
-
-				// Якщо після перевірки все ще залишились елементи, які не помістилися, створюємо новий стікер
-				if (overflowItems.length > 0) {
-					const newSticker = document.createElement('div');
-					newSticker.classList.add('sticker');
-					const listWrapper = document.createElement('ul');
-					newSticker.appendChild(listWrapper);
-
-					overflowItems.forEach(item => {
-						listWrapper.appendChild(item);
 					});
 
-					// Додаємо новий стікер після поточного
-					sticker.parentNode.insertBefore(newSticker, sticker.nextSibling);
+					// Видаляємо порожній стікер
+					if (!sticker.querySelector('li')) {
+						sticker.remove();
+					}
 				}
 			}
 		});
 	}
+
+
+
 
 
 
