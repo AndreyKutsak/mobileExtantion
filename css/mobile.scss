@@ -1535,6 +1535,9 @@ button.html5-qrcode-element {
   }
 }
 @media print {
+  .wraper {
+    padding: 0;
+  }
   .btn-wraper,
   .search-wraper,
   .barcode_select,
@@ -1542,6 +1545,7 @@ button.html5-qrcode-element {
   .barcode-title,
   .settings_item,
   .select_stilage,
+  #css-editor-container,
   #sticker {
     display: none;
   }

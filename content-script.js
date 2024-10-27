@@ -846,10 +846,10 @@ function main() {
 
 		},
 		handleElementEdit: function (event) {
-			const target = event.target; // Елемент, на якому була подія
-			const existingEditor = document.querySelector('#css-editor-container'); // Шукаємо існуючий редактор
+			const target = event.target;
+			const existingEditor = document.querySelector('#css-editor-container');
 
-			// Якщо клік на тому ж елементі, видаляємо редактор
+			// Якщо існує редактор, видаляємо його
 			if (existingEditor && existingEditor.dataset.target === target.dataset.target) {
 				target.style.backgroundColor = '';
 				existingEditor.remove();
@@ -862,38 +862,33 @@ function main() {
 				existingEditor.remove();
 			}
 
-			// Додаємо легкий червоний фон до елемента
+			// Виділяємо вибраний елемент
 			target.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
 
-			// Створюємо div-обгортку
+			// Створюємо контейнер редактора
 			const editorContainer = document.createElement('div');
 			editorContainer.id = 'css-editor-container';
-			editorContainer.dataset.target = target.className; // Прив'язуємо редактор до цього елемента
-			editorContainer.style.position = 'absolute'; // Позиціонуємо відносно сторінки
+			editorContainer.dataset.target = target.className;
+			editorContainer.style.position = 'absolute';
 
-			// Отримуємо розміри елемента, щоб позиціонувати редактор
 			const targetRect = target.getBoundingClientRect();
-			editorContainer.style.left = `${Math.min(targetRect.left + window.scrollX, window.innerWidth - 400 + window.scrollX)}px`; // Врахування горизонтальної прокрутки
-			editorContainer.style.top = `${Math.min(targetRect.bottom + 10 + window.scrollY, targetRect.top + 300 + window.scrollY)}px`; // Врахування вертикальної прокрутки
-			// Під елементом
+			editorContainer.style.left = `${Math.min(targetRect.left + window.scrollX, window.innerWidth - 400 + window.scrollX)}px`;
+			editorContainer.style.top = `${Math.min(targetRect.bottom + 10 + window.scrollY, targetRect.top + 300 + window.scrollY)}px`;
 
-			// Стилізація контейнера
 			editorContainer.style.width = '400px';
-			editorContainer.style.height = '300px';
+			editorContainer.style.height = '200px';
 			editorContainer.style.backgroundColor = '#2d2d2d';
 			editorContainer.style.border = '1px solid #ccc';
 			editorContainer.style.padding = '10px';
 			editorContainer.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
 			editorContainer.style.borderRadius = '5px';
-			editorContainer.style.resize = 'none'; // Забороняємо стандартне перетягування
-			editorContainer.style.overflow = 'hidden'; // Забороняємо вихід елементів за межі
+			editorContainer.style.overflow = 'hidden';
 
-			// Створюємо <textarea> для редагування CSS
 			const editor = document.createElement('textarea');
 			editor.id = 'css-editor';
 			editor.dataset.target = target.className;
 			editor.style.width = '100%';
-			editor.style.height = '250px';
+			editor.style.height = '150px';
 			editor.style.fontFamily = 'monospace';
 			editor.style.backgroundColor = '#2d2d2d';
 			editor.style.color = '#f8f8f2';
@@ -902,9 +897,9 @@ function main() {
 			editor.style.overflowY = 'auto';
 			editor.style.whiteSpace = 'pre-wrap';
 
-			// Створюємо кнопку для вибору стилізації
 			const applyButton = document.createElement('button');
-			applyButton.textContent = 'Apply to all';
+			applyButton.id = 'css-editor-apply';
+			applyButton.textContent = 'Застосувати до всіх';
 			applyButton.style.position = 'absolute';
 			applyButton.style.bottom = '10px';
 			applyButton.style.right = '10px';
@@ -916,23 +911,10 @@ function main() {
 			applyButton.style.cursor = 'pointer';
 			applyButton.style.fontSize = '12px';
 
-			// Додаємо кнопку до контейнера, а не textarea
 			editorContainer.appendChild(applyButton);
-
-			// Додаємо textarea в контейнер
 			editorContainer.appendChild(editor);
-
-			// Логіка для перемикання кнопки між "Apply to all" і "Apply to one"
-			let applyToAll = true;
-			applyButton.addEventListener('click', () => {
-				applyToAll = !applyToAll;
-				applyButton.textContent = applyToAll ? 'Apply to all' : 'Apply to one';
-			});
-
-			// Додаємо контейнер на сторінку
 			document.body.appendChild(editorContainer);
 
-			// Перетягування контейнера
 			let isDragging = false;
 			let offsetX, offsetY;
 
@@ -957,64 +939,41 @@ function main() {
 				editorContainer.style.cursor = '';
 			});
 
-			// Отримуємо стилі, задані через атрибут style або CSS-файл
-			let existingCss = '';
+			// Отримуємо тільки інлайн стилі
+			let inlineStyles = target.getAttribute('style') ? target.getAttribute('style').replace(/;/g, ';\n') + '\n' : '';
+			editor.value = inlineStyles.trim();
 
-			// 1. Стилі з атрибута style
-			if (target.getAttribute('style')) {
-				existingCss += target.getAttribute('style').replace(/;/g, ';\n') + '\n'; // Форматуємо для textarea
-			}
+			editor.addEventListener("input", function () {
+				const elements = document.querySelectorAll(`.${target.className}`);
+				const applyBtn = document.querySelector("#css-editor-apply")
+				const newStyles = editor.value.trim();
+				if (applyBtn.textContent == "Застосувати до всіх") {
+					elements.forEach((item) => {
+						item.setAttribute('style', newStyles);
+					});
 
-			// 2. Стилі з зовнішнього CSS-файлу (якщо браузер підтримує getMatchedCSSRules)
-			if (window.getMatchedCSSRules) {
-				const matchedRules = window.getMatchedCSSRules(target);
-				if (matchedRules) {
-					for (let rule of matchedRules) {
-						existingCss += rule.cssText.replace(/;/g, ';\n') + '\n'; // Додаємо CSS-правила
-					}
 				}
-			}
+				else if (applyBtn.textContent == "Застосувати до одного") {
+					target.setAttribute('style', newStyles);
 
-			editor.value = existingCss.trim(); // Вставляємо CSS у textarea
-
-			// Функція для оновлення або створення тегу <style> з новими правилами
-			function updateStyleSheet(cssRules, targetClass) {
-				let styleElement = document.querySelector('#dynamic-css-styles');
-				if (!styleElement) {
-					styleElement = document.createElement('style');
-					styleElement.id = 'dynamic-css-styles';
-					document.head.appendChild(styleElement);
-				}
-				// Оновлюємо або додаємо нове правило
-				let styleSheet = styleElement.sheet;
-				let ruleIndex = Array.from(styleSheet.cssRules).findIndex(rule => rule.selectorText === `.${targetClass}`);
-				let newRule = `.${targetClass} { ${cssRules} }`;
-				if (ruleIndex !== -1) {
-					styleSheet.deleteRule(ruleIndex);
-				}
-				styleSheet.insertRule(newRule, styleSheet.cssRules.length);
-			}
-
-			// Обробник події вводу в textarea
-			editor.addEventListener('input', function () {
-				let elements = Array.from(document.querySelectorAll(`.${target.className}`));
-				try {
-					let cssText = editor.value.trim();
-					// Пробуємо застосувати CSS до всіх елементів і зберегти стилі в <style>
-					if (applyToAll) {
-						updateStyleSheet(cssText, target.className);
-						elements.forEach(function (item) {
-							item.style.cssText = ''; // Очищаємо інлайн стилі, щоб працювали правила з <style>
-						});
-					} else {
-						target.style.cssText += cssText;
-					}
-					editor.style.borderColor = ''; // Якщо CSS валідний, знімаємо помилку
-				} catch (error) {
-					editor.style.borderColor = 'red'; // Якщо CSS не валідний, робимо обводку червоною
 				}
 			});
+
+
+
+			// Застосовуємо стилі до всіх елементів з однаковим класом
+			applyButton.addEventListener('click', (e) => {
+				let text = e.target.textContent;
+				if (text == "Застосувати до всіх") {
+					e.target.textContent = "Застосувати до одного";
+				} else {
+					e.target.textContent = "Застосувати до всіх";
+				}
+
+			});
 		}
+
+
 		,
 		set_barcode_params: function () {
 			let id = this.id;
@@ -3187,6 +3146,7 @@ function main() {
 				let prodctionWraper = get.elements({
 					el: "div",
 					className: "production-wraper",
+
 				});
 				data.sort((a, b) => {
 					if (
