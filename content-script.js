@@ -385,6 +385,7 @@ function main() {
 		seal_number: "https://baza.m-p.in.ua/ajax/save_warranty.php",
 		add_coment: "https://baza.m-p.in.ua/ajax/add_comment_order.php",
 		add_goods_comment: "https://baza.m-p.in.ua/ajax/redactAdmComm.php",
+		podrobno: "https://baza.m-p.in.ua/ajax/podrobno_cont.php",
 		bar_code:
 			"https://barcode.tec-it.com/barcode.ashx?code=Code128&multiplebarcodes=false&translate-esc=false&unit=Fit&dpi=96&imagetype=Gif&rotation=0&color=%23000000&bgcolor=%23ffffff&codepage=&qunit=Mm&quiet=2",
 	};
@@ -749,6 +750,36 @@ function main() {
 		},
 	};
 	let hendlers = {
+		get_ending_goods: async function () {
+			generate.preloader({ status: "start" });
+			const production_goods_list = await load.production();
+			const goods_list = [];
+
+			for (let i = 0; i < production_goods_list.length; i++) {
+				generate.preloader({
+					status: "update_status",
+					desc: `${i} / ${Object.keys(production_goods_list).length}`,
+				});
+				if (production_goods_list[i].can_product == "0") { continue; };
+				const search = await load.search({ search: production_goods_list[i].article, search_sell: 0 });
+
+				search.forEach(async function (item) {
+					if (item.article == production_goods_list[i].article) {
+						const min_count = await load.podrobno({ id: item.id, divId: "0" });
+						if (+min_count["Мін."] >= +item.count) {
+							production_goods_list[i].count = item.count;
+							production_goods_list[i].min_count = min_count["Мін."];
+							goods_list.push(production_goods_list[i]);
+						}
+					}
+				})
+
+			}
+			console.log(goods_list);
+			generate.preloader({ status: "end" });
+			contentWraper.appendChild(generate.production(goods_list));
+		},
+
 		show_barcodes: function () {
 			if (!barcodes_data) {
 				alert("Немаєданних для генерації штрихкодів!!!");
@@ -3132,7 +3163,7 @@ function main() {
 			}
 		},
 		production: function (data) {
-			console.log(data);
+
 			if (data.length > 0) {
 				let descNames = [
 					"Назва",
@@ -3146,6 +3177,15 @@ function main() {
 				let prodctionWraper = get.elements({
 					el: "div",
 					className: "production-wraper",
+					children: [
+						{
+							el: "button",
+							className: "production_btn",
+							text: "Товари що закінчуються",
+							event: "click",
+							hendler: hendlers.get_ending_goods,
+						}
+					]
 
 				});
 				data.sort((a, b) => {
@@ -3212,6 +3252,12 @@ function main() {
 												text: item.article,
 											},
 										],
+									},
+									{
+										el: "p",
+										className: "goods_count_desc",
+										text: `Залишок:${item?.count + "шт." ?? " Достатньо"}  Мінімально допустимий Залишок:${item?.min_count + "шт." ?? " Достатньо"}`
+
 									},
 									{
 										el: "div",
@@ -5309,6 +5355,26 @@ function main() {
 				return [];
 			}
 		},
+		podrobno: async function (data) {
+			let item_data = {};
+			let details = await this.fetch({
+				url: url.podrobno,
+				method: "POST",
+				body: data,
+			});
+			let main_data = Array.from(details.querySelectorAll(".detPodrobnoOsn .detPodrobnoOsnDiv"));
+			main_data.forEach((item) => {
+				const regex = /(.*?):\s*(.*)/;
+				const matches = item.textContent.trim().match(regex);
+				if (matches) {
+					item_data[matches[1]] = matches[2];
+				}
+				else {
+					alert("Не вдалося отримати інформацію")
+				}
+			})
+			return item_data;
+		},
 		add_good_comment: function (data) {
 			//let add_result = this.fetch({})
 		},
@@ -5568,6 +5634,8 @@ function main() {
 					let th = Array.from(rows[index - 1].querySelectorAll("td"));
 					let td = Array.from(rows[index].querySelectorAll("td"));
 					let componentRows = Array.from(td[1].querySelectorAll("table tr"));
+
+					let can_producted_count = componentRows[componentRows.length - 2].querySelectorAll("td")[3].textContent.trim();
 					componentRows.shift();
 					componentRows.pop();
 					componentRows.pop();
@@ -5581,6 +5649,7 @@ function main() {
 						"Ще не збережено";
 					rowData.article = th[3].textContent;
 					rowData.img = td[0].querySelector("img").src;
+					rowData.can_product = can_producted_count;
 					rowData.components = componentRows.map((item) => {
 						let obj = {};
 						let componentData = Array.from(item.querySelectorAll("td"));
@@ -5593,6 +5662,7 @@ function main() {
 						obj.count = componentData[3].textContent.trim();
 						obj.availability = componentData[5].textContent.trim();
 						obj.enough = componentData[6].textContent.trim();
+
 						return obj;
 					});
 					this.storage.push(rowData);

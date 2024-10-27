@@ -1047,6 +1047,17 @@ button.html5-qrcode-element {
   }
 
   .production-wraper {
+    .production_btn {
+      background-color: $actionBtnBg;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-family: $headers;
+      font-size: 16px;
+      font-weight: 700;
+      color: $white;
+      text-align: center;
+      margin-bottom: 15px;
+    }
     .production-item-wraper {
       border-radius: 5px;
       background-color: $white;
@@ -1113,6 +1124,12 @@ button.html5-qrcode-element {
           color: $white;
           font-weight: 600;
         }
+      }
+      .goods_count_desc {
+        font-family: $headers;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 15px;
       }
 
       .production-item-place {
