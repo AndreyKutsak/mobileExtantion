@@ -754,15 +754,17 @@ function main() {
 			generate.preloader({ status: "start" });
 			const production_goods_list = await load.production();
 			const goods_list = [];
+			const chcecked_items = {};
 
 			for (let i = 0; i < production_goods_list.length; i++) {
 				generate.preloader({
 					status: "update_status",
 					desc: `${i} / ${Object.keys(production_goods_list).length}`,
 				});
-				if (production_goods_list[i].can_product == "0") { continue; };
+				if (production_goods_list[i].can_product == "0" || chcecked_items[production_goods_list[i].article]) { continue; };
+				chcecked_items[production_goods_list[i].article] = true;
+				console.log(production_goods_list[i]);
 				const search = await load.search({ search: production_goods_list[i].article, search_sell: 0 });
-
 				search.forEach(async function (item) {
 					if (item.article == production_goods_list[i].article) {
 						const min_count = await load.podrobno({ id: item.id, divId: "0" });
