@@ -1830,9 +1830,13 @@ function main() {
 		},
 		fill_cell: function () {
 			let article = this.dataset.article || false;
+			let wrapper = this.parentElement.parentElement.querySelector(".cell-capacity-display");
 			if (article) {
 				if (data_base.data.addresses[article].save_area_count < 0) {
 					data_base.data.addresses[article].save_area_count = 0;
+				};
+				if (data_base.data.addresses[article].real_goods_count < 0) {
+					data_base.data.addresses[article].real_goods_count = 0;
 				}
 				if (
 					data_base.data.addresses[article].last_goods_count > 0 &&
@@ -1892,6 +1896,40 @@ function main() {
 				this.textContent = "Заповнено";
 
 			} console.log(data_base.data.addresses[article]);
+			if (!wrapper) return;
+			wrapper.innerHTML = "";
+			wrapper.appendChild(
+				get.elements({
+					el: "div",
+
+					children: [
+						{
+							el: "p",
+							className: "cell-capacity-desc",
+							text: `Кількість товару в комірці ${data_base.data.addresses[article]?.real_goods_count || 0
+								} шт. з можливих ${data_base.data.addresses[article]?.cell_capacity || 0
+								} шт. В зоні збереження ${data_base.data.addresses[article]?.save_area_count || 0
+								} .шт`,
+						},
+						{
+							el: "p",
+							className: "cell-capacity-bar-wraper",
+							children: [
+								{
+									el: "div",
+									className: "cell-capacity-bar",
+									style: {
+										width: `${get.percent({
+											main: data_base.data.addresses[article]?.cell_capacity || 0,
+											num: data_base.data.addresses[article]?.real_goods_count || 0,
+										})}%`,
+									},
+								},
+							],
+						},
+					],
+				},)
+			)
 
 		},
 		find_empty_cells: function () {
@@ -6072,6 +6110,12 @@ function main() {
 								Number(storage_article.last_goods_count) -
 								Number(storage_article.real_goods_count) || 0;
 						}
+						if (storage_article.real_goods_count < 0) {
+							storage_article.real_goods_count = 0
+						};
+						if (storage_article.save_area_count < 0) {
+							storage_article.save_area_count = 0
+						};
 						data_base.save_data({
 							store_name: "addresses",
 							index_name: "article",
