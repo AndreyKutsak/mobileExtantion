@@ -1442,7 +1442,6 @@ function main() {
 			itemWraper.parentNode.appendChild(itemWraper);
 			data_base.save_data({
 				store_name: arr,
-
 				index_name: "article",
 				request: data_base.data[arr][id],
 			});
@@ -1821,10 +1820,7 @@ function main() {
 				data_base.save_data({
 					store_name: "addresses",
 					index_name: "article",
-					request: {
-						article: article,
-						is_ignored: true,
-					},
+					request: data_base.data.addresses[article]
 				});
 			}
 		},
@@ -1832,6 +1828,7 @@ function main() {
 			let article = this.dataset.article || false;
 			let wrapper = this.parentElement.parentElement.querySelector(".cell-capacity-display");
 			if (article) {
+				console.log(data_base.data.addresses[article], article)
 				if (data_base.data.addresses[article].save_area_count < 0) {
 					data_base.data.addresses[article].save_area_count = 0;
 				};
@@ -4084,6 +4081,17 @@ function main() {
 							request: storage_item_data,
 						})
 					}
+					else if (storage_item_data?.cell_capacity == undefined || storage_item_data.cell_capacity == "" || storage_item_data.cell_capacity == 0 || storage_item_data.cell_capacity < 0) {
+						storage_item_data.save_area_count = item.baseCount.baseCount;
+
+						console.log(storage_item_data.save_area_count)
+						data_base.save_data({
+							store_name: "addresses",
+							article: item.article,
+							index_name: "article",
+							request: storage_item_data,
+						});
+					}
 					if (
 						searchInp !== "" &&
 						searchInp.match(regExp.cell) &&
@@ -4104,7 +4112,7 @@ function main() {
 						index_name: "article",
 						request: storage_item_data,
 					});
-
+					console.log(storage_item_data)
 					let searchItem = get.elements({
 						el: "div",
 						className: "item-wraper",
