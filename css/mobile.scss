@@ -1353,6 +1353,10 @@ button.html5-qrcode-element {
         justify-content: space-between;
         align-items: center;
         padding: 5px 0 35px 0;
+        background-color: #e7e9ff;
+        margin-bottom: 5px;
+        border-radius: 5px;
+        overflow: hidden;
 
         .item-desc {
           font-size: 12px;
@@ -1403,6 +1407,7 @@ button.html5-qrcode-element {
               position: absolute;
               top: -30px;
               right: 0px;
+              min-width: 30px;
               max-width: 150px;
               height: 25px;
               background-color: $actionBtnBg;

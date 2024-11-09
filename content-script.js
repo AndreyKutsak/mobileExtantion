@@ -247,7 +247,8 @@ const data_base = {
 					console.log("Data updated successfully:", event.target.result);
 				};
 			} else {
-				const addRequest = store.add(req.request);
+				console.log(store, req.request);
+				const addRequest = store.put(req.request);
 				addRequest.onerror = function (event) {
 					console.log(event);
 					console.log("Error adding new data:", event.target.error);
@@ -1004,10 +1005,7 @@ function main() {
 				}
 
 			});
-		}
-
-
-		,
+		},
 		set_barcode_params: function () {
 			let id = this.id;
 
@@ -1090,10 +1088,6 @@ function main() {
 				});
 			}
 		},
-
-
-
-
 		show_available_articles: function (categorys, places) {
 			let desc = document.querySelector(".description");
 			let articles = Object.keys(data_base.data.addresses);
@@ -1165,7 +1159,6 @@ function main() {
 			if (!desc.parentElement.querySelector(".check_btn"))
 				desc.parentElement.appendChild(check_btn);
 		},
-
 		database: async function (data) {
 			let db;
 
@@ -1683,17 +1676,22 @@ function main() {
 			});
 		},
 
-		search: function () {
-			let input = this.parentNode.querySelector(".search-inp");
+		search: function (data) {
+			console.log(data)
+			let input = document.querySelector(".search-inp");
 			let wrapper = document.querySelector(".wraper");
 			let random_order_num = Object.keys(data_base.data.orders)[0];
+			if (data) {
+				input.value = data;
+			}
+
 			let is_order_number =
 				input.value[0] !== "0" &&
 				!input.value.includes(".") &&
 				!isNaN(Number(input.value)) &&
 				input.value[0] === random_order_num[0] &&
 				input.value[1] === random_order_num[1];
-			if (input.value.length < 2) {
+			if (input.value.length < 2 && !data) {
 				alert("Довжина пошукового запиту має бути 2-х символів");
 				return;
 			}
@@ -1826,8 +1824,9 @@ function main() {
 		},
 		fill_cell: function () {
 			let article = this.dataset.article || false;
+			let added_count = Number(this.dataset.added_count);
 			let wrapper = this.parentElement.parentElement.querySelector(".cell-capacity-display");
-			if (article) {
+			if (article && article in data_base.data.addresses) {
 				console.log(data_base.data.addresses[article], article)
 				if (data_base.data.addresses[article].save_area_count < 0) {
 					data_base.data.addresses[article].save_area_count = 0;
@@ -1882,6 +1881,32 @@ function main() {
 						Number(data_base.data.addresses[article].last_goods_count) -
 						Number(data_base.data.addresses[article].real_goods_count);
 					console.log("real count = cell capacity");
+				}
+				if (added_count > 0) {
+					let indicator_bar = this.parentNode.querySelector("fill_indicator");
+					let indicator_desc = this.parent.node.querySelector("indicator_desc");
+					if (data_base.data.addresses[article].cell_capacity > 0) {
+						let cell_goods_count = data_base.data.addresses[article].real_goods_count + added_count;
+						if (cell_goods_count > data_base.data.addresses[article].cell_capacity) {
+							data_base.data.addresses[article].real_goods_count = data_base.data.addresses[article].cell_capacity;
+							data_base.data.addresses[article].save_area_count = added_count - (data_base.data.addresses[article].cell_capacity - data_base.data.addresses[article].real_goods_count);
+						} else {
+							data_base.data.addresess[article].real_goods_count = cell_goods_count;
+						}
+
+					};
+					if (!data_base.data.addresses[article].cell_capacity) {
+						data_base.data.addresses[aricle].save_area_count = data_base.data.addresses[article].save_area_count + added_count;
+					};
+					indicator_bar.style.width = `${get.percent({
+						main: data_base.data.addresses[article].real_goods_count,
+						num: data_base.data.addresses[article].cell_capacity
+					})}%`;
+					indicator_desc.textContent = `${data_base.data.addresses[article].real_goods_count}/${data_base.data.addresses[article].cell_capacity}`
+				}
+				else if (!isNaN(added_count)) {
+					this.textContent = "Не додано!";
+					return;
 				}
 
 				data_base.save_data({
@@ -1975,11 +2000,13 @@ function main() {
 								} else if (percent >= 50) {
 									cell_bg = "success";
 								}
-								console.log(cell_bg, percent);
+
 
 								return {
 									el: "li",
 									className: `empty-cell-item ${cell_bg}`,
+									event: "click",
+
 									children: [
 										{
 											el: "p",
@@ -2068,14 +2095,29 @@ function main() {
 				generate.delivery_list(data);
 			});
 		},
-		show_delivery_item: function () {
+		show_delivery_item: function (e) {
+			e.stopPropagation();
+			if (!e.target.classList.contains("delivery-item")) return;
 			let el = this;
-			let item_id = this.dataset.delivery_id;
+			let item_id = el.dataset.delivery_id;
 			let footers = Array.from(document.querySelectorAll(".item-footer"));
 			let item_footer = el.querySelector(".item-footer");
-			footers.forEach((element) => {
-				element.innerHTML = "";
+
+			if (!item_footer) {
+				console.error("Елемент .item-footer не знайдено");
+				return;
+			}
+
+
+			footers.forEach(footer => {
+				footer.innerHTML = "";
 			});
+			if (e.target.classList.contains("active")) {
+
+				return;
+			}
+			el.classList.add("active");
+			// Додаємо прелоадер
 			item_footer.appendChild(
 				get.elements({
 					el: "div",
@@ -2088,14 +2130,23 @@ function main() {
 					],
 				})
 			);
+
+			// Завантаження даних та генерування елементу
 			if (item_id) {
-				load.delivery_item(item_id).then((data) => {
-					generate.delivery_item.call(el, data, generate);
-				});
+				load.delivery_item(item_id)
+					.then(data => {
+						generate.delivery_item.call(el, data, generate);
+					})
+					.catch(error => {
+						console.error("Помилка завантаження елементу:", error);
+						alert("Відбулася помилка під час отримання інформації про прихід");
+					});
 				return;
 			}
-			alert("Відбулася помилдка під час отримання інформації про   прихід");
+
+			alert("Відбулася помилка під час отримання інформації про прихід");
 		},
+
 		import_export_database: function () {
 			contentWraper.innerHTML = "";
 			contentWraper.appendChild(get.elements({
@@ -2273,7 +2324,7 @@ function main() {
 						value: "Пошук",
 						className: "search-send-btn",
 						event: "click",
-						hendler: hendlers.search,
+						hendler: function () { hendlers.search() },
 					},
 				],
 			},
@@ -4072,6 +4123,11 @@ function main() {
 							request: storage_item_data,
 						});
 					};
+					data_base.save_data({
+						store_name: "id",
+						index_name: "id",
+						request: { article: item.article, id: item.id },
+					})
 					if (storage_item_data.cell_capacity !== undefined && storage_item_data.last_goods_count && storage_item_data.real_goods_count !== undefined) {
 						storage_item_data.save_area_count = storage_item_data.last_goods_count - storage_item_data.real_goods_count;
 						data_base.save_data({
@@ -5053,7 +5109,7 @@ function main() {
 						{
 							el: "p",
 							className: "empty-cells-description",
-							text: `Перевірено Замовлень: ${orders.checked_orders} / ${orders.main_orders} | Остання перевірка була о ${data_base.data.settings.last_check.hours}:${data_base.data.settings.last_check.minutes}`,
+							text: `Перевірено Замовлень: ${orders.checked_orders} / ${orders.main_orders} | Остання перевірка була о ${data_base.data.settings.last_check?.hours}:${data_base.data.settings.last_check?.minutes}`,
 						},
 						{
 							el: "p",
@@ -5086,6 +5142,10 @@ function main() {
 								return {
 									el: "li",
 									className: `empty-cell-item ${cell_bg}`,
+									event: "click",
+									hendler: function () {
+										hendlers.search(item);
+									},
 									children: [
 										{
 											el: "p",
@@ -5212,7 +5272,11 @@ function main() {
 			contentWraper.appendChild(delivery_wraper);
 		},
 		delivery_item: function (data) {
+
 			if (data.length > 0) {
+				let item_footer = this.querySelector(".item-footer");
+				item_footer.innerHTML = "";
+				let store = data_base.data;
 				let item_wraper = get.elements({
 					el: "div",
 					className: "item-wraper",
@@ -5246,89 +5310,78 @@ function main() {
 									className: "btn fill_all_cell_btn",
 									text: "Заповнити всі комірки",
 									event: "click",
-									hendler: hendlers.fill_all_cells,
+									hendler: function () {
+										let buttons = Array.from(document.querySelectorAll(".fill_cell_btn"));
+										buttons.forEach(function (button) {
+											if (button.disabled) return;
+											button.click();
+											button.disabled = true;
+										})
+									},
 								},
 							],
 						},
 					],
 				});
-				let item_footer = this.querySelector(".item-footer");
-				item_footer.innerHTML = "";
-				let store = data_base.data;
+				item_footer.appendChild(item_wraper);
 				data.forEach((item) => {
 					let item_article = store?.id[item.id] || 0;
-					Object.keys(data_base.data.addresses).forEach((a) => {
-						if (data_base.data.addresses[a].id !== item.id) return;
-						item_wraper.appendChild(
-							get.elements({
-								el: "div",
-								className: "item",
-								children: [
-									{
-										el: "p",
-										className: "item-desc",
-										text: a,
-									},
-									{
-										el: "p",
-										className: "item-desc",
-										text: item.desc,
-									},
-									{
-										el: "p",
-										className: "item-desc",
-										text: item.place,
-									},
-									{
-										el: "p",
-										className: "item-desc",
-										text: item.count,
-									},
-									{
-										el: "button",
-										className: "btn fill_cell_btn",
-										text: "Заповнити комірку",
 
-										data: [{ article: a }, { added_count: Number(item.count) }],
-										event: "click",
-										hendler: hendlers.fill_cell,
+					item_footer.appendChild(get.elements({
+						el: "div",
+						className: "item",
+						children: [
+							{
+								el: "p", className: "item-desc",
+								text: item_article.article || "не збережено",
+							}, {
+								el: "p", className: "item-desc",
+								text: item.desc,
+							}, {
+								el: "p", className: "item-desc",
+								text: item.place,
+							}, {
+								el: "p",
+								className: "item-desc",
+								text: item.count
+							},
+							{
+								el: "button",
+								className: "btn fill_cell_btn",
+								text: "Заповнити комірку",
+								event: "click",
+								data: [{ article: item_article.article }, { added_count: item.count }],
+								hendler: hendlers.fill_cell
+							},
+							{
+								el: "div",
+								className: "indicator-wrapper",
+								children: [{
+									el: "div",
+									className: "fill-indicator",
+									style: {
+										width: `${get.percent({
+											main: store.addresses[item_article.article]?.cell_capacity || 0,
+											num: store.addresses[item_article.article]?.real_goods_count || 0,
+										})}%`,
 									},
-									{
-										el: "div",
-										className: "indicator-wrapper",
-										children: [
-											{
-												el: "div",
-												className: "fill-indicator",
-												style: {
-													width: `${get.percent({
-														main:
-															store.addresses[item_article]?.cell_capacity || 0,
-														num:
-															store.addresses[item_article]?.real_goods_count ||
-															0,
-													})}%`,
-												},
-												children: [
-													{
-														el: "span",
-														className: "indicator-desc",
-														text: `${store.addresses[item_article]?.real_goods_count ||
-															0
-															} / ${store.addresses[item_article]?.cell_capacity || 0
-															}`,
-													},
-												],
-											},
-										],
-									},
+									children: [{
+										el: "span",
+										className: "indicator-desc",
+										text: `${store.addresses[item_article.article]?.real_goods_count || 0} / ${store.addresses[item_article.article]?.cell_capacity || 0
+											}`
+									}]
+								}
+
 								],
-							})
-						);
-					});
+
+							}
+						]
+
+					}));
 				});
-				console.log(item_wraper);
-				item_footer.appendChild(item_wraper);
+
+
 				return;
 			}
 			this.message("Немає інформації про прихід");
@@ -5956,7 +6009,7 @@ function main() {
 							let cell_name = data.textContent.trim();
 							let str = data.getAttribute("title") || null;
 							let articles;
-							let place = `${zoneKey}-${stilageItem}.${cell_name}`.trim();
+							let place = `${zoneKey} - ${stilageItem}.${cell_name}`.trim();
 							if (str !== null) {
 								articles = str.match(new RegExp(regExp.article, "gim"));
 							}
@@ -6623,5 +6676,5 @@ function main() {
 	generate.requestCount();
 	generate.tasksCount();
 	check_last_check();
-	console.log(data_base.data)
+
 }
