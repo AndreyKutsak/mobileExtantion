@@ -34,7 +34,8 @@
 			],
 			"css": [
 				"css/mobile.css"
-			]
+			],
+			"type": "module"
 		}
 	],
 	"manifest_version": 3

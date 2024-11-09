@@ -5345,6 +5345,7 @@ function main() {
 			qrbox: 250,
 		});
 
+
 		let lastResult,
 			countResults = 0;
 		function onScanSuccess(decodedText) {
@@ -5368,6 +5369,10 @@ function main() {
 			barcodeDisplayWraper.classList.add("hide-barcode");
 			return;
 		}
+		html5QrcodeScanner.applyVideoConstraints(
+			{
+				advanced: [{ torch: false }]
+			});
 		barcodeDisplayWraper.classList.remove("hide-barcode");
 		barCodeSearch.dataset.scaning = "true";
 	}
