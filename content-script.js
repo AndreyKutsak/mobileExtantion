@@ -1883,24 +1883,24 @@ function main() {
 					console.log("real count = cell capacity");
 				}
 				if (added_count > 0) {
-					let indicator_bar = this.parentNode.querySelector("fill_indicator");
-					let indicator_desc = this.parent.node.querySelector("indicator_desc");
+					let indicator_bar = this.parentNode.querySelector(".fill-indicator");
+					let indicator_desc = this.parentNode.querySelector(".indicator-desc");
 					if (data_base.data.addresses[article].cell_capacity > 0) {
 						let cell_goods_count = data_base.data.addresses[article].real_goods_count + added_count;
 						if (cell_goods_count > data_base.data.addresses[article].cell_capacity) {
 							data_base.data.addresses[article].real_goods_count = data_base.data.addresses[article].cell_capacity;
 							data_base.data.addresses[article].save_area_count = added_count - (data_base.data.addresses[article].cell_capacity - data_base.data.addresses[article].real_goods_count);
 						} else {
-							data_base.data.addresess[article].real_goods_count = cell_goods_count;
+							data_base.data.addresses[article].real_goods_count = cell_goods_count;
 						}
 
 					};
 					if (!data_base.data.addresses[article].cell_capacity) {
-						data_base.data.addresses[aricle].save_area_count = data_base.data.addresses[article].save_area_count + added_count;
+						data_base.data.addresses[article].save_area_count = data_base.data.addresses[article].save_area_count + added_count;
 					};
 					indicator_bar.style.width = `${get.percent({
-						main: data_base.data.addresses[article].real_goods_count,
-						num: data_base.data.addresses[article].cell_capacity
+						num: data_base.data.addresses[article].real_goods_count,
+						main: data_base.data.addresses[article].cell_capacity
 					})}%`;
 					indicator_desc.textContent = `${data_base.data.addresses[article].real_goods_count}/${data_base.data.addresses[article].cell_capacity}`
 				}
@@ -2113,7 +2113,7 @@ function main() {
 				footer.innerHTML = "";
 			});
 			if (e.target.classList.contains("active")) {
-
+				e.target.classList.remove("active")
 				return;
 			}
 			el.classList.add("active");
@@ -2288,8 +2288,10 @@ function main() {
 		className: "main-search-wraper",
 		children: [
 			{
-				el: "div",
+				el: "form",
 				className: "search-wraper",
+				event: "submit",
+				hendler: function (e) { e.preventDefault(); hendlers.search() },
 				children: [
 					{
 						el: "input",
@@ -4123,12 +4125,13 @@ function main() {
 							request: storage_item_data,
 						});
 					};
+					data_base.data.id[item.article] = item.id;;
 					data_base.save_data({
 						store_name: "id",
 						index_name: "id",
 						request: { article: item.article, id: item.id },
 					})
-					if (storage_item_data.cell_capacity !== undefined && storage_item_data.last_goods_count && storage_item_data.real_goods_count !== undefined) {
+					if (storage_item_data.cell_capacity !== undefined && storage_item_data.last_goods_count !== undefined && storage_item_data.real_goods_count !== undefined) {
 						storage_item_data.save_area_count = storage_item_data.last_goods_count - storage_item_data.real_goods_count;
 						data_base.save_data({
 							store_name: "addresses",
@@ -6676,5 +6679,5 @@ function main() {
 	generate.requestCount();
 	generate.tasksCount();
 	check_last_check();
-
+	console.log(data_base.data)
 }
