@@ -1822,7 +1822,7 @@ function main() {
 				});
 			}
 		},
-		fill_cell: function () {
+		fill_cell: async function () {
 			let article = this.dataset.article || false;
 			let added_count = Number(this.dataset.added_count);
 			let wrapper = this.parentElement.parentElement.querySelector(".cell-capacity-display");
@@ -1882,22 +1882,28 @@ function main() {
 						Number(data_base.data.addresses[article].real_goods_count);
 					console.log("real count = cell capacity");
 				}
-				if (added_count > 0) {
+				if (added_count > 0 && data_base.data.addresses[article].cell_capacity > 0) {
 					let indicator_bar = this.parentNode.querySelector(".fill-indicator");
 					let indicator_desc = this.parentNode.querySelector(".indicator-desc");
-					if (data_base.data.addresses[article].cell_capacity > 0) {
-						let cell_goods_count = data_base.data.addresses[article].real_goods_count + added_count;
-						if (cell_goods_count > data_base.data.addresses[article].cell_capacity) {
-							data_base.data.addresses[article].real_goods_count = data_base.data.addresses[article].cell_capacity;
-							data_base.data.addresses[article].save_area_count = added_count - (data_base.data.addresses[article].cell_capacity - data_base.data.addresses[article].real_goods_count);
-						} else {
-							data_base.data.addresses[article].real_goods_count = cell_goods_count;
+					let search_query = await load.search({
+						search: String(data_base.data.addresses[article].article),
+						search_sell: 0
+					});
+					search_query.forEach((item) => {
+						if (item.article == data_base.data.addresses[article].article) {
+							data_base.data.addresses[article].last_goods_count = item.count;
+							if (data_base.data.addresses[article].cell_capacity < item.count) {
+								data_base.data.addresses[article].real_goods_count = data_base.data.addresses[article].cell_capacity;
+								data_base.data.addresses[article].save_area_count = item.count - data_base.data.addresses[article].cell_capacity;
+							}
+							else {
+								data_base.data.addresses[article].real_goods_count = item.count;
+								data_base.data.addresses[article].save_area_count = 0;
+							};
+							this.parentElement.style = "background-color: #96efc6;";
+							console.log(data_base.data.addresses[article].article + "filed");
 						}
-
-					};
-					if (!data_base.data.addresses[article].cell_capacity) {
-						data_base.data.addresses[article].save_area_count = data_base.data.addresses[article].save_area_count + added_count;
-					};
+					})
 					indicator_bar.style.width = `${get.percent({
 						num: data_base.data.addresses[article].real_goods_count,
 						main: data_base.data.addresses[article].cell_capacity
