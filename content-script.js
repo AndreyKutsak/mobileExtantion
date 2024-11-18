@@ -13,13 +13,7 @@ window.addEventListener("load", () => {
 	children.forEach((child) => {
 		child.remove();
 	});
-	data_base
-		.init()
-		.then()
-		.catch(function (error) {
-			console.error(error);
-			alert("Виникла помилка під час ініціалізації бази данних ");
-		});
+	data_base.init();
 });
 const data_base = {
 	db_name: "data_base",
@@ -93,9 +87,19 @@ const data_base = {
 			};
 			request.onsuccess = function (event) {
 				data_base.db = event.target.result;
-				data_base.init_data().then(function () {
-					main();
-				});
+
+
+
+				// Завантаження даних виконується асинхронно
+				data_base.init_data()
+					.then(() => {
+						main();
+						console.log("Дані успішно завантажено");
+					})
+					.catch((error) => {
+						console.error("Помилка під час завантаження даних:", error);
+					});
+
 				resolve(event);
 			};
 			request.onupgradeneeded = function (event) {
@@ -106,9 +110,7 @@ const data_base = {
 							const store = event.target.result.createObjectStore(store_item, {
 								keyPath: data_base.params[store_item].keyPath,
 							});
-							const index_list = Object.keys(
-								data_base.params[store_item].index
-							);
+							const index_list = Object.keys(data_base.params[store_item].index);
 							if (index_list.length > 0) {
 								index_list.forEach(function (index_item) {
 									store.createIndex(index_item, index_item, {
@@ -125,6 +127,7 @@ const data_base = {
 			};
 		});
 	},
+
 	save_all: function () {
 		const transaction = data_base.db.transaction(
 			Object.keys(data_base.data),
@@ -1825,6 +1828,7 @@ function main() {
 		fill_cell: async function () {
 			let article = this.dataset.article || false;
 			let added_count = Number(this.dataset.added_count);
+			let delivery_id = this.dataset.delivery_id;
 			let wrapper = this.parentElement.parentElement.querySelector(".cell-capacity-display");
 			if (article && article in data_base.data.addresses) {
 				console.log(data_base.data.addresses[article], article)
@@ -2311,6 +2315,7 @@ function main() {
 					{
 						el: "button",
 						className: "bar-code-search-btn",
+						type: "button",
 						event: "click",
 						hendler: barcodeRecognition,
 						data: [
@@ -2331,7 +2336,7 @@ function main() {
 						type: "submit",
 						value: "Пошук",
 						className: "search-send-btn",
-						event: "click",
+						event: "submit",
 						hendler: function () { hendlers.search() },
 					},
 				],
@@ -5323,6 +5328,8 @@ function main() {
 										let buttons = Array.from(document.querySelectorAll(".fill_cell_btn"));
 										buttons.forEach(function (button) {
 											if (button.disabled) return;
+											let nakl_num = button.parentElement.parentElement.parentElement.dataset.delivery_id || false;
+											button.dataset.delivery_id = nakl_num;
 											button.click();
 											button.disabled = true;
 										})
