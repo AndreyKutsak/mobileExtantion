@@ -1227,11 +1227,11 @@ function main() {
 			await deliveries_table(data);
 		},
 		remove_elaboration_item: function () {
-			let date = this.dataset.date;
+			let date = this.dataset.date.trim();
 			let el = this.parentNode;
 			console.log(date);
 			data_base
-				.delete_item({ store_name: "elaborations", request: date })
+				.delete_item({ store_name: "elaborations", request: date, index_name: "date" })
 				.then(function () {
 					delete data_base.data.elaborations[date];
 					el.remove();
