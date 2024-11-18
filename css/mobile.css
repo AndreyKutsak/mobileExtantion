@@ -1282,6 +1282,15 @@ button.html5-qrcode-element {
 .delivery-wraper .delivery-item .item-footer .item-header {
   font-weight: 600;
 }
+.delivery-wraper .added {
+  background-color: #b9ffea;
+}
+.delivery-wraper .procesed {
+  background-color: #fbffe7;
+}
+.delivery-wraper .not_added {
+  background-color: #ffdfdf;
+}
 
 .elaborations-list-wrapper .list-item {
   background-color: #fff;

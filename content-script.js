@@ -5244,10 +5244,11 @@ function main() {
 				],
 			});
 			data.forEach((item) => {
+
 				delivery_wraper.appendChild(
 					get.elements({
 						el: "div",
-						className: "delivery-item",
+						className: `delivery-item ${item.status}`,
 						event: "click",
 						data: [{ delivery_id: item.delivery_id }],
 						hendler: hendlers.show_delivery_item,
@@ -6253,6 +6254,17 @@ function main() {
 				data.delivery_id = item.children[0].textContent.trim();
 				data.delivery_provider = item.children[3].textContent.trim();
 				data.delivery_date = item.children[4].textContent.trim();
+
+				if (item.children[1].style.backgroundColor == "rgb(155, 247, 253)") {
+					data.status = "added";
+				}
+				else if (item.children[1].style.backgroundColor == "rgb(251, 248, 3)") {
+					data.status = "processed";
+				}
+				else if (item.children[1].style.backgroundColor == "rgb(255, 169, 171)") {
+					data.status = "not_added";
+				}
+
 				this.storage.push(data);
 			});
 			return this.storage;
