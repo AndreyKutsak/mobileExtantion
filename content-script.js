@@ -3881,132 +3881,131 @@ function main() {
 			return generate.message("Сталася помилка під час отримання інформації.");
 		},
 		compare: function () {
+			console.log(data_base.data.compareArray)
 			contentWraper.innerHTML = "";
 			let compareWraper = get.elements({
 				el: "div",
 				className: "compare-wraper",
 			});
 			if (Object.keys(data_base.data.compareArray).length > 0) {
-				Object.keys(data_base.data.compareArray)
-					.reverse()
-					.forEach((item) => {
-						let difference =
-							data_base.data.compareArray[item].count.realCount -
-							(data_base.data.compareArray[item].count.baseCount +
-								data_base.data.compareArray[item].count.orderCount);
-						let isProcesed = { text: "Обробити" };
-						if (data_base.data.compareArray[item].isProcesed) {
-							isProcesed.class = "success";
-							isProcesed.text = "Оброблено";
+				Object.keys(Object.fromEntries(Object.entries(data_base.data.compareArray).sort((a, b) => a[1].isProcesed - b[1].isProcesed))).forEach((item) => {
+					let difference =
+						data_base.data.compareArray[item].count.realCount -
+						(data_base.data.compareArray[item].count.baseCount +
+							data_base.data.compareArray[item].count.orderCount);
+					let isProcesed = { text: "Обробити" };
+					if (data_base.data.compareArray[item].isProcesed) {
+						isProcesed.class = "success";
+						isProcesed.text = "Оброблено";
+					}
+					function drawDifference() {
+						if (difference <= 0) {
+							return { backgroundColor: "rgb(253, 184, 184)" };
 						}
-						function drawDifference() {
-							if (difference <= 0) {
-								return { backgroundColor: "rgb(253, 184, 184)" };
-							}
-							if (item.isProcesed) {
-								return { backgroundColor: "#c2edc2" };
-							}
+						if (item.isProcesed) {
+							return { backgroundColor: "#c2edc2" };
 						}
-						let compareItem = get.elements({
-							el: "div",
-							className: `compare-item ${isProcesed.class}`,
-							style: drawDifference(),
-							children: [
-								{
-									el: "button",
-									className: "del-btn btn",
-									event: "click",
-									hendler: hendlers.removeItem,
-									data: [{ article: item }, { arr: "compareArray" }],
-									children: [
-										{
-											el: "img",
-											src: get.url(src.ico.recycle),
-											alt: "Видалити Елемент",
-										},
-									],
-								},
-								{
-									el: "a",
-									className: "item-image-link",
-									href: data_base.data.compareArray[item].photoLG,
-									event: "click",
-									hendler: hendlers.showImage,
-									children: [
-										{
-											el: "img",
-											className: "item-image",
-											src: data_base.data.compareArray[item].photo,
-										},
-									],
-								},
-								{
-									el: "div",
-									className: "item-text-wraper",
-									style: drawDifference(),
-									children: [
-										{
-											el: "p",
-											className: "compare-time",
-											text: `${data_base.data.compareArray[item].addingDate.day
-												}.${data_base.data.compareArray[item].addingDate.month}.${data_base.data.compareArray[item].addingDate.year
-												}   ${data_base.data.compareArray[item].addingDate.hours
-												}:${data_base.data.compareArray[item].addingDate.minutes
-												}:${data_base.data.compareArray[item].addingDate.seconds
-												}| ${data_base.data.addresses[item]?.place ??
-												"Ще не Збережено"
-												}`,
-										},
-										{
-											el: "div",
-											className: "item-count",
-											children: [
-												{
-													el: "p",
-													className: "item-count",
-													text: `По базі: ${data_base.data.compareArray[item].count.baseCount}`,
-												},
-												{
-													el: "p",
-													className: "item-count",
-													text: `Резерв: ${data_base.data.compareArray[item].count.orderCount}`,
-												},
-												{
-													el: "p",
-													className: "item-count",
-													text: `Всього: ${data_base.data.compareArray[item].count.realCount}`,
-												},
-												{
-													el: "p",
-													className: "item-count",
-													text: `Різниця: ${difference}`,
-												},
-											],
-										},
-										{
-											el: "p",
-											className: "item-article",
-											text: item,
-										},
-										{
-											el: "p",
-											className: "item-head",
-											text: data_base.data.compareArray[item].head,
-										},
-										{
-											el: "button",
-											className: "procesed-btn",
-											text: isProcesed.text,
-											data: [{ article: item }, { arr: "compareArray" }],
-											event: "click",
-											hendler: hendlers.procesed,
-										},
-									],
-								},
-							],
-						});
-						compareWraper.appendChild(compareItem);
+					}
+					let compareItem = get.elements({
+						el: "div",
+						className: `compare-item ${isProcesed.class}`,
+						style: drawDifference(),
+						children: [
+							{
+								el: "button",
+								className: "del-btn btn",
+								event: "click",
+								hendler: hendlers.removeItem,
+								data: [{ article: item }, { arr: "compareArray" }],
+								children: [
+									{
+										el: "img",
+										src: get.url(src.ico.recycle),
+										alt: "Видалити Елемент",
+									},
+								],
+							},
+							{
+								el: "a",
+								className: "item-image-link",
+								href: data_base.data.compareArray[item].photoLG,
+								event: "click",
+								hendler: hendlers.showImage,
+								children: [
+									{
+										el: "img",
+										className: "item-image",
+										src: data_base.data.compareArray[item].photo,
+									},
+								],
+							},
+							{
+								el: "div",
+								className: "item-text-wraper",
+								style: drawDifference(),
+								children: [
+									{
+										el: "p",
+										className: "compare-time",
+										text: `${data_base.data.compareArray[item].addingDate.day
+											}.${data_base.data.compareArray[item].addingDate.month}.${data_base.data.compareArray[item].addingDate.year
+											}   ${data_base.data.compareArray[item].addingDate.hours
+											}:${data_base.data.compareArray[item].addingDate.minutes
+											}:${data_base.data.compareArray[item].addingDate.seconds
+											}| ${data_base.data.addresses[item]?.place ??
+											"Ще не Збережено"
+											}`,
+									},
+									{
+										el: "div",
+										className: "item-count",
+										children: [
+											{
+												el: "p",
+												className: "item-count",
+												text: `По базі: ${data_base.data.compareArray[item].count.baseCount}`,
+											},
+											{
+												el: "p",
+												className: "item-count",
+												text: `Резерв: ${data_base.data.compareArray[item].count.orderCount}`,
+											},
+											{
+												el: "p",
+												className: "item-count",
+												text: `Всього: ${data_base.data.compareArray[item].count.realCount}`,
+											},
+											{
+												el: "p",
+												className: "item-count",
+												text: `Різниця: ${difference}`,
+											},
+										],
+									},
+									{
+										el: "p",
+										className: "item-article",
+										text: item,
+									},
+									{
+										el: "p",
+										className: "item-head",
+										text: data_base.data.compareArray[item].head,
+									},
+									{
+										el: "button",
+										className: "procesed-btn",
+										text: isProcesed.text,
+										data: [{ article: item }, { arr: "compareArray" }],
+										event: "click",
+										hendler: hendlers.procesed,
+									},
+								],
+							},
+						],
 					});
+					compareWraper.appendChild(compareItem);
+				});
 				return compareWraper;
 			}
 
@@ -4018,8 +4017,7 @@ function main() {
 					el: "div",
 					className: "list-wraper",
 				});
-				Object.keys(data_base.data.listArray)
-					.reverse()
+				Object.keys(Object.fromEntries(Object.entries(data_base.data.listArray).sort((a, b) => a[1].isProcesed - b[1].isProcesed)))
 					.forEach((item) => {
 						let isProcesedText = "Обробити",
 							isProcesedClass = ``;
