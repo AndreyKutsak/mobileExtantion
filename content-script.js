@@ -4140,26 +4140,7 @@ function main() {
 						index_name: "id",
 						request: { article: item.article, id: item.id },
 					})
-					if (storage_item_data.cell_capacity !== undefined && storage_item_data.last_goods_count !== undefined && storage_item_data.real_goods_count !== undefined) {
-						storage_item_data.save_area_count = storage_item_data.last_goods_count - storage_item_data.real_goods_count;
-						data_base.save_data({
-							store_name: "addresses",
-							article: item.article,
-							index_name: "article",
-							request: storage_item_data,
-						})
-					}
-					else if (storage_item_data?.cell_capacity == undefined || storage_item_data.cell_capacity == "" || storage_item_data.cell_capacity == 0 || storage_item_data.cell_capacity < 0) {
-						storage_item_data.save_area_count = item.baseCount.baseCount;
 
-						console.log(storage_item_data.save_area_count)
-						data_base.save_data({
-							store_name: "addresses",
-							article: item.article,
-							index_name: "article",
-							request: storage_item_data,
-						});
-					}
 					if (
 						searchInp !== "" &&
 						searchInp.match(regExp.cell) &&
@@ -4180,6 +4161,26 @@ function main() {
 						index_name: "article",
 						request: storage_item_data,
 					});
+					if (storage_item_data.cell_capacity !== undefined && storage_item_data.last_goods_count !== undefined && storage_item_data.real_goods_count !== undefined) {
+						storage_item_data.save_area_count = storage_item_data.last_goods_count - storage_item_data.real_goods_count;
+						data_base.save_data({
+							store_name: "addresses",
+							article: item.article,
+							index_name: "article",
+							request: storage_item_data,
+						})
+					}
+					else if (storage_item_data?.cell_capacity == undefined || storage_item_data.cell_capacity == "" || storage_item_data.cell_capacity == 0 || storage_item_data.cell_capacity < 0) {
+						storage_item_data.save_area_count = item.baseCount.baseCount;
+
+						console.log(storage_item_data.save_area_count)
+						data_base.save_data({
+							store_name: "addresses",
+							article: item.article,
+							index_name: "article",
+							request: storage_item_data,
+						});
+					}
 					console.log(storage_item_data)
 					let searchItem = get.elements({
 						el: "div",
