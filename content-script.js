@@ -1683,7 +1683,7 @@ function main() {
 			console.log(data)
 			let input = document.querySelector(".search-inp");
 			let wrapper = document.querySelector(".wraper");
-			let random_order_num = Object.keys(data_base.data.orders)[0];
+			let random_order_num = Object.keys(data_base.data.orders)[0].trim();
 			if (data) {
 				input.value = data;
 			}
@@ -1692,9 +1692,9 @@ function main() {
 				input.value[0] !== "0" &&
 				!input.value.includes(".") &&
 				!isNaN(Number(input.value)) &&
-				input.value[0] === random_order_num[0] &&
-				input.value[1] === random_order_num[1];
-			if (input.value.length < 2 && !data) {
+				input.value.trim()[0] === random_order_num[0] &&
+				input.value.trim()[1] === random_order_num[1];
+			if (input.value.trim().length < 2 && !data) {
 				alert("Довжина пошукового запиту має бути 2-х символів");
 				return;
 			}
