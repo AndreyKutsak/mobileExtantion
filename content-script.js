@@ -3741,6 +3741,7 @@ function main() {
 			});
 			if (data.length > 0) {
 				data.forEach((item) => {
+					if (Array.isArray(item)) return;
 					order_id = item.order_id;
 					let options_inp = [];
 					let seal_number = item.seal_number || "";
@@ -5674,6 +5675,8 @@ function main() {
 				body: { id: data.id },
 			});
 			let rows = Array.from(order.querySelectorAll("table tr"));
+			let comment_list = [];
+			let comment_wrapper = Array.from(order.querySelectorAll(`#comments${data.id} table tr `));
 			rows.shift();
 			rows.forEach((item) => {
 				let td = Array.from(item.querySelectorAll("td"));
@@ -5705,6 +5708,7 @@ function main() {
 					let seal_params;
 					let base_quantity_div = td[2].querySelectorAll("div")[4];
 					let base_quantity = 0;
+
 					if (is_need_seal && is_need_seal.id.includes("warranty")) {
 						seal_number = is_need_seal.value;
 						seal_params = get.params_for_seal(
@@ -5733,9 +5737,22 @@ function main() {
 					rowData.price = td[5].textContent.trim();
 
 					this.storage.push(rowData);
-				}
-			});
 
+				}
+
+			});
+			comment_wrapper.forEach((comment) => {
+				let comment_data = {};
+				let comment_divs = comment.querySelectorAll("div");
+				if (comment_divs.length < 3) return;
+				comment_data.whom = comment_divs[0]?.textContent?.trim() || false;
+				comment_data.time = comment_divs[1]?.textContent?.trim() || false;
+				comment_data.type = comment_divs[4]?.querySelector("option")?.textContent?.trim() || false;
+				comment_data.comment = comment_divs[3]?.textContent?.trim() || false;
+				comment_list.push(comment_data);
+			})
+			this.storage.push(comment_list);
+			console.log(this.storage)
 			return this.storage;
 		},
 		production: async function () {
