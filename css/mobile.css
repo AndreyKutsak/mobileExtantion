@@ -947,6 +947,38 @@ button.html5-qrcode-element {
   border-radius: 5px;
   color: #fff;
 }
+.wraper .orders-wraper .order-row .row-footer .order-wraper .comments_wrapper {
+  padding: 10px 5px;
+  background-color: #d1d1d1;
+}
+.wraper .orders-wraper .order-row .row-footer .order-wraper .comments_wrapper .comment_item {
+  margin-bottom: 10px;
+  border-radius: 5px;
+  width: 100%;
+  padding: 10px;
+  background-color: #fff;
+}
+.wraper .orders-wraper .order-row .row-footer .order-wraper .comments_wrapper .comment_item .comment_creator,
+.wraper .orders-wraper .order-row .row-footer .order-wraper .comments_wrapper .comment_item .comment_text {
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.wraper .orders-wraper .order-row .row-footer .order-wraper .comments_wrapper .comment_item .comment_text {
+  overflow: hidden;
+  width: 98%;
+  margin: 0 auto;
+  background-color: #d1d2d3;
+}
+.wraper .orders-wraper .order-row .row-footer .order-wraper .comments_wrapper .comment_item .comment_type {
+  display: inline-block;
+  margin: 0 5px;
+  padding: 3px;
+  border-radius: 2px;
+  font-weight: bold;
+  background-color: #f5c0c0;
+}
 .wraper .orders-wraper .order-row .row-footer .order-wraper .order_comment_form {
   position: relative;
   width: 100%;

@@ -3849,7 +3849,6 @@ function main() {
 				});
 				data.forEach((item) => {
 					if (!Array.isArray(item)) return;
-
 					orderWraper.appendChild(get.elements({
 						el: "div",
 						className: "comments_wrapper",

@@ -781,6 +781,7 @@ button.html5-qrcode-element {
               }
             }
           }
+
           .order_comment_form {
             position: relative;
             width: 100%;
@@ -1036,6 +1037,38 @@ button.html5-qrcode-element {
                 padding: 5px;
                 border-radius: 5px;
                 color: $white;
+              }
+            }
+          }
+          .comments_wrapper {
+            padding: 10px 5px;
+            background-color: #d1d1d1;
+            .comment_item {
+              margin-bottom: 10px;
+              border-radius: 5px;
+              width: 100%;
+              padding: 10px;
+              background-color: $white;
+              .comment_creator,
+              .comment_text {
+                padding: 5px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              }
+              .comment_text {
+                overflow: hidden;
+                width: 98%;
+                margin: 0 auto;
+                background-color: #d1d2d3;
+              }
+              .comment_type {
+                display: inline-block;
+                margin: 0 5px;
+                padding: 3px;
+                border-radius: 2px;
+                font-weight: bold;
+                background-color: #f5c0c0;
               }
             }
           }
