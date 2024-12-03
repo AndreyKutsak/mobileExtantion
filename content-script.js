@@ -3845,7 +3845,41 @@ function main() {
 						],
 					});
 					orderWraper.appendChild(orderItem);
+
 				});
+				data.forEach((item) => {
+					if (!Array.isArray(item)) return;
+
+					orderWraper.appendChild(get.elements({
+						el: "div",
+						className: "comments_wrapper",
+						children: item.map((comment) => {
+							return {
+								el: "div",
+								className: "comment_item",
+								children: [{
+									el: "p",
+									className: "comment_creator",
+									text: comment.whom,
+									children: [{
+										el: "span",
+										className: "comment_time",
+										text: comment.time
+									}]
+								}, {
+									el: "p",
+									className: "comment_text",
+									text: comment.comment,
+									children: [{
+										el: "span",
+										className: "comment_type",
+										text: comment.type
+									}]
+								}]
+							}
+						})
+					}))
+				})
 				orderWraper.appendChild(
 					get.elements({
 						el: "form",
@@ -6170,69 +6204,74 @@ function main() {
 					let response = await load.order({ id: order_id });
 
 					response.forEach((item) => {
-						if (item.questionsCount >= 0) {
-							return;
-						}
-						let article = item.articleAndPlace.article;
-						console.log(article);
-						let storage_article = stored_data.addresses[article];
-						let quantity = item.quantity.match(regExp.num)[0];
-						if (
-							storage_article == null ||
-							storage_article == undefined ||
-							storage_article.cell_capacity == 0 ||
-							storage_article.cell_capacity == undefined
-						) {
-							console.log(
-								`${article} комірку або ще не заповено або відбулася помилка`
-							);
-							return;
-						}
-						if (
-							storage_article.save_area_count == undefined ||
-							storage_article.save_area_count == null
-						) {
-							storage_article.save_area_count = 0;
-						}
-						if (
-							storage_article.save_area_count != undefined &&
-							quantity >= storage_article?.cell_capacity
-						) {
-							storage_article.save_area_count =
-								Number(storage_article.save_area_count) - Number(quantity);
-						}
-						storage_article.last_goods_count = item.base_quantity;
-						if (storage_article.real_goods_count) {
-							storage_article.real_goods_count =
-								Number(storage_article.real_goods_count) - Number(quantity);
-							storage_article.save_area_count =
-								Number(storage_article.last_goods_count) -
-								Number(storage_article.real_goods_count) || 0;
-						}
-						if (storage_article.real_goods_count < 0) {
-							storage_article.real_goods_count = 0
-						};
-						if (storage_article.save_area_count < 0) {
-							storage_article.save_area_count = 0
-						};
-						data_base.save_data({
-							store_name: "addresses",
-							index_name: "article",
-							article: article,
-							request: storage_article,
-						});
-						console.log(stored_data.orders[order_id]);
-						console.log(stored_data.orders[order_id].order_num);
-						data_base.save_data({
-							store_name: "history",
-							index_name: "id",
-							id: `${stored_data.orders[order_id].order_num}:/${article}`,
-							request: {
-								id: `${stored_data.orders[order_id].order_num}:/${article}`,
+						try {
+							if (item.questionsCount >= 0) {
+								return;
+							}
+							let article = item.articleAndPlace.article;
+							console.log(article);
+							let storage_article = stored_data.addresses[article];
+							let quantity = item.quantity.match(regExp.num)[0];
+							if (
+								storage_article == null ||
+								storage_article == undefined ||
+								storage_article.cell_capacity == 0 ||
+								storage_article.cell_capacity == undefined
+							) {
+								console.log(
+									`${article} комірку або ще не заповено або відбулася помилка`
+								);
+								return;
+							}
+							if (
+								storage_article.save_area_count == undefined ||
+								storage_article.save_area_count == null
+							) {
+								storage_article.save_area_count = 0;
+							}
+							if (
+								storage_article.save_area_count != undefined &&
+								quantity >= storage_article?.cell_capacity
+							) {
+								storage_article.save_area_count =
+									Number(storage_article.save_area_count) - Number(quantity);
+							}
+							storage_article.last_goods_count = item.base_quantity;
+							if (storage_article.real_goods_count) {
+								storage_article.real_goods_count =
+									Number(storage_article.real_goods_count) - Number(quantity);
+								storage_article.save_area_count =
+									Number(storage_article.last_goods_count) -
+									Number(storage_article.real_goods_count) || 0;
+							}
+							if (storage_article.real_goods_count < 0) {
+								storage_article.real_goods_count = 0
+							};
+							if (storage_article.save_area_count < 0) {
+								storage_article.save_area_count = 0
+							};
+							data_base.save_data({
+								store_name: "addresses",
+								index_name: "article",
 								article: article,
-								quantity: quantity,
-							},
-						});
+								request: storage_article,
+							});
+							console.log(stored_data.orders[order_id]);
+							console.log(stored_data.orders[order_id].order_num);
+							data_base.save_data({
+								store_name: "history",
+								index_name: "id",
+								id: `${stored_data.orders[order_id].order_num}:/${article}`,
+								request: {
+									id: `${stored_data.orders[order_id].order_num}:/${article}`,
+									article: article,
+									quantity: quantity,
+								},
+							});
+						} catch (e) {
+							console.warn(e);
+							alert("Сталася помилка під час обробки замовленнь");
+						}
 					});
 					stored_data.orders[order_id].is_new = false;
 					data_base.save_data({

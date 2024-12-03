@@ -683,6 +683,23 @@ button.html5-qrcode-element {
   border-radius: 5px;
   color: #fff;
 }
+.wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .comments_wrapper {
+  padding: 10px 5px;
+  background-color: #d7ebf7;
+}
+.wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .comments_wrapper .comment_item {
+  margin-bottom: 10px;
+  border-radius: 5px;
+  width: 100%;
+  padding: 10px;
+  background-color: #fff;
+}
+.wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .comments_wrapper .comment_item .comment_creator,
+.wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .comments_wrapper .comment_item .comment_text {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 .wraper .elaboration-wraper .table-wraper .item-footer .order-wraper .order_comment_form {
   position: relative;
   width: 100%;

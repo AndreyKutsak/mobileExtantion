@@ -764,6 +764,23 @@ button.html5-qrcode-element {
               }
             }
           }
+          .comments_wrapper {
+            padding: 10px 5px;
+            background-color: #d7ebf7;
+            .comment_item {
+              margin-bottom: 10px;
+              border-radius: 5px;
+              width: 100%;
+              padding: 10px;
+              background-color: $white;
+              .comment_creator,
+              .comment_text {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              }
+            }
+          }
           .order_comment_form {
             position: relative;
             width: 100%;
