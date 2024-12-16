@@ -799,7 +799,7 @@ function main() {
         alert("Немаєданних для генерації штрихкодів!!!");
         return;
       }
-      let barcodes_wrapper = this.parentNode.parentNode.parentNode;
+      let barcodes_wrapper = document.querySelector(".sticker_list_wrapper");
       Object.keys(barcodes_data).forEach(function (item) {
         barcodes_data[item].forEach(function (cell) {
           if (!cell?.cell) {
@@ -1631,19 +1631,16 @@ function main() {
             0;
             data.user_answer = elaborationInp.value;
             data.delay = delay;
-            data.id = `${get.date().year}.${get.date().month}.${
-              get.date().day
-            }.${get.date().hours}:${get.date().minutes}:${get.date().seconds}`;
-            data.date = `${get.date().year}.${get.date().month}.${
-              get.date().day
-            }.${get.date().hours}:${get.date().minutes}:${get.date().seconds}`;
+            data.id = `${get.date().year}.${get.date().month}.${get.date().day
+              }.${get.date().hours}:${get.date().minutes}:${get.date().seconds}`;
+            data.date = `${get.date().year}.${get.date().month}.${get.date().day
+              }.${get.date().hours}:${get.date().minutes}:${get.date().seconds}`;
 
             data_base.save_data({
               store_name: "elaborations",
               index_name: "date",
-              date: `${get.date().year}.${get.date().month}.${get.date().day}.${
-                get.date().hours
-              }:${get.date().minutes}:${get.date().seconds}`,
+              date: `${get.date().year}.${get.date().month}.${get.date().day}.${get.date().hours
+                }:${get.date().minutes}:${get.date().seconds}`,
               request: data,
             });
           } else {
@@ -1915,7 +1912,7 @@ function main() {
           console.log("save_area_count 0");
         } else if (
           data_base.data.addresses[article].cell_capacity -
-            data_base.data.addresses[article].real_goods_count >
+          data_base.data.addresses[article].real_goods_count >
           data_base.data.addresses[article].save_area_count
         ) {
           data_base.data.addresses[article].real_goods_count =
@@ -1987,13 +1984,10 @@ function main() {
             {
               el: "p",
               className: "cell-capacity-desc",
-              text: `Кількість товару в комірці ${
-                data_base.data.addresses[article]?.real_goods_count || 0
-              } шт. з можливих ${
-                data_base.data.addresses[article]?.cell_capacity || 0
-              } шт. В зоні збереження ${
-                data_base.data.addresses[article]?.save_area_count || 0
-              } .шт`,
+              text: `Кількість товару в комірці ${data_base.data.addresses[article]?.real_goods_count || 0
+                } шт. з можливих ${data_base.data.addresses[article]?.cell_capacity || 0
+                } шт. В зоні збереження ${data_base.data.addresses[article]?.save_area_count || 0
+                } .шт`,
             },
             {
               el: "p",
@@ -2138,7 +2132,7 @@ function main() {
         if (
           address.real_goods_count < address.cell_capacity / 2 ||
           +address.cell_capacity - +address.real_goods_count >
-            +address.save_area_count
+          +address.save_area_count
         ) {
           empty_cells.push(item);
         }
@@ -2592,8 +2586,8 @@ function main() {
                     name: stilage_data[1].textContent,
                   };
                 });
-
-                contentWraper.appendChild(
+                let barcode_container = document.querySelector(".main-barcode_wrapper");
+                barcode_container.appendChild(
                   get.elements({
                     el: "div",
                     className: "select_barcode_stilage",
@@ -2674,9 +2668,8 @@ function main() {
                               return {
                                 goods_list: goods_list,
                                 cell: cell,
-                                cell_number: `${zone_name}-${
-                                  event.target.value
-                                }.${item.textContent.trim()}`,
+                                cell_number: `${zone_name}-${event.target.value
+                                  }.${item.textContent.trim()}`,
                               };
                             });
                             console.log(
@@ -2729,10 +2722,15 @@ function main() {
                 }
                 return { el: "option", text: name, value: name };
               }),
-            },
+            }
           ],
         })
       );
+      contentWraper.appendChild(get.elements({
+        el: "div",
+        className: "sticker_list_wrapper",
+
+      }));
     },
     deliveries_table_excel: function (data) {
       let a = get.elements({
@@ -3275,9 +3273,8 @@ function main() {
                     children: [
                       {
                         el: "span",
-                        text: `${item?.time?.hours ?? "00"}:${
-                          item?.time?.minutes ?? "00"
-                        }`,
+                        text: `${item?.time?.hours ?? "00"}:${item?.time?.minutes ?? "00"
+                          }`,
                       },
                     ],
                   },
@@ -3288,9 +3285,8 @@ function main() {
                     children: [
                       {
                         el: "span",
-                        text: `${item?.delay?.hours ?? "00"}:${
-                          item?.delay?.minutes ?? "00"
-                        }`,
+                        text: `${item?.delay?.hours ?? "00"}:${item?.delay?.minutes ?? "00"
+                          }`,
                       },
                     ],
                   },
@@ -3478,11 +3474,9 @@ function main() {
                   {
                     el: "p",
                     className: "goods_count_desc",
-                    text: `Залишок:${
-                      item?.count + "шт." ?? " Достатньо"
-                    }  Мінімально допустимий Залишок:${
-                      item?.min_count + "шт." ?? " Достатньо"
-                    }`,
+                    text: `Залишок:${item?.count + "шт." ?? " Достатньо"
+                      }  Мінімально допустимий Залишок:${item?.min_count + "шт." ?? " Достатньо"
+                      }`,
                   },
                   {
                     el: "div",
@@ -4119,17 +4113,12 @@ function main() {
                   {
                     el: "p",
                     className: "compare-time",
-                    text: `${
-                      data_base.data.compareArray[item].addingDate.day
-                    }.${data_base.data.compareArray[item].addingDate.month}.${
-                      data_base.data.compareArray[item].addingDate.year
-                    }   ${data_base.data.compareArray[item].addingDate.hours}:${
-                      data_base.data.compareArray[item].addingDate.minutes
-                    }:${
-                      data_base.data.compareArray[item].addingDate.seconds
-                    }| ${
-                      data_base.data.addresses[item]?.place ?? "Ще не Збережено"
-                    }`,
+                    text: `${data_base.data.compareArray[item].addingDate.day
+                      }.${data_base.data.compareArray[item].addingDate.month}.${data_base.data.compareArray[item].addingDate.year
+                      }   ${data_base.data.compareArray[item].addingDate.hours}:${data_base.data.compareArray[item].addingDate.minutes
+                      }:${data_base.data.compareArray[item].addingDate.seconds
+                      }| ${data_base.data.addresses[item]?.place ?? "Ще не Збережено"
+                      }`,
                   },
                   {
                     el: "div",
@@ -4242,15 +4231,11 @@ function main() {
                   {
                     el: "p",
                     className: "desc date-desc",
-                    text: `${data_base.data.listArray[item].addingDate.day}.${
-                      data_base.data.listArray[item].addingDate.month
-                    }.${data_base.data.listArray[item].addingDate.year}  ${
-                      data_base.data.listArray[item].addingDate.hours
-                    }:${data_base.data.listArray[item].addingDate.minutes}:${
-                      data_base.data.listArray[item].addingDate.seconds
-                    }|${
-                      data_base.data.addresses[item]?.place ?? "Ще не Збережено"
-                    } `,
+                    text: `${data_base.data.listArray[item].addingDate.day}.${data_base.data.listArray[item].addingDate.month
+                      }.${data_base.data.listArray[item].addingDate.year}  ${data_base.data.listArray[item].addingDate.hours
+                      }:${data_base.data.listArray[item].addingDate.minutes}:${data_base.data.listArray[item].addingDate.seconds
+                      }|${data_base.data.addresses[item]?.place ?? "Ще не Збережено"
+                      } `,
                   },
                   {
                     el: "p",
@@ -4401,9 +4386,8 @@ function main() {
               {
                 el: "div",
                 className: "item-place danger",
-                text: `Місце: ${
-                  storage_item_data?.place ?? "Ще не збережено"
-                } |  Cell: ${storage_item_data?.cell ?? "Ще не збережено"}`,
+                text: `Місце: ${storage_item_data?.place ?? "Ще не збережено"
+                  } |  Cell: ${storage_item_data?.cell ?? "Ще не збережено"}`,
               },
               {
                 el: "div",
@@ -4464,13 +4448,10 @@ function main() {
                   {
                     el: "p",
                     className: "cell-capacity-desc",
-                    text: `Кількість товару в комірці ${
-                      storage_item_data?.real_goods_count || 0
-                    } шт. з можливих ${
-                      storage_item_data?.cell_capacity || 0
-                    } шт. В зоні збереження ${
-                      storage_item_data?.save_area_count || 0
-                    } .шт`,
+                    text: `Кількість товару в комірці ${storage_item_data?.real_goods_count || 0
+                      } шт. з можливих ${storage_item_data?.cell_capacity || 0
+                      } шт. В зоні збереження ${storage_item_data?.save_area_count || 0
+                      } .шт`,
                   },
                   {
                     el: "p",
@@ -4798,9 +4779,8 @@ function main() {
                   {
                     el: "p",
                     className: "table-text",
-                    text: `${item.time.hours || "00"}:${
-                      item.time.minutes || "00"
-                    }`,
+                    text: `${item.time.hours || "00"}:${item.time.minutes || "00"
+                      }`,
                   },
                 ],
               },
@@ -5188,16 +5168,14 @@ function main() {
             {
               el: "div",
               className: "history-item saved-articles",
-              text: `Збережено Артикулів: ${
-                Object.keys(data_base.data.addresses).length
-              }`,
+              text: `Збережено Артикулів: ${Object.keys(data_base.data.addresses).length
+                }`,
             },
             {
               el: "div",
               className: "history-item elaboration",
-              text: `Відбито Уточнень: ${
-                Object.keys(data_base.data?.elaborations).length
-              }(${today_elaboration_count})`,
+              text: `Відбито Уточнень: ${Object.keys(data_base.data?.elaborations).length
+                }(${today_elaboration_count})`,
               event: "click",
               hendler: generate.elaborations_list,
             },
@@ -5225,9 +5203,8 @@ function main() {
             {
               el: "div",
               className: "history-item get_cells",
-              text: `Отримати ID товаів збережено ${
-                Object.keys(data_base.data?.id || {}).length
-              }/${Object.keys(data_base.data?.addresses).length}`,
+              text: `Отримати ID товаів збережено ${Object.keys(data_base.data?.id || {}).length
+                }/${Object.keys(data_base.data?.addresses).length}`,
               event: "click",
               hendler: hendlers.get_id,
             },
@@ -5603,13 +5580,11 @@ function main() {
                         {
                           el: "span",
                           className: "indicator-desc",
-                          text: `${
-                            store.addresses[item_article.article]
-                              ?.real_goods_count || 0
-                          } / ${
-                            store.addresses[item_article.article]
+                          text: `${store.addresses[item_article.article]
+                            ?.real_goods_count || 0
+                            } / ${store.addresses[item_article.article]
                               ?.cell_capacity || 0
-                          }`,
+                            }`,
                         },
                       ],
                     },
@@ -6115,7 +6090,7 @@ function main() {
               let images = Array.from(
                 search
                   .querySelectorAll(".detImg")
-                  [index].querySelectorAll("img")
+                [index].querySelectorAll("img")
               );
 
               let imgSrc = [];
@@ -6433,7 +6408,7 @@ function main() {
                   Number(storage_article.real_goods_count) - Number(quantity);
                 storage_article.save_area_count =
                   Number(storage_article.last_goods_count) -
-                    Number(storage_article.real_goods_count) || 0;
+                  Number(storage_article.real_goods_count) || 0;
               }
               if (storage_article.real_goods_count < 0) {
                 storage_article.real_goods_count = 0;
@@ -6555,9 +6530,8 @@ function main() {
       for (const art of articlesList) {
         generate.preloader({
           status: "update_status",
-          desc: `Processing article: ${art}  ${
-            articlesList.indexOf(art) + 1
-          } / ${articlesList.length}`,
+          desc: `Processing article: ${art}  ${articlesList.indexOf(art) + 1
+            } / ${articlesList.length}`,
         });
 
         let averageAmount = 0,
