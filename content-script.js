@@ -6,6 +6,14 @@ window.addEventListener("load", () => {
 `;
   let loginInp = document.querySelector("#loginB1");
   if (loginInp !== null) {
+    let btn = document.querySelector("button");
+    btn.addEventListener("click", function (event) {
+      let login = loginInp.value;
+      password = document.querySelector("#passB1").value;
+      let loginData = { login: login, password: password };
+      localStorage.setItem("loginData", JSON.stringify(loginData));
+    })
+
     return false;
   }
   // remove all elements from body
@@ -82,8 +90,14 @@ const data_base = {
     return new Promise(function (resolve, reject) {
       const request = indexedDB.open(data_base.db_name, 1);
       request.onerror = function (event) {
+        console.log(event);
         console.log("Error: " + event.target.errorCode);
         reject(event.target.errorCode);
+      };
+      request.onblocked = function (event) {
+        console.warn("Database upgrade is blocked because another tab is using an older version.");
+        // Можна повідомити користувача або закрити інші вкладки
+        alert("Please close other tabs using this website to proceed with the update.");
       };
       request.onsuccess = function (event) {
         data_base.db = event.target.result;
@@ -370,6 +384,12 @@ const data_base = {
 };
 
 function main() {
+  let loginData = JSON.parse(localStorage.getItem("loginData"));
+  if (!loginData) {
+    alert("Залогінся!!!");
+    return;
+  }
+
   let url = {
     baza: "https://baza.m-p.in.ua/ajax/magaz.php",
     elaborations: "https://baza.m-p.in.ua/ajax/loadElaboration.php",
@@ -394,6 +414,12 @@ function main() {
     podrobno: "https://baza.m-p.in.ua/ajax/podrobno_cont.php",
     bar_code:
       "https://barcode.tec-it.com/barcode.ashx?code=Code128&multiplebarcodes=false&translate-esc=false&unit=Fit&dpi=96&imagetype=Gif&rotation=0&color=%23000000&bgcolor=%23ffffff&codepage=&qunit=Mm&quiet=2",
+    API: {
+      baza: "https://baza.m-p.in.ua/API/magaz.php",
+      search: "https://baza.m-p.in.ua/API/search.php",
+      reserve: "https://baza.m-p.in.ua/API/podrRezerv.php",
+      elaborations: "https://baza.m-p.in.ua/API/loadElaboration.php",
+    }
   };
 
   //regulars expression
@@ -1532,7 +1558,7 @@ function main() {
         children: [
           {
             el: "img",
-            src: `https://baza.m-p.in.ua${imgURL}`,
+            src: imgURL,
           },
         ],
       });
@@ -1651,12 +1677,12 @@ function main() {
     elaborationSearch: function () {
       let inp = document.querySelector(".search-inp");
       let searchBtn = document.querySelector(".search-send-btn");
-      inp.value = get.elaborationArtice(this.textContent);
+      inp.value = this.dataset.article;
       searchBtn.click();
       inp.value = "";
     },
     elaborationOrder: function () {
-      let orderId = get.orderId(this.textContent);
+      let orderId = this.dataset.id;
       let elaborationFooter =
         this.parentNode.parentNode.querySelector(".item-footer");
       if (elaborationFooter.classList.contains("active-order")) {
@@ -1672,7 +1698,7 @@ function main() {
         elaborationFooter.appendChild(generate.order(data));
       });
     },
-    elaborationReserve: function () {
+    elaborationReserve: async function () {
       let id = this.dataset.id;
       let footer =
         this.parentElement.parentElement.querySelector(".item-footer");
@@ -1682,12 +1708,17 @@ function main() {
         footer.classList.toggle("active-reserve");
         return;
       }
-      let reserve = load.reserve({ id: id });
-      footer.classList.toggle("active-reserve");
-
-      reserve.then((reserve) => {
-        footer.appendChild(generate.reserve(reserve));
+      let reserve = await load.fetch({
+        url: url.API.reserve,
+        method: "POST",
+        body: {
+          id: id,
+          login: loginData.login, pass: loginData.password
+        }
       });
+      console.log(reserve)
+      footer.classList.toggle("active-reserve");
+      footer.appendChild(generate.reserve(reserve));
     },
     elaborationSales: function () {
       let id = this.dataset.id;
@@ -1722,17 +1753,22 @@ function main() {
       console.log(data);
       let input = document.querySelector(".search-inp");
       let wrapper = document.querySelector(".wraper");
-      let random_order_num = Object.keys(data_base.data.orders)[0].trim();
+      let random_order_num;
+      let is_order_number = false;
+      if (Object.keys(data_base.data.orders).length > 0) {
+        random_order_num = Object.keys(data_base.data.orders)[0];
+        is_order_number =
+          input.value[0] !== "0" &&
+          !input.value.includes(".") &&
+          !isNaN(Number(input.value)) &&
+          input.value.trim()[0] === random_order_num[0] &&
+          input.value.trim()[1] === random_order_num[1];
+      }
       if (data) {
         input.value = data;
       }
 
-      let is_order_number =
-        input.value[0] !== "0" &&
-        !input.value.includes(".") &&
-        !isNaN(Number(input.value)) &&
-        input.value.trim()[0] === random_order_num[0] &&
-        input.value.trim()[1] === random_order_num[1];
+
       if (input.value.trim().length < 2 && !data) {
         alert("Довжина пошукового запиту має бути 2-х символів");
         return;
@@ -3194,6 +3230,7 @@ function main() {
       });
       return element;
     },
+
     elaborations_list: function () {
       let item_count = 1;
       contentWraper.innerHTML = "";
@@ -3541,7 +3578,7 @@ function main() {
       }
     },
     reserve: function (data) {
-      if (data.length > 0) {
+      if (data.reservations && data.reservations.length > 0) {
         let = reserveWraper = get.elements({
           el: "div",
           className: "reserve-wraper wraper",
@@ -3564,7 +3601,7 @@ function main() {
                   {
                     el: "p",
                     className: "row-desc",
-                    text: element.id,
+                    text: element.goods_reserv_history_id,
                   },
                 ],
               },
@@ -3580,7 +3617,7 @@ function main() {
                   {
                     el: "p",
                     className: "row-desc",
-                    text: element.storage,
+                    text: element.warehouses_name,
                   },
                 ],
               },
@@ -3596,7 +3633,7 @@ function main() {
                   {
                     el: "p",
                     className: "row-desc",
-                    text: element.count,
+                    text: element.goods_reserv_history_quantity,
                   },
                 ],
               },
@@ -3612,7 +3649,7 @@ function main() {
                   {
                     el: "p",
                     className: "row-desc",
-                    text: element.time,
+                    text: element.reservName,
                   },
                 ],
               },
@@ -3622,7 +3659,7 @@ function main() {
         });
         return reserveWraper;
       }
-      return generate.message("Немає резервів.");
+      return generate.message(data.error);
     },
     sales: function (data) {
       if (data.length > 0) {
@@ -4699,6 +4736,7 @@ function main() {
     },
     elaborations: function (data) {
       generate.preloader({ status: "end" });
+      console.log(data)
       if (data.length > 0) {
         let elaborationWraper = get.elements({
           el: "div",
@@ -4733,7 +4771,10 @@ function main() {
                     className: "table-text",
                     event: "click",
                     hendler: hendlers.elaborationOrder,
-                    text: item.order,
+                    data: [
+                      { id: item.order.id }
+                    ],
+                    text: `ID:${item.order.id} Номер:${item.order.number}`,
                   },
                 ],
               },
@@ -4762,8 +4803,11 @@ function main() {
                     el: "p",
                     className: "table-text",
                     event: "click",
+                    data: [
+                      { article: item.article },
+                    ],
                     hendler: hendlers.elaborationSearch,
-                    text: item.positionName,
+                    text: `${item.positionName} (${item.article})`,
                   },
                 ],
               },
@@ -4779,7 +4823,7 @@ function main() {
                   {
                     el: "p",
                     className: "table-text",
-                    text: `${item.time.hours || "00"}:${item.time.minutes || "00"
+                    text: `${item.time
                       }`,
                   },
                 ],
@@ -4828,7 +4872,7 @@ function main() {
                   {
                     el: "p",
                     className: "table-text",
-                    text: item.quantity,
+                    text: `По базі: ${item.count.baseCount} В замовленні: ${item.count.orderCount}`,
                   },
                 ],
               },
@@ -4844,7 +4888,7 @@ function main() {
                   {
                     el: "p",
                     className: "table-text",
-                    text: String(item.count.orderCount),
+                    text: String(item.count.reservedCount),
                   },
                 ],
               },
@@ -4869,14 +4913,14 @@ function main() {
                         data: [{ count: item.count.baseCount }],
                         event: "input",
                         hendler: hendlers.checkAnswer,
-                        id: `elaborationInput${get.orderId(item.order)}`,
+                        id: `elaborationInput${item.order.id}`,
                       },
                       {
                         el: "button",
                         className: "send-btn",
                         event: "click",
                         data: [
-                          { order: get.orderId(item.order) },
+                          { order: item.order.id },
                           { count: item.count.baseCount },
                         ],
                         hendler: function () {
@@ -4906,12 +4950,12 @@ function main() {
                   {
                     el: "div",
                     className: "image-wraper",
-                    children: item.imagesSrc.map((source, index) => {
+                    children: item.imageSm.map((source, index) => {
                       return {
                         el: "a",
                         event: "click",
                         hendler: hendlers.showImage,
-                        href: item.imageLink[index],
+                        href: item.imageLg[index],
                         children: [{ el: "img", src: source }],
                       };
                     }),
@@ -5083,17 +5127,16 @@ function main() {
       load.requestCount().then((data) => {
         let elaborationCounter = document.querySelector(".elabortion-count");
         let questionCounter = document.querySelector(".question-count");
-        countData.questions = data[0].questionsCount;
-        countData.elaboration = data[0].elaborationsCount;
-        if (countData.elaboration !== null && countData.elaboration > 0) {
+        console.log(data)
+        if (data.elaboration !== null && data.elaboration > 0) {
           elaborationCounter.style.display = "block";
-          elaborationCounter.textContent = countData.elaboration;
+          elaborationCounter.textContent = data.elaboration;
         } else {
           elaborationCounter.style.display = "none";
         }
-        if (countData.questions !== null && countData.questions > 0) {
+        if (data.new_goods_questions !== null && data.new_goods_questions > 0) {
           questionCounter.style.display = "block";
-          questionCounter.textContent = countData.questions;
+          questionCounter.textContent = data.new_goods_questions;
         } else {
           questionCounter.style.display = "none";
         }
@@ -5657,6 +5700,12 @@ function main() {
 
         const res = await response.text();
         try {
+          return JSON.parse(res);
+
+        } catch (err) {
+          console.log(err);
+        }
+        try {
           return get.parser(res);
         } catch (parseError) {
           console.error("Parsing error:", parseError);
@@ -6009,127 +6058,78 @@ function main() {
       return this.storage;
     },
     requestCount: async function () {
-      this.storage = [];
-      let requests = { questionsCount: 0, elaborationsCount: 0 };
 
-      const requestCount = await this.fetch({
-        url: url.baza,
+      let request = await this.fetch({
+        url: url.API.baza,
+        body: { login: loginData.login, pass: loginData.password },
         method: "POST",
       });
 
-      let divs = Array.from(requestCount.querySelectorAll("div"));
-
-      divs.forEach((item) => {
-        let questionCount = item.textContent.match(regExp.question);
-        let elaborationsCount = item.textContent.match(regExp.elaboration);
-        if (questionCount !== null) {
-          requests.questionsCount = questionCount[1];
-        }
-        if (elaborationsCount !== null) {
-          requests.elaborationsCount = elaborationsCount[1];
-        }
-      });
-
-      if (divs.length == 0) {
-        console.log(divs.length);
+      if (request.error) {
+        alert(request.error);
         this.logOut();
         return;
       }
-
-      this.storage.push(requests);
-      return this.storage;
+      return request;
     },
     elaborations: async function (data) {
-      this.storage = [];
+      let storage = [];
       const elaborations = await this.fetch({
-        url: url.elaborations,
+        url: url.API.elaborations,
         method: "POST",
+        body: {
+          login: loginData.login,
+          pass: loginData.password
+        }
       });
-      const rows = Array.from(elaborations.querySelectorAll("table tbody tr"));
-      let elaboarations_count = rows.length - 1;
-      let loaded_elaborations_count = 0;
-      let sortByPlace = (a, b) => {
-        let placeA = a.place.toUpperCase();
-        let placeB = b.place.toUpperCase();
-        if (placeA < placeB) return -1;
-        if (placeA > placeB) return 1;
-        return 0;
-      };
-      rows.shift();
-      const elaborationsList = await Promise.all(
-        rows.map(async (data) => {
-          let elaborationData = {};
-          let cell = Array.from(data.querySelectorAll("td"));
-          elaborationData.order = cell[0].textContent.trim();
-          elaborationData.manager = cell[1].textContent.trim();
-          elaborationData.positionName = cell[2].textContent.trim();
-          elaborationData.place = cell[3].textContent.trim();
-          elaborationData.type = cell[4].textContent.trim();
-          elaborationData.quantity = cell[5].textContent.trim();
-          elaborationData.time = get.elaboration_time(
-            cell[1].querySelector("span").title
-          );
-          elaborationData.search = get.elaborationArtice(
-            cell[2].textContent.trim()
-          );
 
-          const search = await load.fetch({
-            url: url.search,
+      if (elaborations.total_elaborations > 0 && elaborations.elaborations.length > 0) {
+        for (const elaboration of elaborations.elaborations) {
+          const item = {};
+          const searchReq = await load.fetch({
+            url: url.API.search,
             method: "POST",
-            body: { search: elaborationData.search, search_sel: "0" },
-          });
-
-          const result = Array.from(search.querySelectorAll(".detDivTitle"));
-          result.forEach((item, index) => {
-            if (
-              get.article(item.textContent.trim()).article ===
-              elaborationData.search
-            ) {
-              loaded_elaborations_count++;
-              let countData = search.querySelectorAll(".detPr")[index];
-              let images = Array.from(
-                search
-                  .querySelectorAll(".detImg")
-                [index].querySelectorAll("img")
-              );
-
-              let imgSrc = [];
-              let imgLink = [];
-              images.forEach((img) => {
-                if (!img.parentNode.classList.contains("detImg")) {
-                  return;
-                }
-                imgSrc.push(img.getAttribute("rel"));
-                imgLink.push(img.alt);
-              });
-              elaborationData.goodId = get.article(item.textContent.trim()).id;
-              elaborationData.imagesSrc = imgSrc;
-              elaborationData.imageLink = imgLink;
-              elaborationData.count = get.goodsCount(
-                countData.textContent.trim()
-              );
-              generate.preloader({
-                status: "update_status",
-                desc:
-                  "Завантажено: " +
-                  loaded_elaborations_count +
-                  "/" +
-                  elaboarations_count,
-                percent: get.percent({
-                  num: loaded_elaborations_count,
-                  main: elaboarations_count,
-                }),
-              });
+            body: {
+              login: loginData.login,
+              pass: loginData.password,
+              search: elaboration.goods_id,
+              search_sel: 4,
             }
           });
-          return elaborationData;
-        })
-      );
-      elaborationsList.sort(sortByPlace);
-      this.storage = elaborationsList;
-      console.log(this.storage);
-      return this.storage;
+
+          const reservReq = await load.fetch({
+            url: url.API.reserve,
+            method: "POST",
+            body: {
+              login: loginData.login,
+              pass: loginData.password,
+              id: elaboration.goods_id
+            }
+          });
+
+          item.goodId = elaboration.goods_id;
+          item.order = { id: elaboration.orders_id, number: elaboration.orders_name };
+          item.manager = elaboration.question_baza_login_name;
+          item.positionName = elaboration.goods_name;
+          item.time = elaboration.question_elaboration_time_text;
+          item.place = elaboration.goods_adress;
+          item.type = elaboration.question_text;
+          item.article = elaboration.goods_cod;
+          item.count = {
+            baseCount: elaboration.goods_quantyty,
+            orderCount: elaboration.basket_quant,
+            reservedCount: reservReq.total_quantity || 0
+          };
+          item.imageSm = searchReq.goods[0].picture_src;
+          item.imageLg = searchReq.goods[0].large_picture_src;
+
+          storage.push(item);
+        }
+      }
+
+      return storage;
     },
+
     questions: async function (data) {
       this.storage = [];
       const questions = await this.fetch({
